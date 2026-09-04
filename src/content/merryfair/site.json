@@ -1,0 +1,1014 @@
+{
+  "client": "merryfair",
+  "chrome": {
+    "header": {
+      "type": "Nav",
+      "variant": "nav/main",
+      "props": {
+        "brand": "Merryfair",
+        "logo": "/img/merryfair/logo.webp",
+        "items": [
+          {
+            "label": "Home",
+            "page": "home"
+          },
+          {
+            "label": "Products",
+            "page": "products"
+          },
+          {
+            "label": "Technology",
+            "page": "technology"
+          },
+          {
+            "label": "About",
+            "page": "about"
+          },
+          {
+            "label": "Contact",
+            "page": "contact"
+          }
+        ],
+        "action": {
+          "label": "Request quotation"
+        }
+      }
+    },
+    "footer": {
+      "type": "Footer",
+      "variant": "footer/main",
+      "props": {
+        "brand": "Merryfair Chair System",
+        "columns": [
+          {
+            "title": "Products",
+            "links": [
+              "Wau 2 Series",
+              "Tune Series",
+              "Anggun Series",
+              "Muze Series",
+              "Desking & storage"
+            ]
+          },
+          {
+            "title": "Company",
+            "links": [
+              "About",
+              "Manufacturing",
+              "Technology",
+              "Careers"
+            ]
+          },
+          {
+            "title": "Support",
+            "links": [
+              "Warranty",
+              "Spare parts",
+              "Assembly",
+              "Contact"
+            ]
+          }
+        ],
+        "note": "2 Jalan Koporat 1/KU9, Taman Perindustrian Meru, 42200 Klang, Selangor, Malaysia \u00b7 ISO certified manufacturing since 1982"
+      }
+    }
+  },
+  "pages": {
+    "home": {
+      "title": "Home",
+      "blocks": [
+        {
+          "type": "Hero",
+          "variant": "hero/home",
+          "props": {
+            "eyebrow": "Chair systems since 1974",
+            "title": "Seating engineered around the working spine",
+            "body": "Fifty years of Malaysian manufacturing \u2014 tooling, injection moulding, upholstery, assembly and testing, all under one roof in Klang.",
+            "actions": [
+              {
+                "label": "View the Wau 2 series",
+                "kind": "primary"
+              },
+              {
+                "label": "Book a showroom visit",
+                "kind": "ghost"
+              }
+            ],
+            "image": "/img/merryfair/07-corporate-office.webp",
+            "imageAlt": "Merryfair seating installed across a high-density corporate floor",
+            "imageKind": "environment"
+          }
+        },
+        {
+          "type": "Promo",
+          "variant": "promo/strip",
+          "props": {
+            "kicker": "Now standard",
+            "title": "Wau 2 ships with the recyclable polyelastomer back across the range",
+            "body": "Same frame, same mechanism \u2014 the mesh is now 100% recyclable on every Wau 2 configuration.",
+            "action": {
+              "label": "See the range"
+            },
+            "image": "/img/merryfair/24-mesh-detail.webp",
+            "imageAlt": "Close detail of recyclable mesh"
+          }
+        },
+        {
+          "type": "LogoWall",
+          "variant": "logos/certs",
+          "props": {
+            "title": "Manufacturing standards",
+            "items": [
+              {
+                "label": "ISO 9001"
+              },
+              {
+                "label": "ISO 14001"
+              },
+              {
+                "label": "BIFMA tested"
+              },
+              {
+                "label": "82 countries"
+              },
+              {
+                "label": "5-year warranty"
+              }
+            ]
+          }
+        },
+        {
+          "type": "Stats",
+          "variant": "stats/proof",
+          "props": {
+            "items": [
+              {
+                "value": "10M+",
+                "label": "Chairs exported"
+              },
+              {
+                "value": "82",
+                "label": "Countries served"
+              },
+              {
+                "value": "5 yr",
+                "label": "Structural parts warranty"
+              },
+              {
+                "value": "1974",
+                "label": "Manufacturing since"
+              }
+            ]
+          }
+        },
+        {
+          "type": "Features",
+          "variant": "features/range",
+          "props": {
+            "eyebrow": "The range",
+            "title": "Four seating families, one material science",
+            "items": [
+              {
+                "title": "Wau 2 Series",
+                "body": "Organic spine-mimicking frame, 100% recyclable polyelastomer mesh, deep synchronised tilt and multi-axis lumbar pressure control.",
+                "image": "/img/merryfair/11-wau2-product.webp",
+                "imageAlt": "Wau 2 ergonomic chair"
+              },
+              {
+                "title": "Tune Series",
+                "body": "Adaptive mid-tier task seating with auto weight-sensing tilt and breathable high-tensile polyester mesh for high-density floors.",
+                "image": "/img/merryfair/12-tune-product.webp",
+                "imageAlt": "Tune task chair"
+              },
+              {
+                "title": "Anggun Series",
+                "body": "Lightweight responsive lumbar engineering, designed to relieve occupational lower back pain across long shifts.",
+                "image": "/img/merryfair/13-anggun-product.webp",
+                "imageAlt": "Anggun chair"
+              },
+              {
+                "title": "Muze Series",
+                "body": "Heavy-duty stackable polymer seating for caf\u00e9s, canteens and institutional spaces.",
+                "image": "/img/merryfair/16-muze-stack.webp",
+                "imageAlt": "Stacked Muze chairs"
+              }
+            ]
+          }
+        },
+        {
+          "type": "MediaText",
+          "variant": "mediatext/lead",
+          "props": {
+            "eyebrow": "One roof",
+            "title": "Design, tooling and assembly on a single campus",
+            "body": [
+              "Everything from design engineering and plastic injection moulding to upholstery, assembly and load testing happens inside our Klang facility.",
+              "Centralising R&D with production is why a specification change reaches the line in days, not quarters \u2014 and why structural parts stay available for the life of the warranty."
+            ],
+            "image": "/img/merryfair/06-klang-manufacturing.webp",
+            "imageAlt": "Merryfair manufacturing campus in Klang",
+            "action": {
+              "label": "Inside the factory"
+            }
+          }
+        },
+        {
+          "type": "Testimonials",
+          "variant": "quotes/feature",
+          "props": {
+            "items": [
+              {
+                "quote": "We specified 1,400 Tune chairs across three floors. Four years in, we have replaced two gas lifts and nothing else.",
+                "author": "Facilities lead",
+                "role": "Regional bank, Kuala Lumpur"
+              }
+            ]
+          }
+        },
+        {
+          "type": "Steps",
+          "variant": "steps/process",
+          "props": {
+            "eyebrow": "How specification works",
+            "title": "From floor plan to installed seating",
+            "items": [
+              {
+                "title": "Enquiry",
+                "body": "Send headcount, floor plate and any fabric direction. Rough numbers are enough."
+              },
+              {
+                "title": "Specification",
+                "body": "We return a dimensioned specification, fabric options and a price, usually within two working days."
+              },
+              {
+                "title": "Sample",
+                "body": "A sample chair in your chosen configuration goes to the site for sign-off before the order is cut."
+              },
+              {
+                "title": "Delivery and assembly",
+                "body": "One visit: delivery, on-site assembly and removal of packaging across main Malaysian commerce zones."
+              }
+            ]
+          }
+        },
+        {
+          "type": "CTA",
+          "variant": "cta/main",
+          "props": {
+            "title": "Specify seating for your next floor plate",
+            "body": "Corporate fabric matching to your brand guidelines, free delivery and on-site assembly across main Malaysian commerce zones.",
+            "action": {
+              "label": "Request a quotation"
+            },
+            "note": "Taman Perindustrian Meru, Klang, Selangor"
+          }
+        }
+      ]
+    },
+    "products": {
+      "title": "Products",
+      "blocks": [
+        {
+          "type": "Hero",
+          "variant": "hero/page",
+          "props": {
+            "eyebrow": "Products",
+            "title": "Task, executive and institutional seating",
+            "body": "Four chair families plus desking, cubicles, acoustic panels and file storage \u2014 specified together or independently.",
+            "breadcrumb": [
+              {
+                "label": "Home",
+                "page": "home"
+              },
+              {
+                "label": "Products"
+              }
+            ]
+          }
+        },
+        {
+          "type": "CatalogGrid",
+          "variant": "catalog/range",
+          "props": {
+            "eyebrow": "Catalogue",
+            "title": "Current range",
+            "items": [
+              {
+                "name": "Wau 2 Series",
+                "body": "Executive mesh, synchronised tilt, multi-axis lumbar.",
+                "meta": "Polyelastomer or foam",
+                "tag": "Updated",
+                "image": "/img/merryfair/11-wau2-product.webp",
+                "imageAlt": "Wau 2 chair"
+              },
+              {
+                "name": "Wau 2 \u2014 full range",
+                "body": "Highback, midback and visitor configurations on one frame.",
+                "meta": "3 configurations",
+                "image": "/img/merryfair/15-wau2-range.webp",
+                "imageAlt": "Wau 2 range"
+              },
+              {
+                "name": "Tune Series",
+                "body": "Auto weight-sensing tilt for high-density floors.",
+                "meta": "High-tensile polyester mesh",
+                "image": "/img/merryfair/12-tune-product.webp",
+                "imageAlt": "Tune chair"
+              },
+              {
+                "name": "Anggun Series",
+                "body": "Lightweight responsive lumbar support.",
+                "meta": "Task seating",
+                "image": "/img/merryfair/13-anggun-product.webp",
+                "imageAlt": "Anggun chair"
+              },
+              {
+                "name": "Muze Series",
+                "body": "Stackable polymer seating for caf\u00e9s and institutions.",
+                "meta": "Stacks 8 high",
+                "image": "/img/merryfair/14-muze-product.webp",
+                "imageAlt": "Muze chair"
+              },
+              {
+                "name": "Executive leather",
+                "body": "Upholstered executive seating for cellular offices.",
+                "meta": "Corporate fabric matching",
+                "image": "/img/merryfair/23-executive-chair.webp",
+                "imageAlt": "Executive chair"
+              }
+            ]
+          }
+        },
+        {
+          "type": "SpecTable",
+          "variant": "spec/product",
+          "props": {
+            "eyebrow": "Wau 2 Series",
+            "title": "Specification",
+            "groups": [
+              {
+                "label": "Frame & back",
+                "rows": [
+                  {
+                    "k": "Back frame",
+                    "v": "Organic spine-mimicking polymer"
+                  },
+                  {
+                    "k": "Back material",
+                    "v": "100% recyclable polyelastomer mesh"
+                  },
+                  {
+                    "k": "Alternative",
+                    "v": "Polyurethane moulded foam"
+                  }
+                ]
+              },
+              {
+                "label": "Mechanism",
+                "rows": [
+                  {
+                    "k": "Tilt",
+                    "v": "Deep synchronised, 4-position lock"
+                  },
+                  {
+                    "k": "Lumbar",
+                    "v": "Multi-axis pressure control"
+                  },
+                  {
+                    "k": "Seat depth",
+                    "v": "Sliding, 60 mm travel"
+                  }
+                ]
+              },
+              {
+                "label": "Warranty",
+                "rows": [
+                  {
+                    "k": "Structural parts",
+                    "v": "5 years"
+                  },
+                  {
+                    "k": "Mesh & upholstery",
+                    "v": "2 years"
+                  },
+                  {
+                    "k": "Spare parts",
+                    "v": "Manufactured in-house"
+                  }
+                ]
+              },
+              {
+                "label": "Logistics",
+                "rows": [
+                  {
+                    "k": "Lead time",
+                    "v": "3\u20135 weeks, corporate fabric"
+                  },
+                  {
+                    "k": "Delivery",
+                    "v": "Free within main Malaysian commerce zones"
+                  },
+                  {
+                    "k": "Assembly",
+                    "v": "On-site, included"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "type": "MediaText",
+          "variant": "mediatext/alt",
+          "props": {
+            "eyebrow": "Beyond seating",
+            "title": "Desking, storage and acoustic systems",
+            "body": [
+              "Smart executive desking, modular cubicles, acoustic panels and industrial file storage are manufactured on the same campus and specified against the same fabric library.",
+              "Ordering the floor as one package keeps finishes matched and reduces the number of installation visits to one."
+            ],
+            "image": "/img/merryfair/04-executive-desk.webp",
+            "imageAlt": "Executive desking system"
+          }
+        },
+        {
+          "type": "Stats",
+          "variant": "stats/quiet",
+          "props": {
+            "items": [
+              {
+                "value": "3\u20135 wk",
+                "label": "Typical lead time"
+              },
+              {
+                "value": "5 yr",
+                "label": "Structural warranty"
+              },
+              {
+                "value": "100%",
+                "label": "Recyclable mesh"
+              },
+              {
+                "value": "1",
+                "label": "Assembly visit"
+              }
+            ]
+          }
+        },
+        {
+          "type": "Pricing",
+          "variant": "pricing/plans",
+          "props": {
+            "eyebrow": "After-sales",
+            "title": "Service plans",
+            "tiers": [
+              {
+                "name": "Standard",
+                "price": "Included",
+                "body": "Applies to every order inside main Malaysian commerce zones.",
+                "features": [
+                  "Free delivery",
+                  "On-site assembly",
+                  "5-year structural warranty",
+                  "Spare parts made in-house"
+                ],
+                "action": {
+                  "label": "What is covered"
+                }
+              },
+              {
+                "name": "Care plan",
+                "price": "Quoted",
+                "unit": "annually",
+                "body": "Scheduled maintenance for floors above 200 chairs.",
+                "features": [
+                  "Annual inspection",
+                  "Gas lift and castor replacement",
+                  "Mesh re-tension",
+                  "Priority parts dispatch"
+                ],
+                "action": {
+                  "label": "Request a quote"
+                },
+                "featured": true
+              },
+              {
+                "name": "Refurbishment",
+                "price": "Per unit",
+                "body": "Re-mesh and re-upholster rather than replace, for Wau and Tune series.",
+                "features": [
+                  "Frame inspection",
+                  "Re-mesh or re-upholster",
+                  "Mechanism service",
+                  "Returned to site assembled"
+                ],
+                "action": {
+                  "label": "Check eligibility"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "CTA",
+          "variant": "cta/soft",
+          "props": {
+            "title": "Need a specification sheet?",
+            "body": "We can send dimensioned drawings, fabric swatches and BIFMA test summaries for any series.",
+            "action": {
+              "label": "Request specification pack"
+            }
+          }
+        }
+      ]
+    },
+    "technology": {
+      "title": "Technology",
+      "blocks": [
+        {
+          "type": "Hero",
+          "variant": "hero/page",
+          "props": {
+            "eyebrow": "Technology",
+            "title": "Material science, not marketing adjectives",
+            "body": "Three engineering decisions define how a Merryfair chair behaves over an eight-hour day: the mesh, the mechanism and the lumbar geometry.",
+            "breadcrumb": [
+              {
+                "label": "Home",
+                "page": "home"
+              },
+              {
+                "label": "Technology"
+              }
+            ]
+          }
+        },
+        {
+          "type": "MediaText",
+          "variant": "mediatext/lead",
+          "props": {
+            "eyebrow": "Mesh",
+            "title": "Polyelastomer, recyclable, tensioned to spec",
+            "body": [
+              "Our polyelastomer mesh is 100% recyclable and tensioned against a moulded frame rather than a stretched panel, so seat pressure stays even as the material ages.",
+              "Where a floor needs higher air movement we specify high-tensile polyester instead \u2014 the same frame accepts both."
+            ],
+            "image": "/img/merryfair/24-mesh-detail.webp",
+            "imageAlt": "Close detail of chair mesh"
+          }
+        },
+        {
+          "type": "Features",
+          "variant": "features/values",
+          "props": {
+            "eyebrow": "Engineering pillars",
+            "title": "What we test for",
+            "items": [
+              {
+                "title": "Synchronised tilt",
+                "body": "Backrest and seat rotate on a fixed ratio so the sightline to the desk holds through the full recline range."
+              },
+              {
+                "title": "Auto weight sensing",
+                "body": "Tension adapts to occupant mass without a dial, which matters on hot-desked floors where nobody adjusts anything."
+              },
+              {
+                "title": "Multi-axis lumbar",
+                "body": "Height and depth adjust independently, so support tracks the lordotic curve rather than a single fixed bump."
+              }
+            ]
+          }
+        },
+        {
+          "type": "SpecTable",
+          "variant": "spec/compact",
+          "props": {
+            "eyebrow": "Mechanism",
+            "title": "Test and tolerance summary",
+            "groups": [
+              {
+                "label": "Durability",
+                "rows": [
+                  {
+                    "k": "Tilt cycles",
+                    "v": "120,000"
+                  },
+                  {
+                    "k": "Seat impact",
+                    "v": "100,000 cycles"
+                  },
+                  {
+                    "k": "Castor travel",
+                    "v": "36 km loaded"
+                  }
+                ]
+              },
+              {
+                "label": "Load",
+                "rows": [
+                  {
+                    "k": "Rated occupant",
+                    "v": "120 kg"
+                  },
+                  {
+                    "k": "Static test",
+                    "v": "1,136 kg"
+                  },
+                  {
+                    "k": "Backrest force",
+                    "v": "890 N"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "type": "RichText",
+          "variant": "rich/story",
+          "props": {
+            "eyebrow": "Why it matters",
+            "title": "Occupational back pain is a specification problem",
+            "paragraphs": [
+              "Lower back pain is the most common musculoskeletal complaint in office work, and most of it traces to chairs that support a posture nobody actually holds.",
+              "The Anggun series was developed specifically around that finding: lightweight, responsive lumbar engineering aimed at shifts where the occupant moves constantly rather than settling into one position.",
+              "Every mechanism decision above exists to keep support in contact with the spine while the occupant changes posture \u2014 not to hold them still."
+            ],
+            "aside": "All series are tested to BIFMA methods at our Klang facility before release to the line."
+          }
+        },
+        {
+          "type": "Testimonials",
+          "variant": "quotes/row",
+          "props": {
+            "eyebrow": "From the floor",
+            "title": "What specifiers report back",
+            "items": [
+              {
+                "quote": "The auto-tension is the part that actually gets used. Nobody touches a dial.",
+                "author": "Workplace manager",
+                "role": "Shared services centre"
+              },
+              {
+                "quote": "We could re-mesh rather than replace. That decided the tender.",
+                "author": "Procurement",
+                "role": "University campus"
+              },
+              {
+                "quote": "Same fabric across chairs, screens and storage. Fewer arguments.",
+                "author": "Interior designer",
+                "role": "Fit-out practice"
+              }
+            ]
+          }
+        },
+        {
+          "type": "CTA",
+          "variant": "cta/main",
+          "props": {
+            "title": "Ask for the test data",
+            "body": "BIFMA summaries, material declarations and recyclability statements are available for every series.",
+            "action": {
+              "label": "Request test data"
+            },
+            "note": "Engineering enquiries answered within two working days"
+          }
+        }
+      ]
+    },
+    "about": {
+      "title": "About",
+      "blocks": [
+        {
+          "type": "Hero",
+          "variant": "hero/statement",
+          "props": {
+            "eyebrow": "Since 1974",
+            "title": "Fifty years making chairs in one place",
+            "body": "Merryfair began as an industrial component manufacturer and moved into office seating in 1982. The campus has grown; the address has not.",
+            "image": "/img/merryfair/22-office-exterior.webp",
+            "imageAlt": "Merryfair facility exterior",
+            "imageKind": "environment",
+            "breadcrumb": [
+              {
+                "label": "Home",
+                "page": "home"
+              },
+              {
+                "label": "About"
+              }
+            ]
+          }
+        },
+        {
+          "type": "Timeline",
+          "variant": "timeline/history",
+          "props": {
+            "eyebrow": "History",
+            "title": "How the company arrived here",
+            "items": [
+              {
+                "marker": "1974",
+                "title": "Industrial components",
+                "body": "Founded as a precision component manufacturer supplying Malaysian industry."
+              },
+              {
+                "marker": "1982",
+                "title": "Pivot to seating",
+                "body": "Full transition to office seating manufacture, retaining in-house tooling capability."
+              },
+              {
+                "marker": "1990s",
+                "title": "Export programme",
+                "body": "Institutional seating begins shipping across Southeast Asia and the Middle East."
+              },
+              {
+                "marker": "Today",
+                "title": "82 countries",
+                "body": "Over 10 million chairs exported, with R&D, moulding, upholstery and testing centralised in Klang."
+              }
+            ]
+          }
+        },
+        {
+          "type": "MediaText",
+          "variant": "mediatext/offset",
+          "props": {
+            "eyebrow": "R&D",
+            "title": "Engineering sits next to the moulding floor",
+            "body": [
+              "Design engineering, tooling and quality control share a building with production. A prototype frame can be moulded, assembled and load-tested in the same week it is drawn.",
+              "That proximity is the reason we still manufacture our own spare parts rather than sourcing them."
+            ],
+            "image": "/img/merryfair/08-rd-design.webp",
+            "imageAlt": "R&D and design engineering"
+          }
+        },
+        {
+          "type": "Stats",
+          "variant": "stats/proof",
+          "props": {
+            "items": [
+              {
+                "value": "50 yr",
+                "label": "In manufacturing"
+              },
+              {
+                "value": "10M+",
+                "label": "Chairs shipped"
+              },
+              {
+                "value": "82",
+                "label": "Export markets"
+              },
+              {
+                "value": "1",
+                "label": "Campus, Klang"
+              }
+            ]
+          }
+        },
+        {
+          "type": "Gallery",
+          "variant": "gallery/showroom",
+          "props": {
+            "eyebrow": "The campus",
+            "title": "Klang, Selangor",
+            "items": [
+              {
+                "image": "/img/merryfair/17-showroom-klang.webp",
+                "imageAlt": "Klang showroom"
+              },
+              {
+                "image": "/img/merryfair/18-showroom-bays.webp",
+                "imageAlt": "Showroom display bays"
+              },
+              {
+                "image": "/img/merryfair/20-team.webp",
+                "imageAlt": "Merryfair team"
+              },
+              {
+                "image": "/img/merryfair/19-meeting-room.webp",
+                "imageAlt": "Meeting room seating"
+              },
+              {
+                "image": "/img/merryfair/07-corporate-office.webp",
+                "imageAlt": "High-density corporate office"
+              }
+            ]
+          }
+        },
+        {
+          "type": "RichText",
+          "variant": "rich/intro",
+          "props": {
+            "title": "What has not changed",
+            "paragraphs": [
+              "Every structural component is still made in-house, which is what makes a five-year parts warranty a manufacturing commitment rather than an insurance product.",
+              "It is also why customers who bought chairs a decade ago can still order the exact gas lift, castor or arm pad that fits them."
+            ]
+          }
+        },
+        {
+          "type": "CTA",
+          "variant": "cta/soft",
+          "props": {
+            "title": "Come and sit in them",
+            "body": "The Klang showroom holds the full current range plus fabric and finish libraries.",
+            "action": {
+              "label": "Arrange a visit"
+            },
+            "note": "Weekdays, by appointment"
+          }
+        }
+      ]
+    },
+    "contact": {
+      "title": "Contact",
+      "blocks": [
+        {
+          "type": "Hero",
+          "variant": "hero/page",
+          "props": {
+            "eyebrow": "Contact",
+            "title": "Quotations, showroom visits and after-sales",
+            "body": "Tell us the headcount, the floor plate and the fabric direction. We come back with a specification and a price.",
+            "breadcrumb": [
+              {
+                "label": "Home",
+                "page": "home"
+              },
+              {
+                "label": "Contact"
+              }
+            ]
+          }
+        },
+        {
+          "type": "Locations",
+          "variant": "locations/main",
+          "props": {
+            "eyebrow": "Find us",
+            "title": "Manufacturing campus and showroom",
+            "items": [
+              {
+                "name": "Head office & factory",
+                "address": "2 Jalan Koporat 1/KU9\nTaman Perindustrian Meru\n42200 Klang, Selangor",
+                "note": "Design, moulding, upholstery, assembly and testing"
+              },
+              {
+                "name": "Showroom",
+                "address": "Same campus, Block A\nWeekdays 9:00\u201317:30",
+                "note": "Full current range, by appointment"
+              }
+            ],
+            "image": "/img/merryfair/10-client-showroom.webp",
+            "imageAlt": "Merryfair client showroom"
+          }
+        },
+        {
+          "type": "Steps",
+          "variant": "steps/process",
+          "props": {
+            "eyebrow": "What happens next",
+            "title": "After you send the enquiry",
+            "items": [
+              {
+                "title": "We read it",
+                "body": "A specification engineer, not a queue. Expect questions rather than a brochure."
+              },
+              {
+                "title": "Specification and price",
+                "body": "Dimensioned drawings, fabric options and freight terms, typically within two working days."
+              },
+              {
+                "title": "Sample sign-off",
+                "body": "A sample chair in the exact configuration goes to site before anything is cut."
+              }
+            ]
+          }
+        },
+        {
+          "type": "Features",
+          "variant": "features/services",
+          "props": {
+            "eyebrow": "What is included",
+            "title": "After the order is placed",
+            "items": [
+              {
+                "title": "Corporate fabric matching",
+                "body": "Upholstery matched to your brand guidelines across chairs, screens and storage.",
+                "image": "/img/merryfair/02-ergonomic-furniture.webp",
+                "imageAlt": "Ergonomic furniture range"
+              },
+              {
+                "title": "Delivery and assembly",
+                "body": "Free logistics and professional on-site setup within main Malaysian commerce zones.",
+                "image": "/img/merryfair/05-conference-seating.webp",
+                "imageAlt": "Conference seating installation"
+              },
+              {
+                "title": "Parts for the warranty term",
+                "body": "Structural spares manufactured in-house and stocked for the life of the series.",
+                "image": "/img/merryfair/21-task-chair.webp",
+                "imageAlt": "Task chair"
+              }
+            ]
+          }
+        },
+        {
+          "type": "ContactForm",
+          "variant": "form/main",
+          "props": {
+            "eyebrow": "Request a quotation",
+            "title": "Tell us about the floor",
+            "body": "Rough numbers are fine at this stage \u2014 we will come back with questions rather than a form to fill in again.",
+            "fields": [
+              {
+                "label": "Name",
+                "type": "text"
+              },
+              {
+                "label": "Company",
+                "type": "text"
+              },
+              {
+                "label": "Email",
+                "type": "email"
+              },
+              {
+                "label": "Phone",
+                "type": "tel"
+              },
+              {
+                "label": "Series of interest",
+                "type": "select",
+                "options": [
+                  "Wau 2",
+                  "Tune",
+                  "Anggun",
+                  "Muze",
+                  "Desking & storage",
+                  "Not sure yet"
+                ]
+              },
+              {
+                "label": "Approximate quantity",
+                "type": "text"
+              },
+              {
+                "label": "Anything else we should know",
+                "type": "textarea"
+              }
+            ],
+            "action": {
+              "label": "Send enquiry"
+            }
+          }
+        },
+        {
+          "type": "FAQ",
+          "variant": "faq/main",
+          "props": {
+            "eyebrow": "Before you ask",
+            "title": "Common questions",
+            "items": [
+              {
+                "q": "What is the minimum order for corporate fabric matching?",
+                "a": "Fabric matching is available from 50 units. Below that we can supply from the standard library, which covers 40 colourways."
+              },
+              {
+                "q": "How long does delivery take?",
+                "a": "Three to five weeks for corporate fabric orders. Standard library colours ship faster, typically within two weeks."
+              },
+              {
+                "q": "Do you deliver outside Malaysia?",
+                "a": "Yes \u2014 we export to 82 countries. Freight and assembly terms are quoted per destination."
+              },
+              {
+                "q": "What does the five-year warranty cover?",
+                "a": "Structural components: frame, base, mechanism and gas lift. Mesh and upholstery carry two years. Parts are manufactured in-house."
+              },
+              {
+                "q": "Can existing chairs be re-meshed rather than replaced?",
+                "a": "For Wau and Tune series, yes. Send us the batch details and we will confirm part availability."
+              }
+            ]
+          }
+        },
+        {
+          "type": "CTA",
+          "variant": "cta/main",
+          "props": {
+            "title": "Prefer to call?",
+            "body": "Our specification team answers engineering and logistics questions directly.",
+            "action": {
+              "label": "See contact details"
+            },
+            "note": "Klang, Selangor \u00b7 weekdays 9:00\u201317:30 MYT"
+          }
+        }
+      ]
+    }
+  }
+}
