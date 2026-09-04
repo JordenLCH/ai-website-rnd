@@ -10,12 +10,15 @@ cd "$(dirname "$0")/.."
 SRC="${1:-website_info}"
 [ -d "$SRC" ] || { echo "no source at $SRC — pass the path to the briefs directory"; exit 1; }
 
+# Only the clients the sample content actually references — copying every brief would
+# pull in imagery no page uses.
+CLIENTS="$(grep -ho '/img/[a-z0-9-]*/' renderer/src/content/*/site.json | cut -d/ -f3 | sort -u)"
+
 n=0
-for dir in "$SRC"/*/; do
-  client="$(basename "$dir")"
-  [ -d "$dir/images" ] || continue
+for client in $CLIENTS; do
+  [ -d "$SRC/$client/images" ] || { echo "  no images for $client in $SRC — skipped"; continue; }
   mkdir -p "renderer/public/img/$client"
-  cp "$dir"images/*.webp "renderer/public/img/$client/" 2>/dev/null || true
-  n=$((n + $(ls "$dir"images/*.webp 2>/dev/null | wc -l)))
+  cp "$SRC/$client/images"/*.webp "renderer/public/img/$client/" 2>/dev/null || true
+  n=$((n + $(ls "$SRC/$client/images"/*.webp 2>/dev/null | wc -l)))
 done
-echo "restored $n images into renderer/public/img/"
+echo "restored $n images for: $(echo $CLIENTS | tr '\n' ' ')"
