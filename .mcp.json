@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "blackdash-catalog": {
+      "command": "node",
+      "args": ["--import", "tsx", "/Users/jordenlch/Desktop/Blackdash/ai-website/mcp/src/server.ts"]
+    }
+  }
+}

@@ -1,0 +1,242 @@
+{
+  "name": "merryfair-industrial",
+  "tokens": {
+    "--color-bg": "#E7E4DB",
+    "--color-surface": "#FCFBF7",
+    "--color-ink": "#15160F",
+    "--color-muted": "#57584C",
+    "--color-line": "rgba(21,22,15,0.28)",
+    "--color-accent": "#7BB241",
+    "--color-on-accent": "#0E1A06",
+    "--color-inverse-bg": "#15160F",
+    "--color-inverse-ink": "#E7E4DB",
+    "--color-inverse-muted": "#93958A",
+    "--color-inverse-line": "rgba(231,228,219,0.28)",
+    "--font-display": "'Archivo', system-ui, sans-serif",
+    "--font-body": "'Archivo', system-ui, sans-serif",
+    "--font-eyebrow": "'Barlow Condensed', system-ui, sans-serif",
+    "--font-numeral": "'Barlow Condensed', system-ui, sans-serif",
+    "--display-size": "clamp(2.6rem, 7.2cqi, 5.6rem)",
+    "--display-weight": "800",
+    "--display-tracking": "-0.045em",
+    "--display-leading": "0.94",
+    "--heading-size": "clamp(1.7rem, 3.8cqi, 2.9rem)",
+    "--eyebrow-transform": "uppercase",
+    "--eyebrow-tracking": "0.16em",
+    "--eyebrow-size": "0.86rem",
+    "--body-size": "1.02rem",
+    "--lede-size": "1.14rem",
+    "--body-leading": "1.5",
+    "--radius": "0px",
+    "--radius-img": "0px",
+    "--border": "1px",
+    "--pad-y": "clamp(64px, 9cqi, 128px)",
+    "--gap": "clamp(24px, 3cqi, 40px)",
+    "--maxw": "1240px",
+    "--shadow": "none",
+    "--btn-radius": "0px",
+    "--btn-pad": "1rem 1.8rem",
+    "--btn-weight": "700",
+    "--img-filter": "saturate(0.9) contrast(1.06)",
+    "--hero-min": "58cqi",
+    "--overlay": "linear-gradient(90deg, rgba(21,22,15,0.92) 0%, rgba(21,22,15,0.55) 55%, rgba(21,22,15,0.15) 100%)"
+  },
+  "sectionStyles": {
+    "nav/main": {
+      "layout": "split-rail",
+      "tone": "inverse"
+    },
+    "hero/home": {
+      "layout": "overlay-fullbleed",
+      "tone": "inverse"
+    },
+    "hero/page": {
+      "layout": "stacked-title",
+      "tone": "inverse",
+      "vars": {
+        "--pad-y": "clamp(72px, 10cqi, 140px)"
+      }
+    },
+    "hero/statement": {
+      "layout": "centered-poster",
+      "tone": "default",
+      "vars": {
+        "--display-size": "clamp(3rem, 9.5cqi, 7.4rem)",
+        "--display-leading": "0.9",
+        "--pad-y": "clamp(96px, 13cqi, 180px)"
+      }
+    },
+    "stats/proof": {
+      "layout": "inline-bar",
+      "tone": "accent"
+    },
+    "stats/quiet": {
+      "layout": "inline-bar",
+      "tone": "default"
+    },
+    "features/range": {
+      "layout": "grid-hairline",
+      "tone": "default"
+    },
+    "features/values": {
+      "layout": "text-columns",
+      "tone": "surface"
+    },
+    "features/services": {
+      "layout": "text-columns",
+      "tone": "default"
+    },
+    "mediatext/lead": {
+      "layout": "image-right",
+      "tone": "surface"
+    },
+    "mediatext/alt": {
+      "layout": "image-left",
+      "tone": "default"
+    },
+    "mediatext/offset": {
+      "layout": "overlap-offset",
+      "tone": "surface"
+    },
+    "gallery/showroom": {
+      "layout": "mosaic",
+      "tone": "inverse"
+    },
+    "gallery/products": {
+      "layout": "uniform-grid",
+      "tone": "default"
+    },
+    "spec/product": {
+      "layout": "two-col-groups",
+      "tone": "surface"
+    },
+    "spec/compact": {
+      "layout": "compact-hairline",
+      "tone": "inverse"
+    },
+    "quotes/feature": {
+      "layout": "single-large",
+      "tone": "inverse"
+    },
+    "quotes/row": {
+      "layout": "quote-row",
+      "tone": "surface"
+    },
+    "logos/certs": {
+      "layout": "hairline-row",
+      "tone": "default"
+    },
+    "faq/main": {
+      "layout": "two-col-list",
+      "tone": "default"
+    },
+    "timeline/history": {
+      "layout": "horizontal-steps",
+      "tone": "default"
+    },
+    "locations/main": {
+      "layout": "split-panel",
+      "tone": "surface"
+    },
+    "form/main": {
+      "layout": "split-form",
+      "tone": "inverse"
+    },
+    "rich/intro": {
+      "layout": "prose-narrow",
+      "tone": "default"
+    },
+    "rich/story": {
+      "layout": "lead-aside",
+      "tone": "surface"
+    },
+    "cta/main": {
+      "layout": "hard-panel",
+      "tone": "accent"
+    },
+    "cta/soft": {
+      "layout": "centered-poster",
+      "tone": "inverse"
+    },
+    "footer/main": {
+      "layout": "columns",
+      "tone": "inverse"
+    },
+    "crumbs/page": {
+      "layout": "inline",
+      "tone": "default"
+    },
+    "promo/strip": {
+      "layout": "split-strip",
+      "tone": "inverse"
+    },
+    "catalog/range": {
+      "layout": "hairline-catalog",
+      "tone": "default"
+    },
+    "steps/process": {
+      "layout": "inline-flow",
+      "tone": "inverse"
+    },
+    "pricing/plans": {
+      "layout": "table-compare",
+      "tone": "surface"
+    },
+    "team/leads": {
+      "layout": "minimal-list",
+      "tone": "default"
+    },
+    "posts/news": {
+      "layout": "list-rows",
+      "tone": "default"
+    },
+    "free/nav": {
+      "layout": "free",
+      "tone": "inverse"
+    },
+    "free/hero": {
+      "layout": "free",
+      "tone": "inverse"
+    },
+    "free/proof": {
+      "layout": "free",
+      "tone": "accent"
+    },
+    "free/range": {
+      "layout": "free",
+      "tone": "default"
+    },
+    "free/story": {
+      "layout": "free",
+      "tone": "surface"
+    },
+    "free/spec": {
+      "layout": "free",
+      "tone": "inverse"
+    },
+    "free/quote": {
+      "layout": "free",
+      "tone": "inverse"
+    },
+    "free/process": {
+      "layout": "free",
+      "tone": "default"
+    },
+    "free/media": {
+      "layout": "free",
+      "tone": "default"
+    },
+    "free/contact": {
+      "layout": "free",
+      "tone": "surface"
+    },
+    "free/cta": {
+      "layout": "free",
+      "tone": "accent"
+    },
+    "free/footer": {
+      "layout": "free",
+      "tone": "inverse"
+    }
+  }
+}

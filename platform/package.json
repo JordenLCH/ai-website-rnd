@@ -1,0 +1,12 @@
+{
+  "name": "@blackdash/platform",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node --import tsx src/cli.ts",
+    "smoke": "node --import tsx src/smoke.ts"
+  },
+  "dependencies": { "react": "^19.0.0", "react-dom": "^19.0.0", "zod": "^3.24.1" },
+  "devDependencies": { "tsx": "^4.19.2" }
+}

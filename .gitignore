@@ -1,0 +1,21 @@
+node_modules/
+dist/
+dist-bundles/
+store/
+.vite/
+.catalog-token
+.DS_Store
+
+# client source material — briefs, copy and licensed imagery, not platform code
+website_info/
+
+# demo imagery for the sample content: duplicated from website_info, restored with
+# scripts/restore-demo-assets.sh. Keeping it out means the renderer package ships
+# the catalog, not several megabytes of a client's photography.
+renderer/public/img/
+
+# scratch and local reference
+dev/
+
+# per-repo agent claim board, never committed
+workers.md

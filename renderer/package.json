@@ -1,0 +1,40 @@
+{
+  "name": "@blackdash/renderer",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "validate": "node --import tsx tools/validate.ts"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tsx": "^4.23.13",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "bin": {
+    "blackdash-preview": "./bin/preview.mjs",
+    "blackdash-validate": "./bin/validate.mjs"
+  },
+  "version": "0.4.0",
+  "files": [
+    "src",
+    "tools",
+    "bin",
+    "vite.config.ts",
+    "tsconfig.json",
+    "index.html"
+  ]
+}

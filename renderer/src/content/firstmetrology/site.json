@@ -1,0 +1,578 @@
+{
+  "client": "firstmetrology",
+  "chrome": {
+    "header": {
+      "type": "Nav",
+      "variant": "nav/main",
+      "props": {
+        "brand": "First Metrology",
+        "logo": "/img/firstmetrology/logo.webp",
+        "items": [
+          {
+            "label": "Home",
+            "page": "home"
+          },
+          {
+            "label": "Products",
+            "page": "products"
+          },
+          {
+            "label": "Services",
+            "page": "services"
+          },
+          {
+            "label": "About",
+            "page": "about"
+          },
+          {
+            "label": "Contact",
+            "page": "contact"
+          }
+        ],
+        "action": {
+          "label": "Talk to an engineer"
+        }
+      }
+    },
+    "footer": {
+      "type": "Footer",
+      "variant": "footer/main",
+      "props": {
+        "brand": "First Metrology",
+        "columns": [
+          {
+            "title": "Products",
+            "links": [
+              "ATOS ScanBox",
+              "ATOS 3D Scanners",
+              "TRITOP",
+              "ARAMIS & ARGUS"
+            ]
+          },
+          {
+            "title": "Services",
+            "links": [
+              "3D Inspection & QA",
+              "Contract Measurement",
+              "Reverse Engineering"
+            ]
+          },
+          {
+            "title": "Company",
+            "links": [
+              "About",
+              "Contact"
+            ]
+          }
+        ],
+        "note": "First Metrology Sdn Bhd (1108417P) \u00b7 Phileo Damansara 1, Petaling Jaya, Selangor, Malaysia"
+      }
+    }
+  },
+  "pages": {
+    "home": {
+      "title": "Home",
+      "blocks": [
+        {
+          "type": "Hero",
+          "variant": "hero/home",
+          "props": {
+            "eyebrow": "Authorized GOM \u00b7 A ZEISS Company distributor \u2014 Malaysia & Singapore",
+            "title": "Zero-error precision, measured in 3D",
+            "body": "First Metrology supplies GOM's ATOS, TRITOP and ARAMIS optical measurement systems, and delivers certified on-site inspection, contract measurement and reverse engineering across Malaysia and Singapore.",
+            "actions": [
+              {
+                "label": "View hardware",
+                "kind": "primary"
+              },
+              {
+                "label": "Talk to an engineer",
+                "kind": "ghost"
+              }
+            ],
+            "image": "/img/firstmetrology/01-hero-scanbox-banner.webp",
+            "imageAlt": "ATOS ScanBox automated 3D optical measuring cell",
+            "imageKind": "cutout"
+          }
+        },
+        {
+          "type": "LogoWall",
+          "variant": "logos/certs",
+          "props": {
+            "title": "Certified partner, trusted across industries",
+            "items": [
+              {
+                "label": "GOM GmbH \u2014 A ZEISS Company",
+                "note": "Authorized distributor, Malaysia & Singapore"
+              },
+              {
+                "label": "Aerospace"
+              },
+              {
+                "label": "Automotive"
+              },
+              {
+                "label": "Heavy metal fabrication"
+              },
+              {
+                "label": "Oil & gas"
+              },
+              {
+                "label": "Tool & die"
+              }
+            ]
+          }
+        },
+        {
+          "type": "Stats",
+          "variant": "stats/proof",
+          "props": {
+            "items": [
+              {
+                "value": "3",
+                "label": "Locations \u2014 Petaling Jaya, Penang, Singapore"
+              },
+              {
+                "value": "5",
+                "label": "Industries served"
+              },
+              {
+                "value": "2",
+                "label": "Countries \u2014 Malaysia & Singapore"
+              }
+            ]
+          }
+        },
+        {
+          "type": "Features",
+          "variant": "features/range",
+          "props": {
+            "eyebrow": "GOM technology",
+            "title": "Optical measurement hardware",
+            "items": [
+              {
+                "title": "ATOS ScanBox",
+                "body": "Fully automated, robotic-arm-driven 3D optical coordinate measuring machine for rapid series inspection.",
+                "image": "/img/firstmetrology/06-robotic-measuring-arm.webp",
+                "imageAlt": "Automated measuring cell control gauge"
+              },
+              {
+                "title": "ATOS 3D Scanners",
+                "body": "Industrial-grade blue-light structured fringe projection scanners, capturing millions of data points on complex geometric surfaces.",
+                "image": "/img/firstmetrology/09-zero-error-qc-inspection.webp",
+                "imageAlt": "Point-cloud inspection data on a handheld display"
+              },
+              {
+                "title": "TRITOP",
+                "body": "Portable industrial photogrammetry for measuring massive structures such as wind turbines and aircraft frames.",
+                "image": "/img/firstmetrology/04-aerospace-auto-parts.webp",
+                "imageAlt": "Close-up of turbine blade assembly"
+              },
+              {
+                "title": "ARAMIS & ARGUS",
+                "body": "Dynamic 3D motion tracking arrays for real-time material deformation, strain measurement and sheet metal forming limits.",
+                "image": "/img/firstmetrology/05-3d-cad-reverse-engineering.webp",
+                "imageAlt": "Close-up of mechanical component under test"
+              }
+            ]
+          }
+        },
+        {
+          "type": "MediaText",
+          "variant": "mediatext/lead",
+          "props": {
+            "eyebrow": "Beyond hardware",
+            "title": "Certified engineering services, on demand",
+            "body": [
+              "Alongside hardware distribution, our certified engineers deliver on-site 3D inspection, pay-per-use contract measurement, and reverse engineering \u2014 turning physical parts into verified data or accurate CAD models."
+            ],
+            "image": "/img/firstmetrology/03-precision-engineering.webp",
+            "imageAlt": "Engineer reviewing dimensional CAD data on screen",
+            "action": {
+              "label": "Explore services"
+            }
+          }
+        },
+        {
+          "type": "CTA",
+          "variant": "cta/main",
+          "props": {
+            "title": "Get zero-error inspection on your next build",
+            "body": "Talk to our engineering team about ATOS, TRITOP or ARAMIS deployment, or book a contract measurement.",
+            "action": {
+              "label": "Contact us"
+            },
+            "note": "Petaling Jaya \u00b7 Penang \u00b7 Singapore"
+          }
+        }
+      ]
+    },
+    "products": {
+      "title": "Products",
+      "blocks": [
+        {
+          "type": "Hero",
+          "variant": "hero/page",
+          "props": {
+            "eyebrow": "Hardware",
+            "title": "3D optical measurement systems",
+            "body": "The full GOM ATOS, TRITOP and ARAMIS range, distributed and supported locally across Malaysia and Singapore.",
+            "actions": [
+              {
+                "label": "Talk to an engineer",
+                "kind": "primary"
+              }
+            ],
+            "image": "/img/firstmetrology/02-3d-metrology-lab.webp",
+            "imageAlt": "Coordinate measurement drawing reviewed on screen at a workbench",
+            "imageKind": "environment",
+            "breadcrumb": [
+              {
+                "label": "Home",
+                "page": "home"
+              },
+              {
+                "label": "Products"
+              }
+            ]
+          }
+        },
+        {
+          "type": "CatalogGrid",
+          "variant": "catalog/range",
+          "props": {
+            "eyebrow": "The range",
+            "title": "The GOM hardware range",
+            "items": [
+              {
+                "name": "ATOS ScanBox",
+                "body": "Fully automated, robotic-arm-driven 3D optical coordinate measuring machine for rapid series inspection.",
+                "meta": "Automated CMM",
+                "tag": "Series inspection",
+                "image": "/img/firstmetrology/01-hero-scanbox-banner.webp",
+                "imageAlt": "ATOS ScanBox automated measuring cell"
+              },
+              {
+                "name": "ATOS 3D Scanners",
+                "body": "Industrial-grade blue-light structured fringe projection scanners capturing millions of data points on complex geometries.",
+                "meta": "Handheld / fixed",
+                "tag": "High resolution",
+                "image": "/img/firstmetrology/06-robotic-measuring-arm.webp",
+                "imageAlt": "Precision measuring gauge in use"
+              },
+              {
+                "name": "TRITOP",
+                "body": "Portable industrial photogrammetry for measuring massive structures such as wind turbines and aircraft frames.",
+                "meta": "Portable photogrammetry",
+                "tag": "Large-scale",
+                "image": "/img/firstmetrology/04-aerospace-auto-parts.webp",
+                "imageAlt": "Close-up of turbine blade assembly"
+              },
+              {
+                "name": "ARAMIS & ARGUS",
+                "body": "Dynamic 3D motion tracking arrays for real-time material deformation, strain measurement and sheet metal forming limits.",
+                "meta": "Motion & strain",
+                "tag": "Dynamic testing",
+                "image": "/img/firstmetrology/05-3d-cad-reverse-engineering.webp",
+                "imageAlt": "Close-up of mechanical component under test"
+              }
+            ]
+          }
+        },
+        {
+          "type": "SpecTable",
+          "variant": "spec/product",
+          "props": {
+            "eyebrow": "Specification snapshot",
+            "title": "Choosing the right system",
+            "groups": [
+              {
+                "label": "ATOS ScanBox",
+                "rows": [
+                  {
+                    "k": "Type",
+                    "v": "Automated robotic 3D CMM"
+                  },
+                  {
+                    "k": "Best for",
+                    "v": "Rapid series inspection"
+                  }
+                ]
+              },
+              {
+                "label": "ATOS 3D Scanners",
+                "rows": [
+                  {
+                    "k": "Type",
+                    "v": "Blue-light structured-light scanner"
+                  },
+                  {
+                    "k": "Best for",
+                    "v": "Complex surface geometry capture"
+                  }
+                ]
+              },
+              {
+                "label": "TRITOP",
+                "rows": [
+                  {
+                    "k": "Type",
+                    "v": "Portable photogrammetry"
+                  },
+                  {
+                    "k": "Best for",
+                    "v": "Large structures \u2014 turbines, aircraft"
+                  }
+                ]
+              },
+              {
+                "label": "ARAMIS & ARGUS",
+                "rows": [
+                  {
+                    "k": "Type",
+                    "v": "Dynamic motion / strain tracking"
+                  },
+                  {
+                    "k": "Best for",
+                    "v": "Deformation & forming-limit testing"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "type": "CTA",
+          "variant": "cta/soft",
+          "props": {
+            "title": "Not sure which system fits your line?",
+            "body": "Send us the part, tolerance and volume \u2014 we'll recommend the right ATOS, TRITOP or ARAMIS configuration.",
+            "action": {
+              "label": "Request a recommendation"
+            }
+          }
+        }
+      ]
+    },
+    "services": {
+      "title": "Services",
+      "blocks": [
+        {
+          "type": "Hero",
+          "variant": "hero/page",
+          "props": {
+            "eyebrow": "Engineering services",
+            "title": "Certified, on-site and on demand",
+            "body": "From compliance inspection to reverse engineering, our certified engineers deploy across Malaysia and Singapore.",
+            "actions": [
+              {
+                "label": "Book a service",
+                "kind": "primary"
+              }
+            ],
+            "image": "/img/firstmetrology/07-component-deformation-testing.webp",
+            "imageAlt": "Materials testing laboratory with technicians operating tensile test rigs",
+            "imageKind": "environment",
+            "breadcrumb": [
+              {
+                "label": "Home",
+                "page": "home"
+              },
+              {
+                "label": "Services"
+              }
+            ]
+          }
+        },
+        {
+          "type": "Steps",
+          "variant": "steps/process",
+          "props": {
+            "eyebrow": "What we do",
+            "title": "Three certified services",
+            "items": [
+              {
+                "title": "3D Inspection & QA",
+                "body": "Physical scan meshes compared directly against nominal CAD models via visual colour-coded discrepancy maps."
+              },
+              {
+                "title": "Contract Measurement Services",
+                "body": "Pay-per-use, specialised field deployments for one-off or recurring measurement jobs."
+              },
+              {
+                "title": "Reverse Engineering",
+                "body": "Physical point clouds converted into accurate parametric 3D CAD models."
+              }
+            ]
+          }
+        },
+        {
+          "type": "MediaText",
+          "variant": "mediatext/alt",
+          "props": {
+            "eyebrow": "Reverse engineering",
+            "title": "From point cloud to parametric CAD",
+            "body": [
+              "We scan the physical part, then rebuild it as an accurate, editable parametric CAD model \u2014 for legacy components with no drawings, or parts that have drifted from their original design."
+            ],
+            "image": "/img/firstmetrology/05-3d-cad-reverse-engineering.webp",
+            "imageAlt": "Mechanical component measured for reverse engineering",
+            "action": {
+              "label": "Ask about reverse engineering"
+            }
+          }
+        },
+        {
+          "type": "CTA",
+          "variant": "cta/main",
+          "props": {
+            "title": "Need a certified engineer on site?",
+            "body": "Tell us the part, the deadline and the site \u2014 we'll schedule a certified engineer.",
+            "action": {
+              "label": "Request a site visit"
+            },
+            "note": "Malaysia & Singapore coverage"
+          }
+        }
+      ]
+    },
+    "about": {
+      "title": "About",
+      "blocks": [
+        {
+          "type": "Hero",
+          "variant": "hero/page",
+          "props": {
+            "eyebrow": "About First Metrology",
+            "title": "Malaysia & Singapore's certified GOM partner",
+            "body": "Company Registration No. 1108417P.",
+            "image": "/img/firstmetrology/10-certified-onsite-engineer.webp",
+            "imageAlt": "Engineer working in an industrial measurement facility",
+            "imageKind": "environment",
+            "breadcrumb": [
+              {
+                "label": "Home",
+                "page": "home"
+              },
+              {
+                "label": "About"
+              }
+            ]
+          }
+        },
+        {
+          "type": "RichText",
+          "variant": "rich/intro",
+          "props": {
+            "eyebrow": "Who we are",
+            "title": "An authorized distributor and certified engineering partner",
+            "paragraphs": [
+              "First Metrology Sdn Bhd (Company Registration No. 1108417P) is an industrial supplier specialising in high-stakes 3D optical metrology, coordinate measurement technology and mechanical deformation testing.",
+              "We are the official authorized distributor and certified engineering partner for GOM GmbH, a ZEISS company, across both Malaysia and Singapore \u2014 serving aerospace component production, automotive assembly, heavy metal fabrication, oil & gas asset inspection and precision tool & die shops."
+            ],
+            "aside": "Authorized distributor \u00b7 GOM GmbH, A ZEISS Company"
+          }
+        },
+        {
+          "type": "Locations",
+          "variant": "locations/main",
+          "props": {
+            "eyebrow": "Where we operate",
+            "title": "Headquartered in Petaling Jaya",
+            "items": [
+              {
+                "name": "First Metrology HQ",
+                "address": "Phileo Damansara 1\nPetaling Jaya, Selangor\nMalaysia",
+                "note": "Regional engineering support in Penang, Malaysia and Singapore."
+              }
+            ],
+            "image": "/img/firstmetrology/02-3d-metrology-lab.webp",
+            "imageAlt": "Measurement engineering workspace"
+          }
+        },
+        {
+          "type": "CTA",
+          "variant": "cta/soft",
+          "props": {
+            "title": "Want to work with a certified partner?",
+            "body": "Reach our team in Petaling Jaya, Penang or Singapore.",
+            "action": {
+              "label": "Get in touch"
+            }
+          }
+        }
+      ]
+    },
+    "contact": {
+      "title": "Contact",
+      "blocks": [
+        {
+          "type": "Hero",
+          "variant": "hero/page",
+          "props": {
+            "eyebrow": "Contact",
+            "title": "Talk to our engineering team",
+            "body": "Hardware, service or a spec question \u2014 we'll route it to the right engineer in Malaysia or Singapore.",
+            "image": "/img/firstmetrology/06-robotic-measuring-arm.webp",
+            "imageAlt": "Technician operating a precision measuring gauge",
+            "imageKind": "environment",
+            "breadcrumb": [
+              {
+                "label": "Home",
+                "page": "home"
+              },
+              {
+                "label": "Contact"
+              }
+            ]
+          }
+        },
+        {
+          "type": "ContactForm",
+          "variant": "form/main",
+          "props": {
+            "eyebrow": "Enquiry",
+            "title": "Tell us about your measurement challenge",
+            "body": "We'll route your enquiry to the right engineer in Malaysia or Singapore.",
+            "fields": [
+              {
+                "label": "Full name",
+                "type": "text"
+              },
+              {
+                "label": "Company",
+                "type": "text"
+              },
+              {
+                "label": "Email",
+                "type": "email"
+              },
+              {
+                "label": "Phone",
+                "type": "tel"
+              },
+              {
+                "label": "Enquiry type",
+                "type": "select",
+                "options": [
+                  "Hardware sales",
+                  "3D Inspection & QA",
+                  "Contract Measurement",
+                  "Reverse Engineering",
+                  "Other"
+                ]
+              },
+              {
+                "label": "Message",
+                "type": "textarea"
+              }
+            ],
+            "action": {
+              "label": "Send enquiry"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
