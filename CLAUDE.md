@@ -12,7 +12,7 @@ If you are here to **test the flow**, jump to "Test task" at the bottom.
 | Path | What it is |
 |---|---|
 | `spike/` | `@blackdash/renderer` — block catalog, validator, preview server. Consumed as a dependency; creators never edit it |
-| `mcp/` | read-only catalog MCP server (stdio + HTTP + Cloudflare tunnel) |
+| `mcp/` | read-only catalog MCP server (HTTP + bearer, plus a stdio entry point) |
 | `platform/` | the server side — build farm and SEO/AEO/GEO derivation. Runs after upload |
 | `starter/` | what a creator clones: content JSON and assets only, no catalog |
 | `skills/create-webpage/` | the distributable skill creators use. Also installed at `~/.claude/skills/` |
@@ -49,14 +49,32 @@ cd starter && ./package.sh <client>        # zips the source bundle for upload
 # platform side
 cd platform && npm run build -- <bundle-dir> <out-dir>   # HTML + JSON-LD + sitemap + llms.txt
 cd mcp && npm run smoke                    # validates every bundle, proves the gates fire
-cd mcp && npm start                        # catalog over stdio
-cd mcp && ./tunnel.sh                      # catalog over HTTP + public tunnel, prints client config
+cd mcp && ./tunnel.sh                      # start the catalog server (HTTP :8787, bearer auth)
+cd mcp && npm start                        # stdio form, if you need it standalone
 ```
 
 The preview app has three dropdowns — `site`, `theme`, and page tabs — plus a status readout that
 turns red and lists issues when a bundle is invalid.
 
 ## Where each concern lives, and why
+
+**The catalog MCP is HTTP, not stdio.** Both `.mcp.json` files use `type: "http"` with a bearer
+token. `ai-website/.mcp.json` is committed, so it reads the token from `${CATALOG_TOKEN}` rather than
+holding it — export it before starting a session:
+
+```bash
+export CATALOG_TOKEN="$(cat mcp/.catalog-token)"   # worth putting in your shell profile
+```
+
+`site-starter/.mcp.json` is gitignored and carries the literal token and the public tunnel URL, which
+is what a creator on another machine gets from `./setup-mcp.sh`. The stdio form was the earlier
+default and was dropped as the config: it cold-starts `tsx` at session init and intermittently
+misses the client's connect timeout, which surfaces as `CONNECTION_CLOSED` with nothing to debug.
+An already-running HTTP server survives client restarts.
+
+Two failure modes worth telling apart. `CONNECTION_CLOSED` / connection refused means the local
+server on `:8787` is not running. A **502 from the tunnel** means the same thing seen from outside —
+Cloudflare is up and the origin behind it is not; it is never a tunnel problem.
 
 **MCP serves only what drifts**: the block catalog, prop schemas, the token contract, and the fleet
 of existing sites. Those change on the platform's schedule and a creator's machine cannot know them.
@@ -133,8 +151,10 @@ Goal: exercise the whole flow on a brief nobody has generated yet, and report wh
 **Use `website_info/gmr/` (Guard My Ride) or `website_info/wungadv/` (Wung & Co Advocates).**
 `merryfair` and `aonic` are already built — generating those proves nothing.
 
-1. **Connect the catalog.** Either `cd mcp && npm start` (stdio, config in `.mcp.json`) or
-   `./tunnel.sh` for the HTTP form. Confirm `catalog_list` returns 24 blocks and a `catalogVersion`.
+1. **Connect the catalog.** `cd mcp && ./tunnel.sh`, then confirm `catalog_list` returns the block
+   count and a `catalogVersion`. If the MCP shows as disconnected, the server is not running — start
+   it rather than falling back to the offline catalog, or `fleet_siblings` silently never runs and
+   the divergence check in step 3 is skipped without saying so.
 2. **Invoke the `create-webpage` skill** and follow it. Read the brief, propose a sitemap, sample
    four art directions and justify the pick, then compose.
 3. **Check divergence** with `fleet_siblings` before writing content. Layout-map overlap above ~0.7

@@ -7,28 +7,34 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-PORT="${PORT:-8787}"
+PORT=8787
+URL="https://tools.cod3r.men"
 [ -f .catalog-token ] || openssl rand -hex 16 > .catalog-token
 chmod 600 .catalog-token
 TOKEN="$(cat .catalog-token)"
 
 CATALOG_TOKEN="$TOKEN" PORT="$PORT" npm run --silent http & SERVER=$!
-trap 'kill $SERVER $TUNNEL 2>/dev/null || true' EXIT
-sleep 2
+trap 'kill $SERVER 2>/dev/null || true' EXIT
 
-cloudflared tunnel --url "http://localhost:$PORT" > /tmp/cf-catalog.log 2>&1 & TUNNEL=$!
-for _ in $(seq 30); do
-  URL="$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' /tmp/cf-catalog.log | head -1 || true)"
-  [ -n "$URL" ] && break
-  sleep 1
-done
-[ -n "${URL:-}" ] || { echo "tunnel did not come up; see /tmp/cf-catalog.log"; exit 1; }
+# Dynamic cloudflared quick-tunnel disabled — fixed port 8787, named tunnel
+# (cod3r.men -> localhost:8787) added manually via cloudflared config.
+# cloudflared tunnel --url "http://localhost:$PORT" > /tmp/cf-catalog.log 2>&1 & TUNNEL=$!
+# for _ in $(seq 30); do
+#   URL="$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' /tmp/cf-catalog.log | head -1 || true)"
+#   [ -n "$URL" ] && break
+#   sleep 1
+# done
+# [ -n "${URL:-}" ] || { echo "tunnel did not come up; see /tmp/cf-catalog.log"; exit 1; }
 
 echo
 echo "catalog live at $URL/mcp"
 echo "health:        curl -sS $URL/health"
 echo
-echo "add to the creator's .mcp.json:"
+echo "in the creator's site-starter checkout:"
+echo
+echo "  ./setup-mcp.sh $TOKEN $URL"
+echo
+echo "or paste into .mcp.json by hand:"
 cat <<JSON
 
 {
@@ -42,5 +48,5 @@ cat <<JSON
 }
 JSON
 echo
-echo "ctrl-c to stop both."
+echo "ctrl-c to stop."
 wait

@@ -1,8 +1,9 @@
 {
   "mcpServers": {
     "blackdash-catalog": {
-      "command": "node",
-      "args": ["--import", "tsx", "/Users/jordenlch/Desktop/Blackdash/ai-website/mcp/src/server.ts"]
+      "type": "http",
+      "url": "http://127.0.0.1:8787/mcp",
+      "headers": { "Authorization": "Bearer ${CATALOG_TOKEN}" }
     }
   }
 }
