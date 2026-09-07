@@ -19,6 +19,12 @@ If you are here to **test the flow**, jump to "Test task" at the bottom.
 | `website_info/` | five real client briefs with copy, brand colours and local images |
 | `docs/` | research + spike findings, with the reasoning behind every design decision |
 
+**Start with [`docs/how-a-site-gets-generated.md`](docs/how-a-site-gets-generated.md)** — the
+end-to-end account of the pipeline: the nine workflow stages and why they run content → structure →
+look, the four safeguard layers and what each can actually see, what the platform derives after
+upload, and the defects the first full block audit found. This file is the reference; the sections
+below are the working detail.
+
 Content lives in `<repo>/content/<client>/` as three files: `site.json`, `theme.json`, `org.json`.
 The renderer discovers them by folder — adding a client is adding a directory, not editing an import.
 
