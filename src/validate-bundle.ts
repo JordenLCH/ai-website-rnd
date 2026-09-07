@@ -5,6 +5,7 @@
  *  platform fastest, and the only durable defence is refusing to keep two copies. */
 import { catalog } from './blocks/index'
 import { SiteSchema, ThemeSchema } from './schema'
+import { unservedFamilies } from './fonts'
 
 export type Issue = { where: string; message: string; severity: 'error' | 'warning' | 'info' }
 
@@ -626,6 +627,19 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown):
   }
   for (const pageKey of Object.keys(site.pages)) {
     if (!h1Pages.has(pageKey)) issues.push({ where: `pages.${pageKey}`, message: 'page has no Hero, so no h1 — bad for SEO and for orientation', severity: 'warning' })
+  }
+
+  // A font the platform does not serve is the quietest possible failure: the page loads,
+  // the layout is correct, and only the typeface is wrong — and typography is the layer
+  // carrying the most identity after the layout map. Nothing else in the pipeline notices,
+  // because a missing webfont is not an error in CSS, it is a fallback.
+  const unserved = unservedFamilies(theme.tokens)
+  if (unserved.length) {
+    issues.push({
+      where: 'theme.tokens',
+      message: `${unserved.join(', ')} ${unserved.length > 1 ? 'are' : 'is'} not served by the platform — the page will silently render in the system stack instead. Either choose a family the platform loads, or ask for it to be added to renderer/src/fonts.ts along with the weights that family actually publishes`,
+      severity: 'error',
+    })
   }
 
   // Monospace for eyebrows and numerals is the most-reached-for "technical" gesture
