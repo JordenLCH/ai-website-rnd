@@ -18,6 +18,11 @@ export const BlockSchema = z.object({
   type: z.string(),
   variant: z.string(),
   props: z.record(z.unknown()),
+  /** Content the generator composed rather than took from the brief — a plausible figure,
+   *  a spec value, a quote. Marked, never silent: the preview lists it for the human pass,
+   *  the build farm excludes it from JSON-LD, and publishing is refused while any remains.
+   *  Fabricated copy is a draft; fabricated structured data is a manual action. */
+  unverified: z.boolean().optional(),
 })
 
 export const PageSchema = z.object({

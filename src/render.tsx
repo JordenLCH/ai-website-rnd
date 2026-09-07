@@ -1,43 +1,23 @@
 import { catalog } from './blocks'
 import type { Page, Site, Theme } from './schema'
 import { SiteSchema, ThemeSchema } from './schema'
+import { validateBundle, type Density, type Issue } from './validate-bundle'
 
-export type Issue = { where: string; message: string }
+export type { Issue, Density }
 
-/** Validate a site against the catalog AND the theme. Everything the AI emits passes here. */
+/** The preview validates through the same module the build farm runs. Keeping a second,
+ *  friendlier copy here is how "valid in preview, rejected on publish" gets born, so this
+ *  only parses the tree for rendering and defers every judgement to validateBundle. */
 export function validate(rawSite: unknown, rawTheme: unknown):
-  { site?: Site; theme?: Theme; issues: Issue[] } {
+  { site?: Site; theme?: Theme; issues: Issue[]; density: Density[]; unverified: string[] } {
+  const report = validateBundle(rawSite, rawTheme)
   const s = SiteSchema.safeParse(rawSite)
   const t = ThemeSchema.safeParse(rawTheme)
-  if (!s.success) return { issues: [{ where: 'site', message: s.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ') }] }
-  if (!t.success) return { issues: [{ where: 'theme', message: t.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ') }] }
-
-  const site = s.data, theme = t.data
-  const issues: Issue[] = []
-
-  const chromeBlocks: [string, typeof site.pages[string]['blocks'][number]][] = []
-  if (site.chrome?.header) chromeBlocks.push(['chrome.header', site.chrome.header])
-  if (site.chrome?.footer) chromeBlocks.push(['chrome.footer', site.chrome.footer])
-
-  for (const [pageKey, page] of [...chromeBlocks.map(([k, b]) => [k, { blocks: [b] }] as const),
-                                 ...Object.entries(site.pages)]) {
-    page.blocks.forEach((b, i) => {
-      const where = pageKey.startsWith('chrome.') ? `${pageKey} ${b.type}` : `${pageKey}.blocks[${i}] ${b.type}`
-      const entry = catalog[b.type]
-      if (!entry) { issues.push({ where, message: `unknown block type "${b.type}" — not in catalog` }); return }
-      const p = entry.schema.safeParse(b.props)
-      if (!p.success) issues.push({ where, message: p.error.issues.map(x => `props.${x.path.join('.')}: ${x.message}`).join('; ') })
-      const style = theme.sectionStyles[b.variant]
-      if (!style) { issues.push({ where, message: `variant "${b.variant}" not defined by theme "${theme.name}"` }); return }
-      if (!entry.layouts.includes(style.layout)) {
-        issues.push({ where, message: `theme maps "${b.variant}" -> layout "${style.layout}", not supported by ${b.type} (${entry.layouts.join(', ')})` })
-      } else if (entry.check && p.success) {
-        for (const m of entry.check(p.data, style.layout)) issues.push({ where, message: m })
-      }
-    })
+  return {
+    site: s.success ? s.data : undefined,
+    theme: t.success ? t.data : undefined,
+    ...report,
   }
-
-  return { site, theme, issues }
 }
 
 function Section({ block, theme }: { block: Page['blocks'][number]; theme: Theme }) {
@@ -48,7 +28,9 @@ function Section({ block, theme }: { block: Page['blocks'][number]; theme: Theme
   if (!parsed.success) return null
   const { Component } = entry
   return (
-    <div className="section" data-tone={style.tone} style={style.vars as React.CSSProperties}>
+    <div className="section" data-tone={style.tone}
+      {...(block.unverified ? { 'data-unverified': 'true' } : {})}
+      style={style.vars as React.CSSProperties}>
       <Component props={parsed.data} layout={style.layout} />
     </div>
   )
