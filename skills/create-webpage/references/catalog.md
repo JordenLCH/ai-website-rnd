@@ -141,13 +141,25 @@ genuinely cannot express a section.
   "children": [ /* primitive tree */ ] }}
 ```
 
-**Primitives (15).** Layout: `Stack`, `Row`, `Grid` (`cols`), `Card`. Content: `Heading` (`level` 1–6,
-`size` display|heading|title|body), `Text` (`size` lede|body|small), `Eyebrow`, `Quote`, `Stat`,
+**Primitives (20).** Layout: `Stack`, `Row`, `Grid` (`cols`), `Card`, `Figure` (`caption`, wraps an
+`Image`). Content: `Heading` (`level` 1–6, `size` display|heading|title|body, `accent?`), `Text`
+(`size` lede|body|small, `accent?`), `Eyebrow`, `Quote`, `Caption`, `Stat`,
 `List` (`style` plain|dashed|rows), `Image` (`kind`, `ratio`), `Button` (`kind`, `page?`),
-`Field` (`type` text|email|tel|textarea|select), `Divider`, `Spacer`.
+`Field` (`type` text|email|tel|textarea|select), `Divider`, `Spacer`,
+`Badge` (`text`, `kind` accent|quiet|outline), `Marker` (`text` — `"01"`),
+`KeyValue` (`rows: [{k, v}]`, min 2).
+
+**The detail primitives are what make a section read as professional rather than as a blog post.**
+`Figure` + `Caption` under a photograph, `KeyValue` for specifications, `Marker` for numbered steps,
+`Badge` for certifications and materials. A section built only from `Heading` + `Text` + `Image` is
+the shape of a template no matter what the theme does with it.
+
+`accent` colours **one verbatim substring** of the same node's `text` — it is a substring, not markup,
+so the heading stays one string for outline and JSON-LD extraction. An `accent` that does not occur in
+`text` renders unchanged and the validator warns.
 
 **Every node accepts:** `area` (grid-area `"r/c/r/c"`), `span`, `gap`, `pad`, `align`, `justify`,
-`maxw`, `tone`, `motion: {type, delay}`, `parallax`.
+`maxw`, `tone`, `motion: {type, delay}`, `parallax`, `unverified`.
 
 **Motion types:** `fade`, `fade-up`, `slide-left`, `slide-right`, `scale-in`, `reveal-clip`.
 Stagger with `delay` in 60–90 ms steps. Motion is disabled automatically under `prefers-reduced-motion`.

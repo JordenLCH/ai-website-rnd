@@ -76,15 +76,22 @@ export const entry: CatalogEntry<P> = {
     if (props.bg?.overlay && props.bg.kind !== 'environment')
       out.push(`background overlay needs an "environment" image, got "${props.bg.kind}"`)
 
-    const displays = nodes.filter((n: any) => n.size === 'display').length
-    if (displays > 1) out.push(`${displays} display-size elements in one section — at most 1`)
+    // Display size is a typographic claim: one per section, or the page has no hierarchy.
+    // Stats are exempt — a row of large figures is one gesture, not four competing ones,
+    // and capping them at one is what forced proof bands to render as body text.
+    const displays = nodes.filter((n: any) => n.size === 'display' && n.el !== 'Stat').length
+    if (displays > 1) out.push(`${displays} display-size headings in one section — at most 1 (Stat is exempt)`)
 
     const motions = nodes.filter((n: any) => n.motion).length
     if (motions > 8) out.push(`${motions} animated nodes in one section — cap is 8, it reads as noise`)
 
-    const bodyText = nodes.filter((n: any) => n.el === 'Text' && (n.size ?? 'body') !== 'small')
-    if (bodyText.some((n: any) => (n.text as string).length > 420))
-      out.push(`a Text node exceeds 420 characters — split it or use role "story"`)
+    // The message told authors to use role "story" for long-form copy, but the check never
+    // exempted it — so the only escape it offered did not work.
+    if (props.role !== 'story') {
+      const bodyText = nodes.filter((n: any) => n.el === 'Text' && (n.size ?? 'body') !== 'small')
+      if (bodyText.some((n: any) => (n.text as string).length > 420))
+        out.push(`a Text node exceeds 420 characters — split it or use role "story"`)
+    }
 
     return out
   },

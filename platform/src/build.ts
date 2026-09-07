@@ -54,9 +54,25 @@ function renderPage(page: Page, site: Site, theme: Theme) {
     createElement('div', { className: 'site', style: theme.tokens as never }, children))
 }
 
-export function buildSite(site: Site, theme: Theme, org: Org, outDir: string) {
-  const { ok, issues } = validateBundle(site, theme)
+export function buildSite(site: Site, theme: Theme, org: Org, outDir: string,
+  opts: { allowUnverified?: boolean } = {}) {
+  const { ok, issues, unverified } = validateBundle(site, theme)
   if (!ok) return { ok: false as const, issues, written: [] as string[] }
+
+  /** The generator is allowed to compose plausible copy so a page arrives whole rather than
+   *  as a skeleton — but the human review pass is what makes that safe, and a gate nobody
+   *  can skip by forgetting is the only kind that holds. Override is deliberate and named. */
+  if (unverified.length && !opts.allowUnverified) {
+    return {
+      ok: false as const,
+      issues: [...issues, {
+        where: 'site',
+        message: `${unverified.length} unverified section(s) — ${unverified.slice(0, 5).join(', ')}${unverified.length > 5 ? ', …' : ''}. Confirm or correct them, or rebuild with --allow-unverified`,
+        severity: 'error' as const,
+      }],
+      written: [] as string[],
+    }
+  }
 
   const css = readFileSync(join(RENDERER, 'styles.css'), 'utf8')
     // the preview's own chrome never ships

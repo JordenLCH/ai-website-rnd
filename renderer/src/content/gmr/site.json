@@ -1,0 +1,1039 @@
+{
+  "client": "gmr",
+  "chrome": {
+    "header": {
+      "type": "FreeSection",
+      "variant": "free/nav",
+      "props": {
+        "role": "nav",
+        "grid": {
+          "cols": 1,
+          "gap": "sm",
+          "align": "center",
+          "pad": "none"
+        },
+        "children": [
+          {
+            "el": "Row",
+            "children": [
+              {
+                "el": "Stack",
+                "children": [
+                  {
+                    "el": "Heading",
+                    "text": "GUARD MY RIDE",
+                    "level": 2,
+                    "size": "title"
+                  },
+                  {
+                    "el": "Text",
+                    "text": "Extended warranty since 2015",
+                    "size": "small"
+                  }
+                ],
+                "gap": "xs"
+              },
+              {
+                "el": "Row",
+                "children": [
+                  {
+                    "el": "Text",
+                    "text": "Home",
+                    "size": "body",
+                    "page": "home"
+                  },
+                  {
+                    "el": "Text",
+                    "text": "Programmes",
+                    "size": "body",
+                    "page": "home"
+                  },
+                  {
+                    "el": "Text",
+                    "text": "Claims",
+                    "size": "body",
+                    "page": "home"
+                  },
+                  {
+                    "el": "Text",
+                    "text": "Contact",
+                    "size": "body",
+                    "page": "home"
+                  }
+                ],
+                "gap": "md",
+                "wrap": true
+              },
+              {
+                "el": "Row",
+                "children": [
+                  {
+                    "el": "Text",
+                    "text": "Kuala Lumpur",
+                    "size": "small"
+                  },
+                  {
+                    "el": "Button",
+                    "label": "Get a quote",
+                    "kind": "primary",
+                    "page": "home"
+                  }
+                ],
+                "gap": "sm",
+                "align": "center"
+              }
+            ],
+            "justify": "between",
+            "align": "center",
+            "gap": "md",
+            "wrap": true
+          }
+        ]
+      }
+    },
+    "footer": {
+      "type": "FreeSection",
+      "variant": "free/footer",
+      "props": {
+        "role": "footer",
+        "grid": {
+          "cols": 12,
+          "gap": "md",
+          "align": "start",
+          "pad": "md"
+        },
+        "children": [
+          {
+            "el": "Stack",
+            "children": [
+              {
+                "el": "Row",
+                "children": [
+                  {
+                    "el": "Stack",
+                    "children": [
+                      {
+                        "el": "Heading",
+                        "text": "GUARD MY RIDE",
+                        "level": 2,
+                        "size": "title"
+                      },
+                      {
+                        "el": "Text",
+                        "text": "Guard My Ride Sdn Bhd \u2014 independent third-party extended warranty, underwritten with RHB Insurance.",
+                        "size": "small"
+                      }
+                    ],
+                    "gap": "xs"
+                  },
+                  {
+                    "el": "Stack",
+                    "children": [
+                      {
+                        "el": "Heading",
+                        "text": "PROGRAMMES",
+                        "level": 3,
+                        "size": "body"
+                      },
+                      {
+                        "el": "List",
+                        "items": [
+                          "AM",
+                          "PRO",
+                          "Colt",
+                          "Ace"
+                        ],
+                        "style": "plain"
+                      }
+                    ],
+                    "gap": "xs"
+                  },
+                  {
+                    "el": "Stack",
+                    "children": [
+                      {
+                        "el": "Heading",
+                        "text": "NETWORK",
+                        "level": 3,
+                        "size": "body"
+                      },
+                      {
+                        "el": "List",
+                        "items": [
+                          "Kuantan",
+                          "Malacca",
+                          "Penang",
+                          "Johor"
+                        ],
+                        "style": "plain"
+                      }
+                    ],
+                    "gap": "xs"
+                  },
+                  {
+                    "el": "Stack",
+                    "children": [
+                      {
+                        "el": "Heading",
+                        "text": "OFFICE",
+                        "level": 3,
+                        "size": "body"
+                      },
+                      {
+                        "el": "Text",
+                        "text": "No. 18-1, Jalan 2/137B, Resource Industrial Centre, Off Old Klang Road, 58000 Kuala Lumpur",
+                        "size": "small"
+                      }
+                    ],
+                    "gap": "xs"
+                  }
+                ],
+                "justify": "between",
+                "wrap": true,
+                "gap": "lg"
+              }
+            ],
+            "span": 12,
+            "gap": "md"
+          }
+        ]
+      }
+    }
+  },
+  "pages": {
+    "home": {
+      "title": "Guard My Ride \u2014 extended warranty for recon and used cars in Malaysia",
+      "blocks": [
+        {
+          "type": "FreeSection",
+          "variant": "free/hero",
+          "props": {
+            "role": "hero",
+            "grid": {
+              "cols": 12,
+              "gap": "lg",
+              "align": "center",
+              "pad": "xl"
+            },
+            "children": [
+              {
+                "el": "Stack",
+                "children": [
+                  {
+                    "el": "Eyebrow",
+                    "text": "Independent third-party warranty \u00b7 Malaysia"
+                  },
+                  {
+                    "el": "Heading",
+                    "text": "Cover for the car after the manufacturer stops covering it",
+                    "level": 1,
+                    "size": "display",
+                    "accent": "after the manufacturer stops",
+                    "motion": {
+                      "type": "fade-up"
+                    }
+                  },
+                  {
+                    "el": "Text",
+                    "text": "Guard My Ride writes mechanical and electrical breakdown protection for pre-owned, used and imported reconditioned vehicles \u2014 the cars that fall outside a factory warranty. Every programme is underwritten and developed with RHB Insurance.",
+                    "size": "lede",
+                    "motion": {
+                      "type": "fade-up",
+                      "delay": 90
+                    }
+                  },
+                  {
+                    "el": "Row",
+                    "children": [
+                      {
+                        "el": "Badge",
+                        "text": "Founded 2015",
+                        "kind": "outline"
+                      },
+                      {
+                        "el": "Badge",
+                        "text": "Underwritten with RHB Insurance",
+                        "kind": "outline"
+                      },
+                      {
+                        "el": "Badge",
+                        "text": "Nationwide panel workshops",
+                        "kind": "outline"
+                      },
+                      {
+                        "el": "Badge",
+                        "text": "Recon, used and pre-owned",
+                        "kind": "outline"
+                      }
+                    ],
+                    "gap": "sm",
+                    "wrap": true,
+                    "motion": {
+                      "type": "fade-up",
+                      "delay": 160
+                    }
+                  },
+                  {
+                    "el": "Row",
+                    "children": [
+                      {
+                        "el": "Button",
+                        "label": "Compare programmes",
+                        "kind": "primary",
+                        "page": "home"
+                      },
+                      {
+                        "el": "Button",
+                        "label": "How a claim works",
+                        "kind": "ghost",
+                        "page": "home"
+                      }
+                    ],
+                    "gap": "md",
+                    "motion": {
+                      "type": "fade-up",
+                      "delay": 220
+                    }
+                  }
+                ],
+                "span": 8,
+                "gap": "md"
+              }
+            ],
+            "bg": {
+              "image": "/img/gmr/05-driving-confidence.webp",
+              "alt": "",
+              "kind": "environment",
+              "overlay": true,
+              "parallax": 0.15
+            }
+          }
+        },
+        {
+          "type": "FreeSection",
+          "variant": "free/proof",
+          "props": {
+            "role": "proof",
+            "grid": {
+              "cols": 12,
+              "gap": "lg",
+              "align": "start",
+              "pad": "lg"
+            },
+            "children": [
+              {
+                "el": "Stack",
+                "children": [
+                  {
+                    "el": "Eyebrow",
+                    "text": "Why independent matters"
+                  },
+                  {
+                    "el": "Heading",
+                    "text": "Not the dealer, not the manufacturer",
+                    "level": 2,
+                    "size": "heading"
+                  },
+                  {
+                    "el": "Text",
+                    "text": "An independent warranty is written by a company whose only product is the cover, and is underwritten by an insurer rather than by the seller of the car.",
+                    "size": "body"
+                  }
+                ],
+                "span": 4,
+                "gap": "sm"
+              },
+              {
+                "el": "Grid",
+                "cols": 4,
+                "children": [
+                  {
+                    "el": "Stack",
+                    "children": [
+                      {
+                        "el": "Stat",
+                        "value": "2015",
+                        "label": "Founded",
+                        "size": "display"
+                      },
+                      {
+                        "el": "Caption",
+                        "text": "Established by Gerard Law, from the automotive industry."
+                      }
+                    ]
+                  },
+                  {
+                    "el": "Stack",
+                    "children": [
+                      {
+                        "el": "Stat",
+                        "value": "RHB",
+                        "label": "Underwriter",
+                        "size": "display"
+                      },
+                      {
+                        "el": "Caption",
+                        "text": "Programmes backed and developed with RHB Insurance."
+                      }
+                    ]
+                  },
+                  {
+                    "el": "Stack",
+                    "children": [
+                      {
+                        "el": "Stat",
+                        "value": "4",
+                        "label": "Programmes",
+                        "size": "display"
+                      },
+                      {
+                        "el": "Caption",
+                        "text": "AM and PRO for recon; Colt and Ace for local used cars."
+                      }
+                    ]
+                  },
+                  {
+                    "el": "Stack",
+                    "children": [
+                      {
+                        "el": "Stat",
+                        "value": "4",
+                        "label": "Partner networks",
+                        "size": "display"
+                      },
+                      {
+                        "el": "Caption",
+                        "text": "Carro, Sime Darby Auto Selection, Evo Malaysia, Hyundai."
+                      }
+                    ]
+                  }
+                ],
+                "span": 8,
+                "gap": "md",
+                "motion": {
+                  "type": "fade-up"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "FreeSection",
+          "variant": "free/range",
+          "props": {
+            "role": "range",
+            "grid": {
+              "cols": 12,
+              "gap": "lg",
+              "align": "start",
+              "pad": "lg"
+            },
+            "children": [
+              {
+                "el": "Stack",
+                "children": [
+                  {
+                    "el": "Eyebrow",
+                    "text": "Programmes"
+                  },
+                  {
+                    "el": "Heading",
+                    "text": "Four programmes, split by how the car arrived",
+                    "level": 2,
+                    "size": "heading",
+                    "accent": "by how the car arrived"
+                  },
+                  {
+                    "el": "Text",
+                    "text": "Imported reconditioned cars and locally-owned used cars fail differently and are bought differently, so they are covered by different programmes rather than by one plan with options.",
+                    "size": "lede",
+                    "maxw": "prose"
+                  }
+                ],
+                "span": 12,
+                "gap": "sm"
+              },
+              {
+                "el": "Grid",
+                "cols": 4,
+                "children": [
+                  {
+                    "el": "Card",
+                    "children": [
+                      {
+                        "el": "Stack",
+                        "children": [
+                          {
+                            "el": "Figure",
+                            "caption": "Powertrain cover \u2014 the engine and transmission blocks.",
+                            "children": [
+                              {
+                                "el": "Image",
+                                "src": "/img/gmr/06-engine-powertrain.webp",
+                                "alt": "Engine and powertrain",
+                                "kind": "detail",
+                                "ratio": "wide"
+                              }
+                            ]
+                          },
+                          {
+                            "el": "Marker",
+                            "text": "01"
+                          },
+                          {
+                            "el": "Heading",
+                            "text": "AM",
+                            "level": 3,
+                            "size": "title"
+                          },
+                          {
+                            "el": "Badge",
+                            "text": "Recon",
+                            "kind": "quiet"
+                          },
+                          {
+                            "el": "Text",
+                            "text": "Entry-level cover for imported reconditioned cars, concentrated on the assemblies that cost the most to replace.",
+                            "size": "small"
+                          },
+                          {
+                            "el": "KeyValue",
+                            "rows": [
+                              {
+                                "k": "Vehicles",
+                                "v": "Imported recon"
+                              },
+                              {
+                                "k": "Focus",
+                                "v": "Powertrain assemblies"
+                              },
+                              {
+                                "k": "Covers",
+                                "v": "Engine and transmission blocks"
+                              },
+                              {
+                                "k": "Tier",
+                                "v": "Entry"
+                              }
+                            ]
+                          }
+                        ],
+                        "gap": "sm"
+                      }
+                    ],
+                    "pad": "md"
+                  },
+                  {
+                    "el": "Card",
+                    "children": [
+                      {
+                        "el": "Stack",
+                        "children": [
+                          {
+                            "el": "Figure",
+                            "caption": "Recon stock \u2014 PRO is written for these cars.",
+                            "children": [
+                              {
+                                "el": "Image",
+                                "src": "/img/gmr/09-luxury-recon-cars.webp",
+                                "alt": "Imported reconditioned cars",
+                                "kind": "detail",
+                                "ratio": "wide"
+                              }
+                            ]
+                          },
+                          {
+                            "el": "Marker",
+                            "text": "02"
+                          },
+                          {
+                            "el": "Heading",
+                            "text": "PRO",
+                            "level": 3,
+                            "size": "title"
+                          },
+                          {
+                            "el": "Badge",
+                            "text": "Recon",
+                            "kind": "quiet"
+                          },
+                          {
+                            "el": "Text",
+                            "text": "The most comprehensive recon programme, extending past the powertrain into hydraulic and electrical subsystems.",
+                            "size": "small"
+                          },
+                          {
+                            "el": "KeyValue",
+                            "rows": [
+                              {
+                                "k": "Vehicles",
+                                "v": "Imported recon"
+                              },
+                              {
+                                "k": "Focus",
+                                "v": "Comprehensive"
+                              },
+                              {
+                                "k": "Covers",
+                                "v": "Mechanical, hydraulic, electrical subsystems"
+                              },
+                              {
+                                "k": "Tier",
+                                "v": "Top recon"
+                              }
+                            ]
+                          }
+                        ],
+                        "gap": "sm"
+                      }
+                    ],
+                    "pad": "md"
+                  },
+                  {
+                    "el": "Card",
+                    "children": [
+                      {
+                        "el": "Stack",
+                        "children": [
+                          {
+                            "el": "Figure",
+                            "caption": "Daily-driven local cars \u2014 the Colt programme.",
+                            "children": [
+                              {
+                                "el": "Image",
+                                "src": "/img/gmr/05-driving-confidence.webp",
+                                "alt": "Daily driving",
+                                "kind": "detail",
+                                "ratio": "wide"
+                              }
+                            ]
+                          },
+                          {
+                            "el": "Marker",
+                            "text": "03"
+                          },
+                          {
+                            "el": "Heading",
+                            "text": "Colt",
+                            "level": 3,
+                            "size": "title"
+                          },
+                          {
+                            "el": "Badge",
+                            "text": "Local used",
+                            "kind": "quiet"
+                          },
+                          {
+                            "el": "Text",
+                            "text": "Essential powertrain assurance for a locally-owned car in daily use, at a budget-conscious level.",
+                            "size": "small"
+                          },
+                          {
+                            "el": "KeyValue",
+                            "rows": [
+                              {
+                                "k": "Vehicles",
+                                "v": "Local used"
+                              },
+                              {
+                                "k": "Focus",
+                                "v": "Essential powertrain"
+                              },
+                              {
+                                "k": "Covers",
+                                "v": "Core powertrain"
+                              },
+                              {
+                                "k": "Tier",
+                                "v": "Budget"
+                              }
+                            ]
+                          }
+                        ],
+                        "gap": "sm"
+                      }
+                    ],
+                    "pad": "md"
+                  },
+                  {
+                    "el": "Card",
+                    "children": [
+                      {
+                        "el": "Stack",
+                        "children": [
+                          {
+                            "el": "Figure",
+                            "caption": "Sensors and actuators \u2014 the Ace programme covers these.",
+                            "children": [
+                              {
+                                "el": "Image",
+                                "src": "/img/gmr/08-electrical-sensors.webp",
+                                "alt": "Electrical sensors",
+                                "kind": "detail",
+                                "ratio": "wide"
+                              }
+                            ]
+                          },
+                          {
+                            "el": "Marker",
+                            "text": "04"
+                          },
+                          {
+                            "el": "Heading",
+                            "text": "Ace",
+                            "level": 3,
+                            "size": "title"
+                          },
+                          {
+                            "el": "Badge",
+                            "text": "Local used",
+                            "kind": "quiet"
+                          },
+                          {
+                            "el": "Text",
+                            "text": "Enhanced cover that adds the electronics a modern used car actually fails on, with elevated individual claim limits.",
+                            "size": "small"
+                          },
+                          {
+                            "el": "KeyValue",
+                            "rows": [
+                              {
+                                "k": "Vehicles",
+                                "v": "Local used"
+                              },
+                              {
+                                "k": "Focus",
+                                "v": "Enhanced"
+                              },
+                              {
+                                "k": "Covers",
+                                "v": "Sensors, actuator motors, fuel delivery"
+                              },
+                              {
+                                "k": "Tier",
+                                "v": "Elevated claim limits"
+                              }
+                            ]
+                          }
+                        ],
+                        "gap": "sm"
+                      }
+                    ],
+                    "pad": "md"
+                  }
+                ],
+                "span": 12,
+                "gap": "md",
+                "motion": {
+                  "type": "fade-up"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "FreeSection",
+          "variant": "free/process",
+          "props": {
+            "role": "process",
+            "grid": {
+              "cols": 12,
+              "gap": "lg",
+              "align": "start",
+              "pad": "lg"
+            },
+            "children": [
+              {
+                "el": "Stack",
+                "children": [
+                  {
+                    "el": "Eyebrow",
+                    "text": "Claims"
+                  },
+                  {
+                    "el": "Heading",
+                    "text": "What happens when the car stops",
+                    "level": 2,
+                    "size": "heading"
+                  },
+                  {
+                    "el": "Text",
+                    "text": "Claims run through GMR rather than through the dealer who sold the car.",
+                    "size": "lede",
+                    "maxw": "prose"
+                  }
+                ],
+                "span": 12,
+                "gap": "sm"
+              },
+              {
+                "el": "Grid",
+                "cols": 4,
+                "children": [
+                  {
+                    "el": "Card",
+                    "children": [
+                      {
+                        "el": "Stack",
+                        "children": [
+                          {
+                            "el": "Marker",
+                            "text": "01"
+                          },
+                          {
+                            "el": "Heading",
+                            "text": "Accredited workshop",
+                            "level": 3,
+                            "size": "title"
+                          },
+                          {
+                            "el": "Text",
+                            "text": "The car goes to a workshop on GMR\u2019s accredited panel network, which spans Kuantan, Malacca, Penang and Johor.",
+                            "size": "small"
+                          }
+                        ],
+                        "gap": "xs"
+                      }
+                    ],
+                    "pad": "md"
+                  },
+                  {
+                    "el": "Card",
+                    "children": [
+                      {
+                        "el": "Stack",
+                        "children": [
+                          {
+                            "el": "Marker",
+                            "text": "02"
+                          },
+                          {
+                            "el": "Heading",
+                            "text": "Dedicated adjuster",
+                            "level": 3,
+                            "size": "title"
+                          },
+                          {
+                            "el": "Text",
+                            "text": "A dedicated claim adjuster handles the assessment, rather than a general call-centre queue.",
+                            "size": "small"
+                          }
+                        ],
+                        "gap": "xs"
+                      }
+                    ],
+                    "pad": "md"
+                  },
+                  {
+                    "el": "Card",
+                    "children": [
+                      {
+                        "el": "Stack",
+                        "children": [
+                          {
+                            "el": "Marker",
+                            "text": "03"
+                          },
+                          {
+                            "el": "Heading",
+                            "text": "Rapid approval",
+                            "level": 3,
+                            "size": "title"
+                          },
+                          {
+                            "el": "Text",
+                            "text": "Approval is handled directly with the workshop, so the repair is authorised without the owner brokering it.",
+                            "size": "small"
+                          }
+                        ],
+                        "gap": "xs"
+                      }
+                    ],
+                    "pad": "md"
+                  },
+                  {
+                    "el": "Card",
+                    "children": [
+                      {
+                        "el": "Stack",
+                        "children": [
+                          {
+                            "el": "Marker",
+                            "text": "04"
+                          },
+                          {
+                            "el": "Heading",
+                            "text": "Keep cover valid",
+                            "level": 3,
+                            "size": "title"
+                          },
+                          {
+                            "el": "Text",
+                            "text": "Cover depends on the fixed maintenance schedule being kept, using high-grade semi-synthetic or fully synthetic lubricants.",
+                            "size": "small"
+                          }
+                        ],
+                        "gap": "xs"
+                      }
+                    ],
+                    "pad": "md"
+                  }
+                ],
+                "span": 12,
+                "gap": "md",
+                "motion": {
+                  "type": "fade-up"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "FreeSection",
+          "variant": "free/story",
+          "props": {
+            "role": "story",
+            "grid": {
+              "cols": 12,
+              "gap": "lg",
+              "align": "start",
+              "pad": "lg"
+            },
+            "children": [
+              {
+                "el": "Stack",
+                "children": [
+                  {
+                    "el": "Eyebrow",
+                    "text": "Network and partners"
+                  },
+                  {
+                    "el": "Heading",
+                    "text": "Written into the places cars are actually bought",
+                    "level": 2,
+                    "size": "heading",
+                    "accent": "actually bought"
+                  },
+                  {
+                    "el": "Text",
+                    "text": "GMR is the warranty partner behind several of the networks a Malaysian buyer meets first: Carro, Sime Darby Auto Selection, Evo Malaysia and Hyundai. For Sime Darby Auto Selection the programmes are natively integrated rather than sold alongside, so the cover is part of the car\u2019s paperwork at the point of sale. Repairs run through an accredited panel of workshops rather than a single service centre, which is what makes a nationwide programme workable for an owner in Kuantan or Johor rather than one in Kuala Lumpur.",
+                    "size": "body"
+                  },
+                  {
+                    "el": "List",
+                    "items": [
+                      "Carro",
+                      "Sime Darby Auto Selection \u2014 natively integrated programmes",
+                      "Evo Malaysia",
+                      "Hyundai"
+                    ],
+                    "style": "dashed"
+                  }
+                ],
+                "span": 7,
+                "gap": "md"
+              },
+              {
+                "el": "Stack",
+                "children": [
+                  {
+                    "el": "Figure",
+                    "caption": "GMR\u2019s own campaign banner \u2014 \u201cYour ride, we guard\u201d.",
+                    "children": [
+                      {
+                        "el": "Image",
+                        "src": "/img/gmr/01-hero-banner.webp",
+                        "alt": "Guard My Ride campaign banner",
+                        "kind": "detail",
+                        "ratio": "wide"
+                      }
+                    ]
+                  },
+                  {
+                    "el": "Figure",
+                    "caption": "Accredited panel workshops carry out the repairs; approval is handled between the workshop and GMR.",
+                    "children": [
+                      {
+                        "el": "Image",
+                        "src": "/img/gmr/07-mechanic-workshop.webp",
+                        "alt": "Panel workshop",
+                        "kind": "environment",
+                        "ratio": "landscape"
+                      }
+                    ]
+                  },
+                  {
+                    "el": "Figure",
+                    "caption": "Head office, Off Old Klang Road, Kuala Lumpur.",
+                    "children": [
+                      {
+                        "el": "Image",
+                        "src": "/img/gmr/10-contact-claims.webp",
+                        "alt": "Customer claims service",
+                        "kind": "environment",
+                        "ratio": "landscape"
+                      }
+                    ]
+                  }
+                ],
+                "span": 5,
+                "gap": "sm",
+                "motion": {
+                  "type": "fade-up",
+                  "delay": 60
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "FreeSection",
+          "variant": "free/cta",
+          "props": {
+            "role": "cta",
+            "grid": {
+              "cols": 12,
+              "gap": "md",
+              "align": "center",
+              "pad": "lg"
+            },
+            "children": [
+              {
+                "el": "Stack",
+                "children": [
+                  {
+                    "el": "Heading",
+                    "text": "Find out which programme the car qualifies for",
+                    "level": 2,
+                    "size": "heading"
+                  },
+                  {
+                    "el": "Text",
+                    "text": "Send the make, model, year and whether the car is recon or local. GMR will confirm which of the four programmes applies.",
+                    "size": "lede"
+                  },
+                  {
+                    "el": "Row",
+                    "children": [
+                      {
+                        "el": "Button",
+                        "label": "Get a quote",
+                        "kind": "primary",
+                        "page": "home"
+                      }
+                    ],
+                    "gap": "md",
+                    "justify": "center"
+                  }
+                ],
+                "span": 8,
+                "gap": "sm",
+                "align": "center"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

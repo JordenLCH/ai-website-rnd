@@ -2,9 +2,10 @@ import { z } from 'zod'
 
 /** ~14 primitives. Every visual value is a token name, never a raw value. */
 export const EL = [
-  'Stack', 'Row', 'Grid', 'Card',
-  'Heading', 'Text', 'Eyebrow', 'Quote',
+  'Stack', 'Row', 'Grid', 'Card', 'Figure',
+  'Heading', 'Text', 'Eyebrow', 'Quote', 'Caption',
   'Button', 'Image', 'Stat', 'List', 'Divider', 'Spacer', 'Field',
+  'Badge', 'Marker', 'KeyValue',
 ] as const
 
 const Scale = z.enum(['none', 'xs', 'sm', 'md', 'lg', 'xl'])
@@ -24,6 +25,9 @@ const Base = {
   tone: z.enum(['ink', 'muted', 'accent']).optional(),
   motion: Motion.optional(),
   parallax: z.number().min(-1).max(1).optional(),
+  /** See BlockSchema.unverified — the same provenance mark, at node granularity, so a
+   *  single invented figure inside an otherwise sourced section can be flagged alone. */
+  unverified: z.boolean().optional(),
 }
 
 export type Node = { el: string; children?: Node[]; [k: string]: unknown }
@@ -35,8 +39,12 @@ export const NodeSchema: z.ZodType<Node> = z.lazy(() =>
     z.object({ el: z.literal('Grid'), ...Base, cols: z.number().int().min(2).max(12), children: z.array(NodeSchema).min(1) }),
     z.object({ el: z.literal('Card'), ...Base, border: z.boolean().optional(), children: z.array(NodeSchema).min(1) }),
     z.object({ el: z.literal('Heading'), ...Base, level: z.number().int().min(1).max(6),
-      size: z.enum(['display', 'heading', 'title', 'body']), text: z.string() }),
-    z.object({ el: z.literal('Text'), ...Base, size: z.enum(['lede', 'body', 'small']).optional(), text: z.string(), page: z.string().optional() }),
+      size: z.enum(['display', 'heading', 'title', 'body']), text: z.string(),
+      /** A verbatim substring of `text` to set in the accent colour. Not markup — a
+       *  substring, so the heading stays one string for outline and JSON-LD extraction. */
+      accent: z.string().optional() }),
+    z.object({ el: z.literal('Text'), ...Base, size: z.enum(['lede', 'body', 'small']).optional(), text: z.string(),
+      accent: z.string().optional(), page: z.string().optional() }),
     z.object({ el: z.literal('Eyebrow'), ...Base, text: z.string() }),
     z.object({ el: z.literal('Quote'), ...Base, text: z.string(), author: z.string().optional(), role: z.string().optional(),
       size: z.enum(['display', 'heading', 'body']).optional() }),
@@ -47,6 +55,11 @@ export const NodeSchema: z.ZodType<Node> = z.lazy(() =>
       size: z.enum(['display', 'heading']).optional() }),
     z.object({ el: z.literal('List'), ...Base, items: z.array(z.string()).min(1),
       style: z.enum(['plain', 'dashed', 'rows']).optional() }),
+    z.object({ el: z.literal('Figure'), ...Base, caption: z.string(), children: z.array(NodeSchema).min(1) }),
+    z.object({ el: z.literal('Caption'), ...Base, text: z.string() }),
+    z.object({ el: z.literal('Badge'), ...Base, text: z.string(), kind: z.enum(['accent', 'quiet', 'outline']).optional() }),
+    z.object({ el: z.literal('Marker'), ...Base, text: z.string() }),
+    z.object({ el: z.literal('KeyValue'), ...Base, rows: z.array(z.object({ k: z.string(), v: z.string() })).min(2) }),
     z.object({ el: z.literal('Divider'), ...Base }),
     z.object({ el: z.literal('Spacer'), ...Base, size: Scale }),
     z.object({ el: z.literal('Field'), ...Base, label: z.string(),
@@ -57,6 +70,16 @@ export const NodeSchema: z.ZodType<Node> = z.lazy(() =>
 
 const cls = (...xs: (string | false | undefined)[]) => xs.filter(Boolean).join(' ')
 
+/** Colour one verbatim substring without letting markup into content. An `accent` that
+ *  does not occur in `text` renders the text unchanged rather than throwing — the
+ *  validator is where a mismatch gets reported. */
+function accented(text: string, accent?: string): React.ReactNode {
+  if (!accent) return text
+  const at = text.indexOf(accent)
+  if (at < 0) return text
+  return [text.slice(0, at), <em className="p-em" key="a">{accent}</em>, text.slice(at + accent.length)]
+}
+
 function boxProps(n: any) {
   const style: Record<string, string> = {}
   if (n.area) style.gridArea = n.area
@@ -66,6 +89,7 @@ function boxProps(n: any) {
   if (n.motion) data['data-motion'] = n.motion.type
   if (n.parallax) data['data-parallax'] = String(n.parallax)
   if (n.page) data['data-page'] = n.page
+  if (n.unverified) data['data-unverified'] = 'true'
   return {
     style,
     ...data,
@@ -86,9 +110,9 @@ export function Render({ node }: { node: Node }): React.ReactElement | null {
     case 'Card': return <div className={cls('p-card', n.border === false && 'p-card--plain')} {...b}>{kids}</div>
     case 'Heading': {
       const H = `h${n.level}` as any
-      return <H className={`p-h p-h--${n.size}`} {...b}>{n.text}</H>
+      return <H className={`p-h p-h--${n.size}`} {...b}>{accented(n.text, n.accent)}</H>
     }
-    case 'Text': return <p className={cls('p-text', `p-text--${n.size ?? 'body'}`, n.page && 'p-link')} {...b}>{n.text}</p>
+    case 'Text': return <p className={cls('p-text', `p-text--${n.size ?? 'body'}`, n.page && 'p-link')} {...b}>{accented(n.text, n.accent)}</p>
     case 'Eyebrow': return <p className="p-eyebrow" {...b}>{n.text}</p>
     case 'Quote': return (
       <figure className={`p-quote p-quote--${n.size ?? 'heading'}`} {...b}>
@@ -98,7 +122,7 @@ export function Render({ node }: { node: Node }): React.ReactElement | null {
     )
     case 'Button': return <span className={`btn btn--${n.kind}`} {...b}>{n.label}</span>
     case 'Image': return (
-      <div className={`p-img p-img--${n.ratio ?? 'landscape'}`} {...b}>
+      <div className={`p-img p-img--${n.ratio ?? 'landscape'}`} data-kind={n.kind} {...b}>
         <img src={n.src} alt={n.alt} />
       </div>
     )
@@ -121,6 +145,24 @@ export function Render({ node }: { node: Node }): React.ReactElement | null {
             ? <select>{(n.options ?? []).map((o: string) => <option key={o}>{o}</option>)}</select>
             : <input type={n.type} />}
       </label>
+    )
+    case 'Figure': return (
+      <figure className="p-figure" {...b}>
+        {kids}
+        <figcaption className="p-caption">{n.caption}</figcaption>
+      </figure>
+    )
+    case 'Caption': return <p className="p-caption" {...b}>{n.text}</p>
+    case 'Badge': return <span className={`p-badge p-badge--${n.kind ?? 'quiet'}`} {...b}>{n.text}</span>
+    case 'Marker': return <span className="p-marker" {...b}>{n.text}</span>
+    case 'KeyValue': return (
+      <dl className="p-kv" {...b}>
+        {n.rows.map((r: { k: string; v: string }) => (
+          <div className="p-kv__row" key={r.k}>
+            <dt>{r.k}</dt><dd>{r.v}</dd>
+          </div>
+        ))}
+      </dl>
     )
     case 'Divider': return <hr className="p-divider" {...b} />
     case 'Spacer': return <div className="p-spacer" {...b} data-size={n.size} />

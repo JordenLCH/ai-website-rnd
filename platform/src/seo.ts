@@ -30,6 +30,32 @@ export type Org = {
   foundingLocation?: string
 }
 
+/** True if a block, or anything nested in its props, carries the provenance mark. */
+function unverified(block: Page['blocks'][number]): boolean {
+  if (block.unverified === true) return true
+  const scan = (v: unknown): boolean => {
+    if (Array.isArray(v)) return v.some(scan)
+    if (v && typeof v === 'object') {
+      const o = v as Record<string, unknown>
+      return o.unverified === true || Object.values(o).some(scan)
+    }
+    return false
+  }
+  return scan(block.props)
+}
+
+/** Structured data is a claim made to a search engine in the client's name. Marketing copy
+ *  a human will proofread can be a draft; a Review or a Product spec asserted in JSON-LD
+ *  cannot. Every derivation below reads this filtered view, so an unverified section is
+ *  visible on the page and absent from the graph — never the reverse. */
+function verified(site: Site): Site {
+  return {
+    ...site,
+    pages: Object.fromEntries(Object.entries(site.pages).map(([k, p]) =>
+      [k, { ...p, blocks: p.blocks.filter((b) => !unverified(b)) }])),
+  }
+}
+
 const text = (v: unknown) => (typeof v === 'string' ? v : '')
 const blocks = (page: Page) => page.blocks
 const first = (page: Page, type: string) => page.blocks.find((b) => b.type === type)
@@ -85,7 +111,8 @@ export function metaFor(site: Site, pageKey: string, org: Org) {
 
 /** JSON-LD graph. Block type is the signal — this is why choosing the semantically
  *  correct block matters more at generation time than any copy tweak. */
-export function jsonLd(site: Site, pageKey: string, org: Org): object[] {
+export function jsonLd(rawSite: Site, pageKey: string, org: Org): object[] {
+  const site = verified(rawSite)
   const page = site.pages[pageKey]
   const url = new URL(pageKey === 'home' ? '/' : `/${pageKey}/`, org.url).href
   const graph: object[] = []
@@ -215,7 +242,9 @@ export function robots(org: Org): string {
 
 /** AEO: a plain-language map of the site for answer engines, built from the same tree.
  *  Answer engines reward stating the facts plainly far more than keyword density. */
-export function llmsTxt(site: Site, org: Org): string {
+export function llmsTxt(rawSite: Site, org: Org): string {
+  // llms.txt is read by answer engines as fact, so it gets the same filter as JSON-LD.
+  const site = verified(rawSite)
   const lines = [`# ${org.name}`, '']
   const home = site.pages.home
   if (home) lines.push(heroOf(home).body || '', '')

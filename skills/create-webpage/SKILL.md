@@ -135,6 +135,10 @@ A wrong sitemap caught here costs one message. Caught after copy exists it costs
 ### 5. Home page — one page of real copy, then stop
 Write the home page fully. Nothing else. Stop.
 
+Write it **at full density**. A section that fills a screen and carries forty words is what makes a
+generated site read as an unfinished template rather than a company's website, and it is the single
+most common failure here — more damaging than any colour or layout choice. See "Density" below.
+
 One page is enough to settle every question that generalises: tone of voice, how much detail a
 section carries, what terminology the client uses for their own products, what claims are off-limits.
 The home page in particular exercises most of the range — hero, proof, capability, story, call to
@@ -149,6 +153,9 @@ correction contradicts something in the approved sitemap, raise it rather than q
 the human knows which one they meant.
 
 ### 7. Assets and facts — the human's job
+Work the `unverified` checklist in the preview: every marked section is either confirmed, corrected,
+or removed. Until it is empty the build farm refuses to publish.
+
 Swap placeholder photography for real images, verify every number and claim. Some of this is not
 automatable and should not be: a wrong specification on a manufacturer's site is a commercial problem,
 not a formatting one.
@@ -192,12 +199,66 @@ The point of the checkpoints is that expensive work only happens after cheap wor
 - Reuse approved pages verbatim — never regenerate a page to change a different one.
 - When the human asks for a change, edit the affected sections, not the file.
 
+## Density — the difference between a website and a blog post
+
+A professional site is dense and specific. A generated one drifts sparse, because abstract copy has
+nothing to lay out: large type in empty bands is what the model reaches for when it has no facts.
+
+The validator measures every section and reports:
+
+| | Warning below | Aim for |
+|---|---|---|
+| Words per section | 20 | **60+** |
+| Content nodes per section | 3 | **6+** |
+| Words per page | — | **700+** |
+| Images per page | — | one per two sections |
+
+Hero, CTA, quote, nav and footer are exempt — they are meant to be short.
+
+Density does not come from longer paragraphs. It comes from **specificity**: a caption naming what is
+in the photograph, a spec row with a real value, a numbered step, a badge carrying a certification.
+Reach for these before writing another sentence of prose:
+
+| Primitive | Use |
+|---|---|
+| `Figure` + `caption` | a photograph that says what it shows, not decoration |
+| `Caption` | a note under an image, table or stat |
+| `KeyValue` | spec rows — composition, dimensions, warranty, lead time |
+| `Badge` | certifications, materials, markets, standards |
+| `Marker` | `01` / `02` step and item numbering |
+| `Heading.accent` / `Text.accent` | one phrase of the heading in the accent colour — a verbatim substring, not markup |
+
+Run `validate` and clear the density warnings before handing off. A page that trips them will look
+like a free template no matter how good the theme is.
+
+## Invented content — mark it, do not avoid it
+
+You are expected to compose plausible copy so a page arrives whole rather than as a skeleton. What
+you must never do is let an invention pass as sourced. Three tiers:
+
+| Tier | What | Rule |
+|---|---|---|
+| **Write freely** | headings, section copy, captions, feature framing, step names, alt text | no mark needed |
+| **Write and mark** | stats, spec values, prices, dates, counts, testimonials | allowed, set `"unverified": true` on the block |
+| **Never** | `org.json`: legal name, registration number, certifications, credentialled people, `sameAs` | leave the field out |
+
+`"unverified": true` on a block does three things: the preview marks it and lists it as the human's
+edit checklist, the build farm **excludes it from JSON-LD and llms.txt**, and publishing is refused
+until it is confirmed or corrected.
+
+That exclusion is the reason the tiers exist. Marketing copy a human will proofread can be a draft.
+A `Review` or a `Product` spec asserted in structured data is a claim made to a search engine in the
+client's name — fabricated, it is a manual action and a legal exposure, and it lands after handoff
+where nobody is looking. Prose can be wrong and get fixed; schema gets believed.
+
+Say plainly in your handoff which sections are marked and what needs confirming.
+
 ## Rules that prevent the common failures
 
 These come from real breakages; `references/house-rules.md` has the full list and the reasoning.
 
 - **Content must suit the layout.** An overlay hero needs an *environment* photo; a product cutout on a white background becomes unreadable under a dark overlay. Declare `imageKind` and respect it.
-- **One `h1` per page**, in the hero. At most one display-size element per section.
+- **One `h1` per page**, in the hero. At most one display-size *heading* per section (`Stat` is exempt — a row of large figures is one gesture).
 - **Vary the tone rhythm.** Which sections go inverse/accent carries more brand identity than the colour values themselves. Don't leave every section on the default tone.
 - **Slugs are editorial roles, not block types.** `hero/home`, `hero/page` and `hero/statement` should resolve differently. Expect ~2 slugs per block type.
 - **Never put raw values in content.** No hex, no px, no font names in `site.json` — those belong to the theme, and hardcoding them breaks re-theming.

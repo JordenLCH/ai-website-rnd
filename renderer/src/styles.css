@@ -11,7 +11,19 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .tab { background: #17171d; border: 1px solid #2b2b34; color: #a5a5b0; border-radius: 5px; padding: 5px 10px; font-size: 12px; cursor: pointer; }
 .tab[aria-selected="true"] { background: #e8e8ea; color: #0d0d11; border-color: #e8e8ea; }
 .stage { flex: 1; min-height: 0; overflow: auto; background: #0d0d11; }
-.issues { background: #2a1414; color: #ffb4b4; padding: 12px 16px; font: 12px/1.5 ui-monospace, monospace; white-space: pre-wrap; }
+.issues { background: #17171d; padding: 10px 16px; font: 12px/1.6 ui-monospace, monospace; white-space: pre-wrap; border-bottom: 1px solid #2b2b34; }
+.issue--error { color: #ffb4b4; }
+.issue--warning { color: #ffd08a; }
+.issue--info { color: #8fb8d8; }
+/* Provenance is a preview affordance, never shipped — the build farm splits this file at
+   the marker below, so nothing in this section reaches a generated site. */
+.stage[data-flag="on"] [data-unverified] { outline: 1px dashed #d24ea8; outline-offset: 3px; position: relative; }
+.stage[data-flag="on"] .section:has(> * > [data-unverified])::before,
+.stage[data-flag="on"] .section[data-unverified]::before {
+  content: "unverified"; position: absolute; z-index: 30; margin: 6px 0 0 6px;
+  background: #d24ea8; color: #fff; font: 600 10px/1 ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: .08em; text-transform: uppercase; padding: 4px 7px; border-radius: 3px; }
+.stage[data-flag="on"] .section { position: relative; }
 
 /* ---------- generated site: token-only from here down ---------- */
 .site {
@@ -25,14 +37,17 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .site img { display: block; max-width: 100%; filter: var(--img-filter); }
 
 .section { background: var(--bg); color: var(--ink); }
-.section[data-tone="default"] { --bg: var(--color-bg);         --ink: var(--color-ink);         --muted: var(--color-muted);         --line: var(--color-line);         --btn-bg: var(--color-accent); --btn-fg: var(--color-on-accent); --card: var(--color-surface); }
-.section[data-tone="surface"] { --bg: var(--color-surface);    --ink: var(--color-ink);         --muted: var(--color-muted);         --line: var(--color-line);         --btn-bg: var(--color-accent); --btn-fg: var(--color-on-accent); --card: var(--color-bg); }
-.section[data-tone="inverse"] { --bg: var(--color-inverse-bg); --ink: var(--color-inverse-ink); --muted: var(--color-inverse-muted); --line: var(--color-inverse-line); --btn-bg: var(--color-accent); --btn-fg: var(--color-on-accent); --card: color-mix(in oklab, var(--color-inverse-ink) 7%, var(--color-inverse-bg)); }
+.section[data-tone="default"] { --bg: var(--color-bg);         --ink: var(--color-ink);         --muted: var(--color-muted);         --line: var(--color-line);         --btn-bg: var(--color-accent); --btn-fg: var(--color-on-accent); --card: var(--color-surface); --accent-fg: var(--color-accent); }
+.section[data-tone="surface"] { --bg: var(--color-surface);    --ink: var(--color-ink);         --muted: var(--color-muted);         --line: var(--color-line);         --btn-bg: var(--color-accent); --btn-fg: var(--color-on-accent); --card: var(--color-bg); --accent-fg: var(--color-accent); }
+.section[data-tone="inverse"] { --bg: var(--color-inverse-bg); --ink: var(--color-inverse-ink); --muted: var(--color-inverse-muted); --line: var(--color-inverse-line); --btn-bg: var(--color-accent); --btn-fg: var(--color-on-accent); --card: color-mix(in oklab, var(--color-inverse-ink) 7%, var(--color-inverse-bg));
+  /* a dark brand colour disappears on a dark tone — lift it toward the section's ink */
+  --accent-fg: color-mix(in oklab, var(--color-accent) 45%, var(--color-inverse-ink)); }
 .section[data-tone="accent"]  { --bg: var(--color-accent);     --ink: var(--color-on-accent);
   --muted: color-mix(in oklab, var(--color-on-accent) 74%, transparent);
   --line: color-mix(in oklab, var(--color-on-accent) 26%, transparent);
   --btn-bg: var(--color-on-accent); --btn-fg: var(--color-accent);
-  --card: color-mix(in oklab, var(--color-on-accent) 10%, transparent); }
+  --card: color-mix(in oklab, var(--color-on-accent) 10%, transparent);
+  --accent-fg: var(--color-on-accent); }
 
 .block { padding: var(--pad-y) clamp(20px, 4cqi, 56px); }
 .block > * { max-width: var(--maxw); margin-inline: auto; }
@@ -533,7 +548,8 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .p-stack { display: grid; }
 .p-row { display: flex; align-items: center; }
 .p-row--wrap { flex-wrap: wrap; }
-.p-grid { display: grid; grid-template-columns: repeat(var(--cols), 1fr); }
+.p-grid { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); min-width: 0; }
+.p-grid > * { min-width: 0; }
 .p-card { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
 .p-card--plain { background: transparent; border: 0; box-shadow: none; }
 [data-pgap="none"] { gap: 0; } [data-pgap="xs"] { gap: var(--sp-xs); } [data-pgap="sm"] { gap: var(--sp-sm); }
@@ -555,12 +571,12 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
   letter-spacing: var(--display-tracking); margin: 0; text-wrap: balance; }
 .p-h--display { font-size: var(--display-size); line-height: var(--display-leading); }
 .p-h--heading { font-size: var(--heading-size); line-height: 1.12; }
-.p-h--title { font-size: 1.16rem; line-height: 1.25; }
-.p-h--body { font-size: 1rem; line-height: 1.35; }
+.p-h--title { font-size: var(--title-size, 1.16rem); line-height: 1.25; letter-spacing: -0.005em; }
+.p-h--body { font-size: var(--subtitle-size, 1rem); line-height: 1.35; letter-spacing: 0; }
 .p-text { margin: 0; }
 .p-text--lede { font-size: var(--lede-size); color: var(--muted); }
 .p-text--body { color: var(--muted); }
-.p-text--small { font-size: .87rem; color: var(--muted); }
+.p-text--small { font-size: var(--small-size, .87rem); color: var(--muted); line-height: 1.5; }
 .p-eyebrow { font-family: var(--font-eyebrow); font-size: var(--eyebrow-size); text-transform: var(--eyebrow-transform);
   letter-spacing: var(--eyebrow-tracking); color: var(--muted); margin: 0; }
 .p-quote { margin: 0; }
@@ -586,7 +602,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
   color: var(--muted); margin-top: .5rem; }
 .p-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
 .p-list--dashed li { padding-left: 1.1rem; position: relative; color: var(--muted); }
-.p-list--dashed li::before { content: "—"; position: absolute; left: 0; color: var(--color-accent); }
+.p-list--dashed li::before { content: "—"; position: absolute; left: 0; color: var(--accent-fg, var(--color-accent)); }
 .p-list--rows li { border-top: var(--border) solid var(--line); padding-top: .6rem; color: var(--muted); }
 .p-divider { border: 0; border-top: var(--border) solid var(--line); margin: 0; width: 100%; }
 .p-spacer[data-size="sm"] { height: var(--sp-sm); } .p-spacer[data-size="md"] { height: var(--sp-md); }
@@ -610,10 +626,47 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 }
 
 @container (max-width: 820px) {
+  .p-kv__row { grid-template-columns: 1fr; gap: .15rem; }
   .free__grid { grid-template-columns: 1fr; }
   .free__grid > * { grid-area: auto !important; grid-column: auto !important; }
   .p-grid { grid-template-columns: repeat(2, 1fr); }
 }
+/* --- detail vocabulary: the small, specific elements that separate a company's site from
+   a blog post. Captions under photographs, numbered markers, spec rows and pill badges are
+   what let a section carry real density without simply setting the body copy larger. --- */
+.p-caption { margin: .55rem 0 0; font-family: var(--font-eyebrow); font-size: var(--caption-size, .78rem);
+  line-height: 1.45; color: var(--muted); letter-spacing: .01em; max-width: 46ch; }
+.p-figure { margin: 0; display: block; }
+.p-figure > .p-img + .p-caption { margin-top: .5rem; }
+
+.p-badge { display: inline-flex; align-items: center; gap: .4em; font-family: var(--font-eyebrow);
+  font-size: var(--badge-size, .7rem); text-transform: uppercase; letter-spacing: .1em;
+  font-weight: 600; padding: .38em .7em; border-radius: 999px; line-height: 1; white-space: nowrap; }
+.p-badge--accent { background: var(--color-accent); color: var(--on-accent, #fff); }
+.p-badge--quiet { background: var(--surface-2, var(--card)); color: var(--muted); }
+.p-badge--outline { border: var(--border) solid var(--line); color: var(--ink); }
+
+.p-marker { display: inline-block; font-family: var(--font-numeral); font-size: var(--marker-size, .72rem);
+  font-weight: 600; letter-spacing: .12em; color: var(--accent-fg, var(--color-accent)); }
+
+.p-kv { margin: 0; display: grid; gap: 0; }
+.p-kv__row { display: grid; grid-template-columns: minmax(0, 38%) minmax(0, 1fr); gap: var(--sp-sm);
+  padding: .62rem 0; border-top: var(--border) solid var(--line); align-items: baseline; }
+.p-kv__row:last-child { border-bottom: var(--border) solid var(--line); }
+.p-kv dt { font-family: var(--font-eyebrow); font-size: .76rem; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--muted); margin: 0; }
+.p-kv dd { margin: 0; font-size: .95rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* Inline emphasis inside a heading. One accent phrase does more for a page's character
+   than any amount of extra colour elsewhere, and it costs no layout. */
+.p-em { font-style: normal; color: var(--accent-fg, var(--color-accent)); }
+
+/* A cutout is a product photographed on white. Dropped onto a light surface it disappears,
+   which is how a page ends up looking empty while nominally carrying images. */
+.p-img[data-kind="cutout"] { background: var(--plate, color-mix(in srgb, var(--ink) 5%, transparent));
+  border-radius: var(--radius-img); }
+[data-tone="inverse"] .p-img[data-kind="cutout"] { background: color-mix(in srgb, #fff 92%, var(--color-accent)); }
+
 .p-link { cursor: pointer; }
 .p-link:hover { color: var(--ink); }
 
@@ -633,7 +686,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 /* Field primitive — real inputs, so forms stop being faked out of Cards */
 .p-field { display: grid; gap: .45rem; }
 .p-field__label { font-size: .85rem; color: var(--muted); }
-.p-field__label i { font-style: normal; color: var(--color-accent); margin-left: .2rem; }
+.p-field__label i { font-style: normal; color: var(--accent-fg, var(--color-accent)); margin-left: .2rem; }
 .p-field input, .p-field textarea, .p-field select {
   font: inherit; font-size: .95rem; color: var(--ink); background: var(--card);
   border: var(--border) solid var(--line); border-radius: var(--radius);

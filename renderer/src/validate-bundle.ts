@@ -6,9 +6,81 @@
 import { catalog } from './blocks/index'
 import { SiteSchema, ThemeSchema } from './schema'
 
-export type Issue = { where: string; message: string; severity: 'error' | 'warning' }
+export type Issue = { where: string; message: string; severity: 'error' | 'warning' | 'info' }
 
-export function validateBundle(rawSite: unknown, rawTheme: unknown): { ok: boolean; issues: Issue[] } {
+/** Per-section content measurement. A section that occupies a screen and says forty words
+ *  is what makes a generated site read as an unfinished template rather than a company's
+ *  website, so density is measured and reported rather than left to taste. */
+export type Density = { where: string; words: number; leaves: number; images: number; sparseOk: boolean }
+
+/** Prop keys whose strings are copy a visitor reads. Everything else in a props tree is
+ *  structure (`el`, `area`, `kind`) or an asset path, and counting those would flatter
+ *  an empty section into looking full. */
+const COPY_KEYS = new Set([
+  'text', 'title', 'body', 'lede', 'label', 'caption', 'quote', 'author', 'role',
+  'eyebrow', 'subtitle', 'heading', 'summary', 'blurb', 'description', 'name',
+  'question', 'answer', 'value', 'items', 'k', 'v', 'price', 'note',
+])
+const IMAGE_KEYS = new Set(['src', 'image', 'logo', 'photo'])
+
+/** Sections that legitimately say little: a hero is a headline, a CTA is one sentence. */
+const SPARSE_TYPES = new Set(['Hero', 'CTA', 'Breadcrumb', 'Nav', 'Footer', 'LogoWall', 'Promo'])
+const SPARSE_ROLES = new Set(['hero', 'cta', 'quote', 'nav', 'footer'])
+
+const WORDS_TARGET = 60, WORDS_FLOOR = 20
+const LEAVES_TARGET = 6, LEAVES_FLOOR = 3
+const PAGE_WORDS_TARGET = 700
+
+function measure(props: unknown): { words: number; leaves: number; images: number } {
+  let words = 0, leaves = 0, images = 0
+  const visit = (v: unknown, key?: string) => {
+    if (typeof v === 'string') {
+      if (key && IMAGE_KEYS.has(key)) { images++; return }
+      if (!key || !COPY_KEYS.has(key)) return
+      const w = v.trim().split(/\s+/).filter(Boolean).length
+      if (w) { words += w; leaves++ }
+      return
+    }
+    if (Array.isArray(v)) { for (const x of v) visit(x, key) ; return }
+    if (v && typeof v === 'object') {
+      for (const [k, x] of Object.entries(v as Record<string, unknown>)) visit(x, k)
+    }
+  }
+  visit(props)
+  return { words, leaves, images }
+}
+
+/** Walk any props tree looking for the node-level provenance mark. */
+function hasUnverifiedNode(props: unknown): boolean {
+  if (Array.isArray(props)) return props.some(hasUnverifiedNode)
+  if (props && typeof props === 'object') {
+    const o = props as Record<string, unknown>
+    if (o.unverified === true) return true
+    return Object.values(o).some(hasUnverifiedNode)
+  }
+  return false
+}
+
+/** Every `accent` must be a verbatim slice of its own `text`, or the renderer silently
+ *  drops the emphasis and the section quietly loses the detail it was written for. */
+function accentMismatches(props: unknown, path: string[] = []): string[] {
+  const out: string[] = []
+  const visit = (v: unknown, path: string) => {
+    if (Array.isArray(v)) { v.forEach((x, i) => visit(x, `${path}[${i}]`)); return }
+    if (v && typeof v === 'object') {
+      const o = v as Record<string, unknown>
+      if (typeof o.accent === 'string' && typeof o.text === 'string' && !o.text.includes(o.accent)) {
+        out.push(`accent "${o.accent}" is not a substring of its text — emphasis will not render`)
+      }
+      for (const [k, x] of Object.entries(o)) visit(x, `${path}.${k}`)
+    }
+  }
+  visit(props, '')
+  return out
+}
+
+export function validateBundle(rawSite: unknown, rawTheme: unknown):
+  { ok: boolean; issues: Issue[]; density: Density[]; unverified: string[] } {
   const issues: Issue[] = []
   const s = SiteSchema.safeParse(rawSite)
   const t = ThemeSchema.safeParse(rawTheme)
@@ -18,10 +90,10 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown): { ok: boole
   if (!t.success) {
     for (const i of t.error.issues) issues.push({ where: `theme.${i.path.join('.')}`, message: i.message, severity: 'error' })
   }
-  if (!s.success || !t.success) return { ok: false, issues }
+  if (!s.success || !t.success) return { ok: false, issues, density: [], unverified: [] }
 
   const site = s.data, theme = t.data
-  const sections: Array<[string, { type: string; variant: string; props: Record<string, unknown> }]> = []
+  const sections: Array<[string, { type: string; variant: string; props: Record<string, unknown>; unverified?: boolean }]> = []
   if (site.chrome?.header) sections.push(['chrome.header', site.chrome.header])
   if (site.chrome?.footer) sections.push(['chrome.footer', site.chrome.footer])
   for (const [pageKey, page] of Object.entries(site.pages)) {
@@ -30,10 +102,17 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown): { ok: boole
 
   const usedSlugs = new Set<string>()
   let h1Pages = new Map<string, number>()
+  const density: Density[] = []
+  const unverified: string[] = []
+  /** tone per page, in document order, for the band-rhythm check */
+  const toneRun = new Map<string, string[]>()
 
   for (const [where, b] of sections) {
     const entry = catalog[b.type]
     if (!entry) { issues.push({ where, message: `unknown block type "${b.type}"`, severity: 'error' }); continue }
+
+    if (b.unverified === true || hasUnverifiedNode(b.props)) unverified.push(where)
+    for (const m of accentMismatches(b.props)) issues.push({ where, message: m, severity: 'warning' })
 
     const parsed = entry.schema.safeParse(b.props)
     if (!parsed.success) {
@@ -61,6 +140,33 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown): { ok: boole
       }
     }
 
+    if (style) {
+      const page = where.startsWith('pages.') ? where.split('.')[1] : null
+      if (page) toneRun.set(page, [...(toneRun.get(page) ?? []), style.tone])
+    }
+
+    const role = (b.props as any)?.role
+    const sparseOk = SPARSE_TYPES.has(b.type) || (typeof role === 'string' && SPARSE_ROLES.has(role))
+    const m = measure(b.props)
+    density.push({ where, ...m, sparseOk })
+    if (!sparseOk) {
+      if (m.leaves === 0) {
+        issues.push({ where, message: 'section carries no readable copy at all', severity: 'error' })
+      } else if (m.words < WORDS_FLOOR || m.leaves < LEAVES_FLOOR) {
+        issues.push({
+          where,
+          message: `thin section — ${m.words} words across ${m.leaves} content nodes (floor ${WORDS_FLOOR}/${LEAVES_FLOOR}, aim ${WORDS_TARGET}/${LEAVES_TARGET}). A full-height section this empty reads as a template placeholder`,
+          severity: 'warning',
+        })
+      } else if (m.words < WORDS_TARGET || m.leaves < LEAVES_TARGET) {
+        issues.push({
+          where,
+          message: `under-filled — ${m.words} words across ${m.leaves} content nodes, aim ${WORDS_TARGET}/${LEAVES_TARGET}. Add captions, spec rows or numbered detail rather than more whitespace`,
+          severity: 'info',
+        })
+      }
+    }
+
     // page-level house rule: exactly one h1, and it lives in the hero.
     // A FreeSection with role "hero" carries the h1 too — counting only the Hero
     // block type would flag every freely-composed page as missing one.
@@ -71,6 +177,50 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown): { ok: boole
         h1Pages.set(page, (h1Pages.get(page) ?? 0) + 1)
       }
     }
+  }
+
+  for (const [page, tones] of toneRun) {
+    let run = 1
+    for (let i = 1; i < tones.length; i++) {
+      run = tones[i] === tones[i - 1] ? run + 1 : 1
+      if (run === 4) {
+        issues.push({
+          where: `pages.${page}`,
+          message: `${run}+ consecutive sections share tone "${tones[i]}" — without a band break the page scrolls as one undifferentiated column`,
+          severity: 'info',
+        })
+        break
+      }
+    }
+  }
+
+  for (const pageKey of Object.keys(site.pages)) {
+    const own = density.filter((d) => d.where.startsWith(`pages.${pageKey}.`))
+    if (own.length < 3) continue
+    const words = own.reduce((a, d) => a + d.words, 0)
+    const images = own.reduce((a, d) => a + d.images, 0)
+    if (words < PAGE_WORDS_TARGET) {
+      issues.push({
+        where: `pages.${pageKey}`,
+        message: `${words} words across ${own.length} sections — a page a visitor treats as a real company's site runs nearer ${PAGE_WORDS_TARGET}`,
+        severity: 'info',
+      })
+    }
+    if (images < Math.ceil(own.length / 2)) {
+      issues.push({
+        where: `pages.${pageKey}`,
+        message: `${images} images across ${own.length} sections — aim for one per two sections`,
+        severity: 'info',
+      })
+    }
+  }
+
+  if (unverified.length) {
+    issues.push({
+      where: 'site',
+      message: `${unverified.length} section(s) marked unverified — excluded from JSON-LD and blocking publish until a human confirms or corrects them`,
+      severity: 'info',
+    })
   }
 
   for (const [page, count] of h1Pages) {
@@ -87,5 +237,5 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown): { ok: boole
     issues.push({ where: 'theme.sectionStyles', message: `${unused.length} slugs defined but unused by this site`, severity: 'warning' })
   }
 
-  return { ok: issues.every((i) => i.severity !== 'error'), issues }
+  return { ok: issues.every((i) => i.severity !== 'error'), issues, density, unverified }
 }
