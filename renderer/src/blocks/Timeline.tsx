@@ -16,7 +16,7 @@ function Timeline({ props, layout }: { props: P; layout: string }) {
         {props.eyebrow && <p className="eyebrow">{props.eyebrow}</p>}
         <h2 className="heading">{props.title}</h2>
       </header>
-      <ol className="timeline__items">
+      <ol className="timeline__items" data-count={props.items.length}>
         {props.items.map((it) => (
           <li className="tl" key={it.marker}>
             <div className="tl__marker">{it.marker}</div>

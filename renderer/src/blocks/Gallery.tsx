@@ -29,7 +29,7 @@ function Gallery({ props, layout }: { props: P; layout: string }) {
           {props.title && <h2 className="heading">{props.title}</h2>}
         </header>
       )}
-      <div className="gallery__items">
+      <div className="gallery__items" data-count={props.items.length}>
         {props.items.map((it, i) => (
           <figure className="gallery__item" key={i} data-i={i} data-kind={it.kind}>
             <img src={it.image} alt={it.imageAlt}

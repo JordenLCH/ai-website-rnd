@@ -18,7 +18,7 @@ function Testimonials({ props, layout }: { props: P; layout: string }) {
           {props.title && <h2 className="heading">{props.title}</h2>}
         </header>
       )}
-      <div className="quotes__items">
+      <div className="quotes__items" data-count={props.items.length}>
         {props.items.map((q, i) => (
           <figure className="quote" key={i}>
             <blockquote>{q.quote}</blockquote>

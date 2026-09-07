@@ -19,7 +19,7 @@ function PostList({ props, layout }: { props: P; layout: string }) {
         {props.eyebrow && <p className="eyebrow">{props.eyebrow}</p>}
         <h2 className="heading">{props.title}</h2>
       </header>
-      <div className="posts__items">
+      <div className="posts__items" data-count={props.items.length}>
         {props.items.map((p) => (
           <article className="post" key={p.title}>
             {p.image && <div className="post__media"><img src={p.image} alt={p.imageAlt ?? ''} /></div>}

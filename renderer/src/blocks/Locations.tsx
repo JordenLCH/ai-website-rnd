@@ -22,7 +22,7 @@ function Locations({ props, layout }: { props: P; layout: string }) {
             {props.eyebrow && <p className="eyebrow">{props.eyebrow}</p>}
             <h2 className="heading">{props.title}</h2>
           </header>
-          <div className="locations__items">
+          <div className="locations__items" data-count={props.items.length}>
             {props.items.map((l) => (
               <div className="loc" key={l.name}>
                 <h3 className="loc__name">{l.name}</h3>
