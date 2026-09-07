@@ -173,6 +173,18 @@ is the same bug wearing a different hat. It checks:
   measure outside 45–75ch
 - **whether the direction was written down**, and whether its adjectives forbid anything
 
+> **A rule that names a token ships in the same commit as the CSS that reads it.**
+>
+> Three checks — the focus indicator, the surface ramp and the body measure — each shipped asking a
+> theme to set a token no stylesheet read. An author who followed the advice added a line that
+> rendered nothing; an author who ignored it lost nothing. The surface-ramp rule fired on 6 of 6
+> themes with no way to resolve it, which is how a validator teaches people to skim its output.
+>
+> The two halves live in different files and nothing links them, so they can ship apart and nobody
+> notices until someone tries to act on the message. A grep-based test was tried and rejected: most
+> rules name their token in code rather than in the message string, so it passed while covering
+> almost nothing. Until a fourth instance appears, the guard is this sentence, not a test.
+
 **C. Provenance.** Invented content is marked, not banned. Prose and captions are free; a figure,
 price, date or testimonial not in the brief needs `"unverified": true` on the block. The preview
 lists it, the build farm strips it from JSON-LD and `llms.txt`, and **publishing is refused** until
