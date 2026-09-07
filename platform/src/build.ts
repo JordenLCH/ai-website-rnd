@@ -13,14 +13,12 @@ import { catalog } from '../../renderer/src/blocks/index'
 import { validateBundle } from '../../renderer/src/validate-bundle'
 import type { Site, Theme, Page } from '../../renderer/src/schema'
 import { jsonLd, metaFor, sitemap, robots, llmsTxt, type Org } from './seo'
+import { fontsHref } from '../../renderer/src/fonts'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const RENDERER = join(here, '..', '..', 'renderer', 'src')
 
-const FONTS =
-  'https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&family=Barlow+Condensed:wght@400;500;600;700' +
-  '&family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500' +
-  '&family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap'
+const FONTS = fontsHref()
 
 /** Reveal + parallax, inlined. Same contract as the preview: data attributes drive it,
  *  and reduced-motion users simply get the finished state. */
