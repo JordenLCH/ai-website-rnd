@@ -20,7 +20,7 @@ function Pricing({ props, layout }: { props: P; layout: string }) {
         {props.eyebrow && <p className="eyebrow">{props.eyebrow}</p>}
         <h2 className="heading">{props.title}</h2>
       </header>
-      <div className="pricing__tiers">
+      <div className="pricing__tiers" data-count={props.tiers.length}>
         {props.tiers.map((t) => (
           <div className="tier" key={t.name} data-featured={t.featured ? 'true' : 'false'}>
             <h3 className="tier__name">{t.name}</h3>

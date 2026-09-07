@@ -23,7 +23,7 @@ function Team({ props, layout }: { props: P; layout: string }) {
         {props.eyebrow && <p className="eyebrow">{props.eyebrow}</p>}
         <h2 className="heading">{props.title}</h2>
       </header>
-      <div className="team__items">
+      <div className="team__items" data-count={props.items.length}>
         {props.items.map((m, i) => (
           <div className="member" key={m.name ?? `${m.role}-${i}`}>
             {m.image && <div className="member__media"><img src={m.image} alt={m.imageAlt ?? ''} /></div>}
