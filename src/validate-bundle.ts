@@ -275,10 +275,30 @@ function contrastIssues(theme: { tokens: Record<string, string> }): Issue[] {
  *  They are grouped because they share a cause: a theme that sets colours and sizes but never
  *  decides *by role* — which surface is raised, what a focused control looks like, how wide a
  *  line of text is allowed to get. That is the difference between a palette and a system. */
-function systemIssues(theme: { tokens: Record<string, string> }): Issue[] {
+function systemIssues(theme: { tokens: Record<string, string>; direction?: { adjectives: string[] } }): Issue[] {
   const out: Issue[] = []
   const t = theme.tokens
   const has = (re: RegExp) => Object.keys(t).some((k) => re.test(k))
+
+  // 0. The direction, in words. Not a design rule — a legibility one: without it nobody, human or
+  //    agent, can say whether a later value supports the intent or fights it.
+  if (!theme.direction) {
+    out.push({
+      where: 'theme',
+      message: 'no "direction" recorded — three adjectives, what was rejected, and why. The values cannot be audited against an intent that was never written down, and the next session re-derives the intent from the values, which is how a considered theme drifts back to the default',
+      severity: 'info',
+    })
+  } else {
+    // "Modern, clean, professional" describes every website ever made, so it constrains nothing.
+    const null_ = theme.direction.adjectives.filter((a) => /^(modern|clean|professional|minimal|sleek|elegant)$/i.test(a.trim()))
+    if (null_.length) {
+      out.push({
+        where: 'theme.direction',
+        message: `${null_.join(', ')} — these describe every site ever made, so they rule nothing out. Replace with adjectives that forbid something, and make one of them slightly uncomfortable`,
+        severity: 'info',
+      })
+    }
+  }
 
   // 1. Depth. Material 3's rule after a decade of shadow-everything: express elevation with a
   //    surface step first, shadow only for things that genuinely float and can be dismissed.

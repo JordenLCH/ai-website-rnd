@@ -8,10 +8,24 @@ export const SectionStyleSchema = z.object({
   vars: z.record(z.string()).optional(),
 })
 
+/** The art direction, in words, recorded before the values were set.
+ *
+ *  A studio names the direction first because every later decision gets tested against it — a
+ *  radius, a motion duration or a photograph either supports the adjectives or contradicts them,
+ *  and the contradiction is invisible unless the words exist. Kept in the theme rather than in a
+ *  chat message so it survives the session: the next agent to touch this theme otherwise re-derives
+ *  the intent from the values, which is exactly how a considered theme drifts back to the default. */
+export const DirectionSchema = z.object({
+  adjectives: z.array(z.string()).min(2).max(4),
+  rejected: z.array(z.string()).optional(),
+  why: z.string().optional(),
+})
+
 export const ThemeSchema = z.object({
   name: z.string(),
   tokens: z.record(z.string()),
   sectionStyles: z.record(SectionStyleSchema),
+  direction: DirectionSchema.optional(),
 })
 
 export const BlockSchema = z.object({
