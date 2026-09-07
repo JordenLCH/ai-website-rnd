@@ -69,12 +69,49 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .btn--primary { background: var(--btn-bg); color: var(--btn-fg); }
 .btn--ghost { border-color: var(--line); color: var(--ink); }
 
+/* ---------- Notice: regulated-industry disclaimers ---------- */
+.notice { padding-block: calc(var(--pad-y) * .5); }
+.notice__inner { max-width: var(--maxw); margin-inline: auto; display: grid; gap: .4rem; }
+.notice__title { font-family: var(--font-eyebrow); font-size: var(--eyebrow-size);
+  text-transform: var(--eyebrow-transform); letter-spacing: var(--eyebrow-tracking);
+  color: var(--muted); margin: 0; font-weight: 600; }
+.notice__body { margin: 0; font-size: .88rem; line-height: 1.55; color: var(--muted); max-width: 78ch; }
+.notice__meta { margin: 0; font-size: .78rem; color: var(--muted); opacity: .8; }
+.notice[data-layout="inline-rule"] .notice__inner { border-top: var(--border) solid var(--line); padding-top: .9rem; }
+.notice[data-layout="boxed-aside"] .notice__inner { border: var(--border) solid var(--line);
+  border-radius: var(--radius); padding: var(--sp-md); background: var(--card); }
+.notice[data-layout="footnote"] .notice__body { font-size: .8rem; }
+.notice[data-layout="footnote"] .notice__inner { border-top: var(--border) solid var(--line); padding-top: .7rem; }
+/* the accent edge marks a notice as a notice without shouting */
+.notice[data-kind="legal"][data-layout="boxed-aside"] .notice__inner,
+.notice[data-kind="regulatory"][data-layout="boxed-aside"] .notice__inner {
+  border-left: 3px solid var(--accent-fg, var(--color-accent)); }
+
+/* CatalogGrid sub-services */
+.cat__points { list-style: none; margin: .5rem 0 0; padding: 0; display: grid; gap: .3rem;
+  font-size: .85rem; color: var(--muted); }
+.cat__points li { padding-left: .9rem; position: relative; }
+.cat__points li::before { content: "·"; position: absolute; left: .15rem; color: var(--accent-fg, var(--color-accent)); }
+
+/* Team members that carry a role and credential but no name */
+.member__credential { margin: .15rem 0 0; font-family: var(--font-eyebrow); font-size: .74rem;
+  text-transform: uppercase; letter-spacing: .1em; color: var(--accent-fg, var(--color-accent)); }
+.member__bio { margin: .4rem 0 0; font-size: .87rem; line-height: 1.5; color: var(--muted); }
+
 /* ---------- Nav ---------- */
 .nav { padding-block: calc(var(--pad-y) * .22); border-bottom: var(--border) solid var(--line); }
-.nav__inner { display: flex; align-items: center; gap: var(--gap); max-width: var(--maxw); margin-inline: auto; }
+/* A single non-wrapping flex row cannot fit a brand, five links and a button at 420px, and
+   nothing here shrank or wrapped — so the only narrow-safe layout was centered-stack, which
+   art-direction.md lists as a slop tell. Wrapping the link rail to its own line keeps each
+   layout's identity at every width. */
+.nav__inner { display: flex; align-items: center; gap: var(--gap); max-width: var(--maxw);
+  margin-inline: auto; flex-wrap: wrap; row-gap: calc(var(--gap) * .45); }
+.nav__inner > * { min-width: 0; }
 .nav__brand { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--display-tracking); font-size: 1.15rem; }
 .nav__brand img { height: 26px; width: auto; }
-.nav__items { display: flex; gap: clamp(14px, 2cqi, 30px); list-style: none; margin: 0; padding: 0; font-size: .93rem; }
+.nav__items { display: flex; flex-wrap: wrap; gap: clamp(14px, 2cqi, 30px); list-style: none;
+  margin: 0; padding: 0; font-size: .93rem; min-width: 0; }
+.nav__cta { white-space: nowrap; }
 .nav__items a { color: var(--muted); cursor: pointer; }
 .nav__items a:hover { color: var(--ink); }
 .nav[data-layout="inline-left"] .nav__items { margin-left: calc(var(--gap) * .8); }
@@ -83,6 +120,19 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .nav[data-layout="centered-stack"] .nav__brand { font-size: 1.4rem; }
 .nav[data-layout="split-rail"] .nav__items { margin-inline: auto; }
 .nav[data-layout="split-rail"] .nav__cta { margin-left: 0; }
+.nav[data-layout="split-rail"] .nav__inner { justify-content: space-between; }
+
+/* Narrow: brand and action hold the top line, the rail drops beneath them. Centered-stack is
+   already a column, so it is left alone. */
+@container (max-width: 620px) {
+  .nav[data-layout="inline-left"] .nav__items,
+  .nav[data-layout="split-rail"] .nav__items {
+    order: 3; flex-basis: 100%; margin-inline: 0; margin-left: 0; justify-content: flex-start;
+  }
+  .nav[data-layout="inline-left"] .nav__cta,
+  .nav[data-layout="split-rail"] .nav__cta { margin-left: auto; }
+  .nav__inner { column-gap: calc(var(--gap) * .6); }
+}
 
 /* ---------- Hero ---------- */
 .hero[data-layout="overlay-fullbleed"] { position: relative; display: grid; align-items: end; min-height: var(--hero-min);
@@ -452,11 +502,24 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .team[data-layout="photo-grid"] .team__items { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); }
 .team[data-layout="minimal-list"] .team__items { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 var(--gap); }
 .team[data-layout="minimal-list"] .member { display: flex; justify-content: space-between; gap: var(--gap);
-  border-top: var(--border) solid var(--line); padding: .9rem 0; align-items: baseline; }
+  padding: .85rem 0; border-top: var(--border) solid var(--line); }
+/* An entry carrying a credential and a bio needs a row, not two narrow columns — flex
+   space-between gave the heading a column too tight to set a four-word role in. */
+.team[data-layout="minimal-list"]:has(.member__bio) .team__items { grid-template-columns: 1fr; }
+.team[data-layout="minimal-list"] .member:has(.member__bio) {
+  display: grid; grid-template-columns: minmax(0, 14rem) minmax(0, 1fr); gap: .2rem var(--gap);
+  align-items: start; padding-block: 1.1rem; }
+.team[data-layout="minimal-list"] .member:has(.member__bio) .member__name { grid-column: 1; }
+.team[data-layout="minimal-list"] .member:has(.member__bio) .member__credential { grid-column: 1; }
+.team[data-layout="minimal-list"] .member:has(.member__bio) .member__role { grid-column: 1; }
+.team[data-layout="minimal-list"] .member:has(.member__bio) .member__bio {
+  grid-column: 2; grid-row: 1 / span 3; margin: 0; max-width: 62ch; }
 .team[data-layout="minimal-list"] .member__media { display: none; }
 @container (max-width: 860px) {
   .team[data-layout="photo-grid"] .team__items { grid-template-columns: repeat(2, 1fr); }
   .team[data-layout="minimal-list"] .team__items { grid-template-columns: 1fr; }
+  .team[data-layout="minimal-list"] .member:has(.member__bio) { grid-template-columns: 1fr; }
+  .team[data-layout="minimal-list"] .member:has(.member__bio) .member__bio { grid-column: 1; grid-row: auto; margin-top: .4rem; }
 }
 
 /* ---------- Promo ---------- */
