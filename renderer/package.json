@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "validate": "node --import tsx tools/validate.ts"
+    "validate": "node --import tsx tools/validate.ts",
+    "migrations": "node --import tsx tools/migrations.ts"
   },
   "dependencies": {
     "react": "^19.0.0",

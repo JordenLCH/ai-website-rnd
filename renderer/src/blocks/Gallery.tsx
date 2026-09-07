@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { CatalogEntry } from './shared'
+import type { CatalogEntry, Deprecation } from './shared'
 
 const Props = z.object({
   eyebrow: z.string().optional(),
@@ -44,4 +44,29 @@ function Gallery({ props, layout }: { props: P; layout: string }) {
 /** No check on cut-outs in `mosaic`: the renderer now gives a cut-out item a plate and
  *  `object-fit: contain`, so it is no longer clipped. A rule telling authors to route
  *  around a layout defect is a worse fix than repairing the layout. */
-export const entry: CatalogEntry<P> = { schema: Props, layouts, Component: Gallery }
+/** 2026-09-07: `kind` became required on gallery items. Bundles written before that date have
+ *  items with no kind at all, and there are live sites in that shape.
+ *
+ *  The migration defaults to `environment` because that is the reading under which the renderer
+ *  behaves as it always did — full-bleed cover crop, no plate. A wrong guess of `cutout` would
+ *  visibly change an existing page; a wrong guess of `environment` preserves it exactly. When a
+ *  migration has to guess, guess in the direction that leaves the rendered page unchanged. */
+const kindBecameRequired: Deprecation<P> = {
+  note: '2026-09-07: gallery items gained a required `kind`; pre-dated items default to environment',
+  schema: z.object({
+    eyebrow: z.string().optional(),
+    title: z.string().optional(),
+    items: z.array(z.object({
+      image: z.string(), imageAlt: z.string(), caption: z.string().optional(),
+    })).min(3).max(9),
+  }),
+  migrate: (old) => ({
+    ...old,
+    items: old.items.map((it: any) => ({ ...it, kind: 'environment' as const })),
+  }),
+}
+
+export const entry: CatalogEntry<P> = {
+  schema: Props, layouts, Component: Gallery,
+  deprecated: [kindBecameRequired],
+}
