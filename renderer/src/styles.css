@@ -261,6 +261,12 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .gallery__head { margin-bottom: calc(var(--gap) * 1.1); }
 .gallery__item { margin: 0; display: flex; flex-direction: column; min-height: 0; }
 .gallery__item img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-img); }
+/* a product shot on white needs its own plate, or it dissolves into a light section
+   and punches a hole in a dark one */
+.gallery__item[data-kind="cutout"] { background: var(--plate, color-mix(in srgb, var(--ink) 5%, transparent));
+  border-radius: var(--radius-img); }
+.gallery__item[data-kind="cutout"] img { object-fit: contain; }
+[data-tone="inverse"] .gallery__item[data-kind="cutout"] { background: color-mix(in srgb, #fff 92%, var(--color-accent)); }
 .gallery__item figcaption { font-family: var(--font-eyebrow); font-size: .74rem; color: var(--muted); margin-top: .6rem;
   text-transform: var(--eyebrow-transform); letter-spacing: var(--eyebrow-tracking); }
 /* fixed rows plus a full-height image left no box for the caption, so it drew
