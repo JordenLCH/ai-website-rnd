@@ -777,23 +777,28 @@
             "items": [
               {
                 "image": "/img/merryfair/17-showroom-klang.webp",
-                "imageAlt": "Klang showroom"
+                "imageAlt": "Klang showroom",
+                "kind": "environment"
               },
               {
                 "image": "/img/merryfair/18-showroom-bays.webp",
-                "imageAlt": "Showroom display bays"
+                "imageAlt": "Showroom display bays",
+                "kind": "environment"
               },
               {
                 "image": "/img/merryfair/20-team.webp",
-                "imageAlt": "Merryfair team"
+                "imageAlt": "Merryfair team",
+                "kind": "environment"
               },
               {
                 "image": "/img/merryfair/19-meeting-room.webp",
-                "imageAlt": "Meeting room seating"
+                "imageAlt": "Meeting room seating",
+                "kind": "environment"
               },
               {
                 "image": "/img/merryfair/07-corporate-office.webp",
-                "imageAlt": "High-density corporate office"
+                "imageAlt": "High-density corporate office",
+                "kind": "environment"
               }
             ]
           }
