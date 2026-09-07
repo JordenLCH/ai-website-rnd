@@ -611,15 +611,28 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .step__title { font-family: var(--font-display); font-size: 1.14rem; margin: .3rem 0 .5rem; letter-spacing: var(--display-tracking); }
 .step__body { color: var(--muted); margin: 0; font-size: .95rem; max-width: 46ch; }
 .steps[data-layout="numbered-rail"] .steps__items { display: grid; gap: calc(var(--gap) * .8); }
-.steps[data-layout="numbered-rail"] .step { display: grid; grid-template-columns: 5rem 1fr; gap: var(--gap);
-  border-top: var(--border) solid var(--line); padding-top: calc(var(--gap) * .5); }
+/* Number, then title, then body — three columns, not two.
+   With `5rem 1fr` the copy column ran the full measure while .step__body caps at 46ch, so every
+   row painted a full-width rule with text across its left third and six hundred empty pixels to
+   the right. A rule that spans further than anything under it is what makes a section read as
+   unfinished. Splitting title from body puts something in that space and gives the layout the
+   left-hand label column an editorial rail is supposed to have. */
+.steps[data-layout="numbered-rail"] .step { display: grid;
+  grid-template-columns: 4rem minmax(0, 15rem) minmax(0, 1fr); gap: var(--gap);
+  border-top: var(--border) solid var(--line); padding-top: calc(var(--gap) * .5); align-items: start; }
+.steps[data-layout="numbered-rail"] .step__copy { display: contents; }
+.steps[data-layout="numbered-rail"] .step__title { margin: 0; }
+.steps[data-layout="numbered-rail"] .step__body { max-width: 58ch; }
 .steps[data-layout="cards-row"] .steps__items { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); }
 .steps[data-layout="cards-row"] .step { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); padding: calc(var(--gap) * .7); }
 .steps[data-layout="inline-flow"] .steps__items { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); }
 .steps[data-layout="inline-flow"] .step { border-top: calc(var(--border) * 2) solid var(--ink); padding-top: .9rem; }
 @container (max-width: 900px) {
   .steps[data-layout="cards-row"] .steps__items, .steps[data-layout="inline-flow"] .steps__items { grid-template-columns: repeat(2, 1fr); }
-  .steps[data-layout="numbered-rail"] .step { grid-template-columns: 1fr; gap: .3rem; }
+  /* display:contents means the two copy children are grid items in their own right, so the
+     collapsed layout has to name three rows' worth of single column, not one. */
+  .steps[data-layout="numbered-rail"] .step { grid-template-columns: minmax(0, 1fr); gap: .3rem; }
+  .steps[data-layout="numbered-rail"] .step__body { max-width: 46ch; }
 }
 
 /* ---------- Team ---------- */
