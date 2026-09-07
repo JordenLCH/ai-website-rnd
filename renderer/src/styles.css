@@ -1030,7 +1030,10 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 /* A state layer is not a focus indicator. Keyboard focus needs its own visible mark at 3:1 or
    better, and :focus-visible rather than :focus so a mouse click does not leave a ring behind. */
 :where(a, button, summary, input, textarea, select, [tabindex]):focus-visible {
-  outline: 2px solid var(--accent-fg, var(--color-accent));
+  /* --color-focus first: the focus indicator wants its own token because it is the one colour
+     that must clear 3:1 against *every* surface it can land on, which is a different constraint
+     from the accent's. Falling back to the accent keeps existing themes working. */
+  outline: 2px solid var(--color-focus, var(--accent-fg, var(--color-accent)));
   outline-offset: 2px;
   border-radius: inherit;
 }

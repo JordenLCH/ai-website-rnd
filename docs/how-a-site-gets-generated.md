@@ -43,15 +43,17 @@ catalog cannot express is a catalog gap to close in-session, not a reason to ope
 Checkpoints, not one long generation. Work that survives a checkpoint is never regenerated.
 
 ```
-1  intake             (human)  documents, org facts, brand colour
-2  content inventory  (AI)     what copy actually exists, per page  ▸ human fills gaps
-3  sitemap            (AI)     pages + section roles, sampled       ▸ human edits
-4  style tile         (AI)     type, colour, spacing on one sheet   ▸ human picks
-5  home page          (AI)     real copy in the real theme          ▸ human corrects
-6  remaining pages    (AI)     applying the corrections
-7  design QA          (AI)     breakpoints, states, contrast        ▸ human sees the list
-8  assets & facts     (human)  real photos, verified numbers
-9  hand off           (AI)     validate, package, upload
+ 1  intake             (human)  documents, org facts, brand colour
+ 2  content inventory  (AI)     words available + what the content breaks  ▸ human fills gaps
+ 3  sitemap            (AI)     category default named, then roles sampled ▸ human edits
+ 4  style tile         (AI)     type, colour, spacing on one sheet         ▸ human picks
+                                + direction recorded as three adjectives
+ 5  key + dense page   (AI)     home *and* the most structured page        ▸ human corrects
+ 6  remaining pages    (AI)     applying the corrections
+ 7  design QA          (AI)     widths, extremes, greyscale, focus, targets ▸ human sees the list
+ 8  assets & facts     (human)  real photos, verified numbers
+ 9  hand off           (AI)     validate, package, upload
+10  field feedback     (both)   p75 CWV + scroll depth → next rebuild
 ```
 
 **The order is content → structure → look, never the reverse.** This is not ceremony. A visual
@@ -60,7 +62,7 @@ then gets bent to fit the guess. We measured it: three independent runs of one b
 direction first produced three palettes and *one* page structure, because the structure was fitted
 to a look that was already locked, and the safe structure fits every look.
 
-Three stages carry most of the value:
+Four stages carry most of the value:
 
 - **Stage 2, content inventory.** Total the words actually available per topic *before* designing.
   Under ~1,200 words of source material you cannot honestly fill more than a home page and two
@@ -68,6 +70,10 @@ Three stages carry most of the value:
 - **Stage 4, style tile.** Show type, colour and spacing on one sheet — deliberately *not* a mocked
   page with lorem in it. A human shown a fake page judges the fake copy and the invented layout
   instead of the two decisions you are actually asking about.
+- **Stage 5, the dense page.** The home page is a hero, a proof strip and a CTA — nearly any token
+  set survives it. The system is only tested by the page carrying a spec table, a nine-item
+  catalogue or a form, which is why both are written in the same pass. Every worst layout defect in
+  §6 lived on a dense section that nothing had exercised.
 - **Stage 7, design QA.** Validation proves the JSON is legal, not that the page works. See §6.
 
 ### Sampling, at two stages
@@ -78,6 +84,35 @@ probabilities, **discards the likeliest**, and picks from the tail.
 
 Stage 3 needed this as much as stage 4 and did not have it — which is exactly why three sites came
 out as one site in three colourways.
+
+### The category default, which divergence cannot see
+
+`fleet_siblings` measures a new site against *ours*. It has no view of the client's own market, so a
+bundle can be comfortably distinct from every site in the fleet and still be the fourth identical
+site in its trade. Stage 3 therefore starts by naming what the client's three closest competitors
+share — *hero photo of one product on white, three-up benefit trio, product grid* — and treating that
+as a **do-not list** carried through stages 4–6.
+
+This is the manual half of divergence, and it is the half a studio does first. Overlap above ~0.7
+against the fleet says we repeated ourselves; the do-not list is the only thing that catches us
+repeating the market.
+
+### The direction, in words, before any values
+
+Stage 4 records the chosen direction as three adjectives, what was rejected, and why —
+`theme.direction`, a first-class optional field on the theme:
+
+```json
+"direction": { "adjectives": ["quiet", "precise", "expensive"],
+               "rejected": ["warm editorial — undersells a specification-led buyer"],
+               "why": "they sell on tolerance figures; restraint reads as confidence" }
+```
+
+It costs three lines and buys two things. Stage 7 audits the tokens against it — "precise" carried by
+nothing, or contradicted by a 28px radius and a 600ms ease, is a finding. And the next session to
+open this theme reads the intent instead of inferring it from the values, which is how a considered
+theme drifts back to the default one token at a time. The validator flags a theme with no direction,
+and flags *modern / clean / professional* as adjectives that rule nothing out.
 
 ---
 
@@ -127,6 +162,16 @@ is the same bug wearing a different hat. It checks:
 - three mechanical slop tells: uniform *non-zero* radius, an indigo/violet accent on an otherwise
   neutral palette, monospace confined to labels
 - whether the theme sets any structural tokens at all
+- **page order, four rules a studio applies by eye** — the same shape twice in a row (two adjacent
+  sections of one type and layout scroll as a single block, and the second stops being read); an ask
+  placed ahead of all the evidence; a long page whose only action sits at the bottom; and one action
+  worded three different ways across the site, which reads as three different offers
+- **system habits a palette skips** — depth expressed only by shadow with no surface ramp (Material 3's
+  rule after a decade of shadow-everything: raise the surface, keep shadow for things that float and
+  can be dismissed — a shadow on a near-black ground is barely visible, so a dark theme with no ramp
+  has no depth cue at all); no focus-indicator token, or one under 3:1 against either ground; a body
+  measure outside 45–75ch
+- **whether the direction was written down**, and whether its adjectives forbid anything
 
 **C. Provenance.** Invented content is marked, not banned. Prose and captions are free; a figure,
 price, date or testimonial not in the brief needs `"unverified": true` on the block. The preview
@@ -134,7 +179,18 @@ lists it, the build farm strips it from JSON-LD and `llms.txt`, and **publishing
 the list is empty. Google's 2026-07-24 fake-review policy makes this compliance, not hygiene.
 
 **D. Design QA (stage 7), `renderer/tools/block-audit.js`.** Four widths (360/768/1280/1600),
-content extremes, contrast on every tone, and the page read with images off.
+content extremes *taken from the stage-2 constraints table* rather than invented, contrast on every
+tone, and the page read with images off. The probe also reports:
+
+- **tap targets** — under 24px is the WCAG 2.2 AA failure, under 44px is under every design system's
+  own floor (M3 48dp, HIG 44pt). Inline links inside prose are exempt, as 2.5.8 exempts them
+- **content hidden at rest** — text at `opacity: 0` or under a collapsing `clip-path`. A reveal that
+  never fires leaves a section that validates, renders and says nothing; the rule that kills the whole
+  class is that animation starts from a *visible* state
+
+Two human checks belong here and cost seconds, because both run on a screenshot: **greyscale** (does
+hierarchy survive without colour, or was colour carrying structure's job?) and **squint** at 25% (one
+focal point per screenful, or even grey mush?).
 
 ### What none of them can see
 
@@ -165,6 +221,23 @@ Do not tell a client an FAQ block earns a rich result. It has not for years. `ll
 because it is nearly free, but Google stated in June 2026 that it does nothing for Search or AI
 Overviews. The honest pitch is entity clarity via `org.json` — the one thing a competitor cannot
 copy off the page.
+
+### Stage 10 — the loop that makes a site better, not just not-worse
+
+A studio's last phase never ends: field data shortens the page over its life. The pipeline stopped at
+hand-off, which means nothing a live site learns has ever reached the bundle it was built from.
+
+Two signals are enough, and both are cheap because the platform already serves the pages:
+
+| Signal | Read at | Acts on |
+|---|---|---|
+| Core Web Vitals, **p75 of real users** (LCP ≤2.5s, INP ≤200ms, CLS ≤0.1) | monthly | the theme and the assets — a lab run on a fast laptop flatters, field data ranks |
+| Scroll depth per section | monthly | the sitemap — a section under ~20% reach either moves up or comes out |
+
+The output is a diff against `site.json`, not a redesign: sections reordered or removed, images
+re-cut. Because the bundle is source and the page is derived, that diff is a normal rebuild — which
+is the whole reason for §1's rule. A fleet that never reads its own field data can only stay as good
+as the day it shipped.
 
 ### Surviving a catalog change
 

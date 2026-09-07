@@ -144,7 +144,21 @@ than a home page and two subpages at honest density.** Say that now. The human e
 accepts fewer pages, or accepts that some sections will be written by you and shipped `unverified`.
 All three are fine; discovering it at stage 6 is not.
 
-▸ Show the table. Wait for the gaps to be filled or waived.
+**Then write down what the content will break.** A studio reads the client's copy before drawing
+anything, and what it records is not the total — it is the extremes the layout has to survive:
+
+| Constraint | Example from this brief |
+|---|---|
+| Longest product/service name | "Constant Force Mechanism (CFM) backrest" — 39 chars, will wrap in a card title |
+| Longest / shortest headline | 9 words vs 3 — one type size cannot flatter both |
+| Topics with no usable photo | 3 of 7 services — those sections must work type-only |
+| Mandatory text | licence number and disclaimer must appear on every page |
+| Uneven lists | product range is 9 items, accreditations are 2 |
+
+This table is the input to stage 7's content-extreme pass — without it that pass invents its own
+extremes and tests the layout against content the client will never have.
+
+▸ Show both tables. Wait for the gaps to be filled or waived.
 
 ### 3. Sitemap — sample the architecture, then roles, still no copy
 A **section role** is the job a section does on the page — proof, range, story, spec, process —
@@ -152,7 +166,20 @@ not a block type and not a theme slug. A page is an ordered list of roles:
 
 > **Products** — hero (subpage) · catalogue grid · spec table · media+text · CTA
 
-**Sample the home-page architecture the way stage 4 samples art direction.** Write three orderings
+**First, name the category default — then refuse it.** `fleet_siblings` tells you whether this site
+resembles *ours*. It cannot see that every competitor in the client's own category is built the same
+way, and that you are about to land on it too. So before sampling, list what the client's three
+closest competitors (named in the brief, or the obvious ones in that trade) all share:
+
+> *Every ergonomic-chair site opens with a hero photo of one chair on white, then a three-up
+> "Comfort / Support / Design" trio, then a product grid.*
+
+That shared structure is the **do-not list**, and it carries through stages 4–6. This is the single
+most reliable way to avoid a site that is technically distinct from our fleet and still
+indistinguishable from its own market. State the list explicitly; it is also what you show the human
+when they ask why the page does not look like the competitor they had in mind.
+
+**Then sample the home-page architecture the way stage 4 samples art direction.** Write three orderings
 with self-assessed probabilities, discard the likeliest, and pick from the tail. Without this every
 site opens `hero → stats → catalogue`, because that is the mode.
 
@@ -205,8 +232,34 @@ you actually want a decision on.
 
 Iterate on tokens only. Content does not exist yet, so nothing is wasted.
 
-### 5. Home page — one page of real copy, then stop
-Write the home page fully. Nothing else. Stop.
+**Write the pick down as three adjectives, and treat them as binding.** A studio names the direction
+before it sets values, because the adjectives are what every later decision gets tested against —
+"precise" and a 28px radius contradict each other, and the contradiction is only visible if the word
+was written down. Avoid *modern*, *clean* and *professional*: they describe every site ever made.
+Make one adjective slightly uncomfortable, and record what you rejected.
+
+```json
+"direction": {
+  "adjectives": ["quiet", "precise", "expensive"],
+  "rejected": ["warm editorial — the register undersells a specification-led buyer"],
+  "why": "they sell on tolerance figures; restraint reads as confidence in the numbers"
+}
+```
+
+Put it at the top level of `theme.json`. It costs nothing, it survives the session, and at stage 7
+it is the thing you audit the tokens against — including for the next agent, who otherwise re-derives
+the direction from the values and gets it wrong.
+
+### 5. Home page — plus the densest page, then stop
+Write the home page fully, **and the one page in the sitemap that carries the most structured
+content** — the spec table, the price comparison, the nine-item catalogue, the form. Then stop.
+
+The second page is not extra work, it is the test that matters. A home page is a hero, a proof strip
+and a call to action: almost any set of tokens survives it. The system only proves itself on the
+dense page, which is why studios design the key screen and the hardest screen in the same sitting —
+and why the audit's worst layout defects (a notice box around 400px of nothing, cards with a radius
+and a border and no elevation, a grid that stopped collapsing at two columns) all lived on dense
+sections that nothing had exercised yet.
 
 Write it **at full density**: aim for **60+ words and 6+ content nodes per section**, **700+ words
 per page**, and one image per two sections that can carry one. A section that fills a screen and
@@ -257,6 +310,21 @@ Check, in this order:
    "yes" needs a reason, not a fix by reflex.
 5. **Read the page with the images turned off.** If it stops making sense, the copy is leaning on
    photography that the client may replace with something else entirely.
+6. **Greyscale, then squint.** Screenshot the page, strip the colour (`filter: grayscale(1)` on
+   `.stage`), and check the hierarchy still reads. If it collapses, colour was carrying work that
+   structure should do. Then zoom out to 25% and look for one focal point per screenful — if the
+   whole page blurs into even grey, every section is competing at the same weight. Both tests take
+   seconds, both work on a screenshot, and neither is visible to any JSON check.
+7. **Tap targets and focus.** Tab through the page: every control needs a visible focus ring at 3:1
+   against what it sits on, and no keyboard trap. Controls want 44–48px; WCAG 2.2's 24px is the
+   legal floor, not the target. `block-audit.js` reports both.
+8. **Nothing hidden at rest.** Any section that only becomes readable after a scroll reveal is one
+   observer failure away from being blank. Animations start from a *visible* state; `block-audit.js`
+   flags text sitting at `opacity: 0` or under a collapsing `clip-path`.
+9. **Audit the tokens against `theme.direction`.** Take the three adjectives and name, for each, the
+   token that carries it. If "precise" is carried by nothing — or contradicted by a 28px radius and a
+   600ms ease — either the tokens or the adjective is wrong. This is the check that keeps a
+   deliberately chosen direction from decaying into the default one value at a time.
 
 Report the findings as a short list. Some are for you to fix; some are the human's call.
 

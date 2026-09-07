@@ -1,0 +1,513 @@
+<title>The Pre-AI Web Studio</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+  :root{
+    --paper:#F1F2ED;
+    --paper-2:#E7E9E1;
+    --rule:#CDD1C6;
+    --ink:#12181C;
+    --ink-2:#414A4B;
+    --ink-3:#6E7772;
+    --do:#2C6A57;
+    --dont:#B23A24;
+    --ochre:#9C7028;
+    --do-wash:rgba(44,106,87,.07);
+    --dont-wash:rgba(178,58,36,.07);
+    --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+    --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+    --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#14181A;
+      --paper-2:#1C2124;
+      --rule:#333B3D;
+      --ink:#E8E9E3;
+      --ink-2:#B4BAB5;
+      --ink-3:#868D89;
+      --do:#6FBFA1;
+      --dont:#E38264;
+      --ochre:#D0A452;
+      --do-wash:rgba(111,191,161,.09);
+      --dont-wash:rgba(227,130,100,.09);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#14181A;
+    --paper-2:#1C2124;
+    --rule:#333B3D;
+    --ink:#E8E9E3;
+    --ink-2:#B4BAB5;
+    --ink-3:#868D89;
+    --do:#6FBFA1;
+    --dont:#E38264;
+    --ochre:#D0A452;
+    --do-wash:rgba(111,191,161,.09);
+    --dont-wash:rgba(227,130,100,.09);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:17px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sheet{
+    max-width:1080px;
+    margin:0 auto;
+    padding:40px 28px 96px;
+    display:flex;
+    flex-direction:column;
+    gap:56px;
+  }
+  a{color:inherit;text-decoration:underline;text-decoration-color:var(--ochre);text-underline-offset:3px}
+  a:focus-visible,summary:focus-visible{outline:2px solid var(--ochre);outline-offset:3px}
+
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:11.5px;
+    font-weight:500;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-3);
+  }
+
+  /* ---- masthead ---- */
+  .masthead{display:flex;flex-direction:column;gap:18px;border-bottom:2px solid var(--ink);padding-bottom:26px}
+  .masthead h1{
+    font-family:var(--display);
+    font-weight:800;
+    font-size:clamp(38px,7vw,68px);
+    line-height:.98;
+    letter-spacing:-.03em;
+    margin:0;
+    text-wrap:balance;
+  }
+  .standfirst{max-width:62ch;font-size:19px;color:var(--ink-2);margin:0}
+  .meta-row{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+
+  /* ---- generic section ---- */
+  section{display:flex;flex-direction:column;gap:22px}
+  h2{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:clamp(23px,3vw,30px);
+    letter-spacing:-.02em;
+    line-height:1.1;
+    margin:0;
+    text-wrap:balance;
+  }
+  .sec-head{display:flex;flex-direction:column;gap:7px;border-top:1px solid var(--rule);padding-top:14px}
+  .sec-head p{margin:0;max-width:66ch;color:var(--ink-2)}
+  h3{font-family:var(--display);font-weight:600;font-size:17px;letter-spacing:.01em;margin:0}
+
+  /* ---- phases (a real sequence, so it is numbered) ---- */
+  .phases{display:flex;flex-direction:column}
+  .phase{
+    display:grid;
+    grid-template-columns:52px 1fr 132px;
+    gap:0 18px;
+    padding:16px 0;
+    border-top:1px solid var(--rule);
+    align-items:start;
+  }
+  .phase:last-child{border-bottom:1px solid var(--rule)}
+  .phase-no{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ochre);padding-top:2px;font-variant-numeric:tabular-nums}
+  .phase-body{display:flex;flex-direction:column;gap:5px}
+  .phase-body p{margin:0;color:var(--ink-2);max-width:62ch;font-size:16px}
+  .artifact{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+  .artifact b{color:var(--ink-2);font-weight:500}
+  .phase-time{font-family:var(--mono);font-size:12px;color:var(--ink-3);text-align:right;padding-top:3px;font-variant-numeric:tabular-nums}
+  @media (max-width:640px){
+    .phase{grid-template-columns:38px 1fr;gap:0 12px}
+    .phase-time{grid-column:2;text-align:left;padding-top:6px}
+  }
+
+  /* ---- do / don't ledger ---- */
+  .ledger{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--rule)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid var(--rule)}
+  .cell{padding:14px 16px 15px;display:flex;flex-direction:column;gap:5px}
+  .cell.do{border-left:3px solid var(--do);background:var(--do-wash)}
+  .cell.dont{border-left:3px solid var(--dont);background:var(--dont-wash)}
+  .cell .tag{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase}
+  .cell.do .tag{color:var(--do)}
+  .cell.dont .tag{color:var(--dont)}
+  .cell p{margin:0;font-size:16px;line-height:1.5}
+  .cell .why{font-size:14.5px;color:var(--ink-2);font-style:italic}
+  @media (max-width:720px){ .row{grid-template-columns:1fr} }
+
+  /* ---- era timeline ---- */
+  .eras{display:flex;flex-direction:column;border-top:1px solid var(--rule)}
+  .era{display:grid;grid-template-columns:78px 1fr;gap:0 18px;padding:14px 0;border-bottom:1px solid var(--rule)}
+  .era-year{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .era-body{display:flex;flex-direction:column;gap:4px}
+  .era-body strong{font-family:var(--display);font-weight:600;font-size:16px}
+  .era-body p{margin:0;color:var(--ink-2);font-size:16px;max-width:64ch}
+  .tool{font-family:var(--mono);font-size:12px;color:var(--ochre)}
+
+  /* ---- numbers table ---- */
+  .scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;min-width:560px;font-size:15.5px}
+  th,td{text-align:left;padding:10px 14px 10px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+  thead th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);border-bottom:1px solid var(--ink)}
+  td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink)}
+  td.src{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+
+  /* ---- handoff contract ---- */
+  .contract{display:grid;grid-template-columns:repeat(auto-fit,minmax(228px,1fr));gap:0;border-top:1px solid var(--rule);border-left:1px solid var(--rule)}
+  .contract div{border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:14px 16px;display:flex;flex-direction:column;gap:5px}
+  .contract p{margin:0;font-size:15.5px;color:var(--ink-2)}
+
+  /* ---- pull quote ---- */
+  .pull{
+    border-left:3px solid var(--ochre);
+    padding:6px 0 6px 20px;
+    font-size:20px;
+    line-height:1.45;
+    max-width:56ch;
+    text-wrap:balance;
+  }
+  .pull span{color:var(--ink-3);font-size:14px;font-family:var(--mono);display:block;margin-top:8px}
+
+  ul.plain{margin:0;padding-left:19px;display:flex;flex-direction:column;gap:6px;color:var(--ink-2);max-width:66ch}
+  code{font-family:var(--mono);font-size:.88em;background:var(--paper-2);padding:1px 5px;border-radius:2px}
+
+  footer{border-top:1px solid var(--rule);padding-top:18px;display:flex;flex-direction:column;gap:8px}
+  footer ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:14.5px;color:var(--ink-2)}
+</style>
+
+<div class="sheet">
+
+  <header class="masthead">
+    <div class="eyebrow">Practitioner reference · How websites were designed and built before generative AI</div>
+    <h1>The Pre-AI Web Studio</h1>
+    <p class="standfirst">The human pipeline — discovery, IA, wireframe, comp, prototype, build, QA — and the do/don't rules each role earned the hard way. Everything below predates AI generation, and most of it is the reason AI-generated sites either work or don't.</p>
+    <div class="meta-row">
+      <span>Roles: UX · UI · Frontend</span>
+      <span>Era covered: 1995–2026</span>
+      <span>Compiled 2026-09-07</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">Part one</div>
+      <h2>The pipeline a studio actually runs</h2>
+      <p>Seven phases, in order, because each one's output is the next one's input — that dependency is the whole reason the sequence exists. Durations are typical agency figures for a 12–24 week marketing site; a product team compresses these into sprints but does not skip them.</p>
+    </div>
+
+    <div class="phases">
+      <div class="phase">
+        <div class="phase-no">01</div>
+        <div class="phase-body">
+          <h3>Discovery &amp; research</h3>
+          <p>Stakeholder interviews, competitor teardown, analytics of the old site, user interviews. Ends with agreement on <em>who this is for and what one action matters</em> — not on any visual.</p>
+          <div class="artifact"><b>Artifact:</b> creative brief · personas · JTBD statements · success metrics</div>
+        </div>
+        <div class="phase-time">2–3 weeks</div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-no">02</div>
+        <div class="phase-body">
+          <h3>Information architecture</h3>
+          <p>Card sorting and tree testing produce a sitemap and URL structure. Content inventory happens here: every page gets an owner and a word count before anyone draws a box.</p>
+          <div class="artifact"><b>Artifact:</b> sitemap · user flows · content matrix · URL scheme</div>
+        </div>
+        <div class="phase-time">1–2 weeks</div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-no">03</div>
+        <div class="phase-body">
+          <h3>Wireframes</h3>
+          <p>Greyscale, no type personality, no photography. Deliberately ugly so the review is about hierarchy and sequence, not colour. Cheap to throw away — that is the point.</p>
+          <div class="artifact"><b>Artifact:</b> low-fi wireframes at 2–3 breakpoints · annotated states</div>
+        </div>
+        <div class="phase-time">2–3 weeks</div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-no">04</div>
+        <div class="phase-body">
+          <h3>Visual design / comps</h3>
+          <p>Art direction lands: type scale, palette, grid, photography treatment, motion language. Historically one flat comp per key page; since ~2013 a component library plus two or three key screens.</p>
+          <div class="artifact"><b>Artifact:</b> mood board / style tiles · hi-fi mockups · design tokens · component library</div>
+        </div>
+        <div class="phase-time">2–4 weeks</div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-no">05</div>
+        <div class="phase-body">
+          <h3>Prototype &amp; validate</h3>
+          <p>Clickable flow tested on 5 users per round — the number at which most usability problems in a flow surface. Fix in the prototype, where a change costs an hour instead of a sprint.</p>
+          <div class="artifact"><b>Artifact:</b> interactive prototype · usability findings · revised screens</div>
+        </div>
+        <div class="phase-time">1–2 weeks</div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-no">06</div>
+        <div class="phase-body">
+          <h3>Build</h3>
+          <p>Components first, pages second. Content is loaded from the CMS early, because real copy breaks layouts that lorem never does. Handoff is a conversation, not a file drop.</p>
+          <div class="artifact"><b>Artifact:</b> component library in code · CMS models · staging environment</div>
+        </div>
+        <div class="phase-time">4–8 weeks</div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-no">07</div>
+        <div class="phase-body">
+          <h3>QA, launch, iterate</h3>
+          <p>Cross-browser and device matrix, keyboard and screen-reader pass, performance budget check, redirect map for every old URL. Post-launch is where the analytics loop starts, and it never closes.</p>
+          <div class="artifact"><b>Artifact:</b> QA matrix · a11y audit · redirect map · analytics dashboard</div>
+        </div>
+        <div class="phase-time">1–2 weeks + ongoing</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">Part two</div>
+      <h2>How the tools changed the flow</h2>
+      <p>Each shift below moved where design decisions get made — from the print-style comp, to the browser, to a shared component library. The direction of travel is one-way: away from drawing pages, toward defining systems.</p>
+    </div>
+
+    <div class="eras">
+      <div class="era">
+        <div class="era-year">1995–99</div>
+        <div class="era-body">
+          <strong>Print workflow, web output</strong>
+          <p>Layouts nested in <code>&lt;table&gt;</code> with <code>spacer.gif</code>. Designers handed pixel-exact comps because pages were fixed-width and the browser was treated as paper.</p>
+          <div class="tool">Photoshop 5.5 + ImageReady · "Save for Web" (1999) · slicing</div>
+        </div>
+      </div>
+      <div class="era">
+        <div class="era-year">2000–06</div>
+        <div class="era-body">
+          <strong>CSS separation of concerns</strong>
+          <p>Standards movement pushes structure into HTML and presentation into CSS. "PSD to HTML" becomes a job title — one person draws, another rebuilds it in markup.</p>
+          <div class="tool">CSS 2.1 · float layouts · Dreamweaver · Firebug (2006)</div>
+        </div>
+      </div>
+      <div class="era">
+        <div class="era-year">2007–09</div>
+        <div class="era-body">
+          <strong>The grid era</strong>
+          <p>960px, 12 columns, everywhere. Shared grid made handoff mechanical, and made every site of the period look related.</p>
+          <div class="tool">960.gs · Blueprint · jQuery</div>
+        </div>
+      </div>
+      <div class="era">
+        <div class="era-year">2010–12</div>
+        <div class="era-body">
+          <strong>Responsive breaks the comp</strong>
+          <p>Ethan Marcotte names responsive web design in 2010: fluid grid, flexible images, media queries. A static comp can no longer describe a page that has no fixed width, so studios adopt style tiles, element collages and designing in the browser.</p>
+          <div class="tool">Media queries · mobile-first · Bootstrap (2011)</div>
+        </div>
+      </div>
+      <div class="era">
+        <div class="era-year">2013–17</div>
+        <div class="era-body">
+          <strong>Symbols and the design system</strong>
+          <p>Sketch makes vector, artboard-based UI work fast, and its symbols make reuse the default unit of design. Atomic design and pattern libraries give designers and developers one shared vocabulary.</p>
+          <div class="tool">Sketch · InVision · Zeplin · Atomic Design (2013)</div>
+        </div>
+      </div>
+      <div class="era">
+        <div class="era-year">2018–26</div>
+        <div class="era-body">
+          <strong>Multiplayer, token-driven</strong>
+          <p>Figma moves the file to the browser and kills version-conflict handoff. Components + variants + variables map nearly one-to-one onto coded components and CSS custom properties, so the design file and the codebase describe the same system.</p>
+          <div class="tool">Figma · design tokens · Storybook · CI visual regression</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pull">
+      The lasting lesson of responsive design: a page is not a picture. The moment a deliverable stops being a fixed image, the deliverable becomes the system that generates images.
+      <span>Why studios ship component libraries, not page mockups</span>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">Part three · UX designer</div>
+      <h2>Do &amp; don't: structure, flow, research</h2>
+      <p>Rooted in Nielsen's 10 usability heuristics (1994) — still the field's working checklist because they describe human memory and attention, not any interface fashion.</p>
+    </div>
+    <div class="ledger">
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Decide the page's single job before drawing anything, and let one primary action own the hierarchy.</p><p class="why">Two equal CTAs means the page has no CTA.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Start in a visual tool. Colour and type conversations crowd out structure conversations and always win.</p><p class="why">Stakeholders review what they can see.</p></div>
+      </div>
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Show system status: loading, saving, saved, error. Every action gets feedback within 1 second, or it gets a spinner.</p><p class="why">Heuristic 1 — visibility of system status.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Invent labels from the system's vocabulary. Users manage <em>notifications</em>, never <em>webhook configs</em>.</p><p class="why">Heuristic 2 — match to the real world.</p></div>
+      </div>
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Give every destructive path an exit: undo, confirm, or back. Assume the user got here by accident.</p><p class="why">Heuristic 3 — user control and freedom.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Rely on recall. If a value is needed in step 4, show it in step 4 — don't ask users to remember step 2.</p><p class="why">Heuristic 6 — recognition over recall.</p></div>
+      </div>
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Test with 5 users per round, then fix and re-test. Rounds beat sample size.</p><p class="why">Diminishing returns set in fast within one flow.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Treat stakeholder opinion as user data. Record the disagreement, then resolve it with a test.</p><p class="why">The loudest room voice is not the segment.</p></div>
+      </div>
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Design the empty, loading, error, partial and overflowing states alongside the happy path.</p><p class="why">Real content is uneven; only mockups are tidy.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Ship a flow you have not walked keyboard-only, top to bottom, with no mouse.</p><p class="why">Keyboard traps are found in 30 seconds or never.</p></div>
+      </div>
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Write error messages that name the cause and the fix. "Card declined — try another card or contact your bank."</p><p class="why">Heuristic 9 — help users recover.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Use mystery-meat navigation: icon-only controls with no label and no accessible name.</p><p class="why">An icon is a mnemonic, not a definition.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">Part four · UI / visual designer</div>
+      <h2>Do &amp; don't: type, colour, grid, system</h2>
+      <p>The craft layer. Most of what separates a designed page from a generated one lives in spacing discipline and type scale, not in the palette.</p>
+    </div>
+    <div class="ledger">
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Set a type scale (e.g. 1.25 ratio) and a spacing scale (4 or 8px base), then stay on both.</p><p class="why">Arbitrary values are what "unpolished" actually means.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Use more than 2–3 typefaces, or more than ~4 weights. Contrast comes from size and weight, not variety.</p><p class="why">Every extra face is another 30–120 KB too.</p></div>
+      </div>
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Keep running text at 45–75 characters per line and body size ≥16px on mobile.</p><p class="why">Below 16px, iOS Safari zooms your form on focus.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Encode meaning in colour alone — pair every status colour with an icon, label or shape.</p><p class="why">~8% of men cannot separate your red from your green.</p></div>
+      </div>
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Design mobile-first, then let the layout earn extra columns. Constraint sorts the hierarchy for you.</p><p class="why">Widening a good small layout is easy; the reverse is not.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Design against lorem ipsum or perfectly cropped stock. Use the client's real longest product name.</p><p class="why">Real copy is the stress test the comp skipped.</p></div>
+      </div>
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Define tokens (colour, space, radius, shadow, motion) and name them by role — <code>surface-raised</code>, not <code>grey-200</code>.</p><p class="why">Role names survive a rebrand; hex names don't.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Put a border, a radius and a shadow on everything. If every block is a card, nothing is emphasised.</p><p class="why">Separation devices are budget — spend them by role.</p></div>
+      </div>
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Give interactive elements all five states: rest, hover, focus-visible, active, disabled.</p><p class="why">Focus is the one everyone forgets and auditors check first.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Animate for its own sake. Motion should explain a relationship (where a panel came from), 150–300 ms, and respect <code>prefers-reduced-motion</code>.</p><p class="why">Motion is an explanation, not a garnish.</p></div>
+      </div>
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Hand over redlines the system can hold: components, variants, tokens, and the rules for when to use each.</p><p class="why">Deliver the system, not the screenshot.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Deliver a pixel-exact comp for one width and call it responsive.</p><p class="why">The gaps get invented by whoever builds it.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">Part five · Frontend developer</div>
+      <h2>Do &amp; don't: markup, performance, resilience</h2>
+      <p>The build layer, where design intent either survives or quietly degrades into a slow, inaccessible approximation of itself.</p>
+    </div>
+    <div class="ledger">
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Reach for the semantic element first — <code>button</code>, <code>nav</code>, <code>main</code>, <code>label</code>, real headings in order.</p><p class="why">Free keyboard, focus and screen-reader behaviour.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Rebuild a native control out of <code>div</code>s and ARIA. ARIA patches semantics; it never adds behaviour.</p><p class="why">"No ARIA is better than bad ARIA."</p></div>
+      </div>
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Set a performance budget in CI and fail the build on regression — e.g. ≤400 KB gzipped JS on interactive pages.</p><p class="why">Unbudgeted bundles only grow.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Ship layout-shifting media. Every image and embed gets explicit <code>width</code>/<code>height</code> or <code>aspect-ratio</code>.</p><p class="why">This is most of a bad CLS score.</p></div>
+      </div>
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Build components once, use them everywhere, and let content come from data — never duplicate markup per page.</p><p class="why">A fix to one component fixes every page that uses it.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Hand-write per-page markup for a site that must be re-themed or patched fleet-wide later.</p><p class="why">Bespoke markup is un-migratable; it has no undo.</p></div>
+      </div>
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Test the matrix that matters: latest two versions of Chrome/Safari/Firefox/Edge, plus a real low-end Android.</p><p class="why">Your laptop is not the p75 device.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Block first paint on webfonts. Use <code>font-display:swap</code>, preconnect, and a metric-compatible fallback stack.</p><p class="why">Invisible text is a blank page to the user.</p></div>
+      </div>
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Validate input server-side as well as client-side, escape output, and treat every client value as hostile.</p><p class="why">Client validation is UX; server validation is security.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Let the page depend on JavaScript for content that could be HTML. Server-render what can be read.</p><p class="why">Crawlers, slow links and JS errors all read HTML.</p></div>
+      </div>
+      <div class="row">
+        <div class="cell do"><span class="tag">Do</span><p>Measure with field data (RUM at p75), not just a lab run on your own machine.</p><p class="why">Lab scores flatter; field scores rank.</p></div>
+        <div class="cell dont"><span class="tag">Don't</span><p>Leave accessibility to a pre-launch "audit sprint". Bake it into the component, once.</p><p class="why">Retro-fixing 40 pages costs 40× fixing one component.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">Part six</div>
+      <h2>The numbers people actually check</h2>
+      <p>Thresholds a QA pass is measured against, as of 2026. Core Web Vitals are judged at the 75th percentile of real users; WCAG 2.2 AA is the baseline most procurement and public-sector contracts require.</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Metric</th><th>Target</th><th>What it fails on</th><th>Standard</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Largest Contentful Paint</td><td class="num">≤ 2.5 s</td><td>Unoptimised hero image, render-blocking CSS/JS</td><td class="src">Core Web Vitals</td></tr>
+          <tr><td>Interaction to Next Paint</td><td class="num">≤ 200 ms</td><td>Long tasks on the main thread, heavy hydration</td><td class="src">Core Web Vitals</td></tr>
+          <tr><td>Cumulative Layout Shift</td><td class="num">≤ 0.1</td><td>Images without dimensions, late-injected banners, font swap</td><td class="src">Core Web Vitals</td></tr>
+          <tr><td>Text contrast</td><td class="num">≥ 4.5 : 1</td><td>Grey-on-grey body copy, placeholder text</td><td class="src">WCAG 2.2 AA · 1.4.3</td></tr>
+          <tr><td>Large text (≥24px / 18.66px bold)</td><td class="num">≥ 3 : 1</td><td>Tinted display headings over photography</td><td class="src">WCAG 2.2 AA · 1.4.3</td></tr>
+          <tr><td>UI &amp; focus indicator contrast</td><td class="num">≥ 3 : 1</td><td>Hairline borders, default browser focus ring on dark</td><td class="src">WCAG 2.2 AA · 1.4.11</td></tr>
+          <tr><td>Target size (minimum)</td><td class="num">≥ 24 × 24 px</td><td>Icon-only buttons, dense table row actions</td><td class="src">WCAG 2.2 AA · 2.5.8</td></tr>
+          <tr><td>Dragging movements</td><td class="num">alternative required</td><td>Drag-only reorder, slider with no keyboard input</td><td class="src">WCAG 2.2 AA · 2.5.7</td></tr>
+          <tr><td>Line length (body copy)</td><td class="num">45–75 chars</td><td>Full-width paragraphs on desktop</td><td class="src">Typographic convention</td></tr>
+          <tr><td>JS budget, interactive page</td><td class="num">≤ 400 KB gz</td><td>Whole-library imports, duplicated polyfills</td><td class="src">Common engineering budget</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">Part seven</div>
+      <h2>The handoff contract</h2>
+      <p>What a designer owes a developer, and the reverse. Where handoff fails, it is almost always one of these six items being assumed rather than stated.</p>
+    </div>
+    <div class="contract">
+      <div><h3>Tokens, not values</h3><p>Colour, spacing, radius, type scale and motion durations as named variables that map to CSS custom properties.</p></div>
+      <div><h3>States, all five</h3><p>Rest, hover, focus-visible, active, disabled — plus empty, loading, error for any data view.</p></div>
+      <div><h3>Breakpoint behaviour</h3><p>What reflows, what hides, what changes order. Two widths designed, the rule stated for everything between.</p></div>
+      <div><h3>Content rules</h3><p>Max characters per field, truncation vs. wrap, what happens when the image is missing or portrait.</p></div>
+      <div><h3>Accessible names</h3><p>The label a screen reader announces for every icon-only control, and the heading order for the page.</p></div>
+      <div><h3>Back from the dev</h3><p>Which parts were impossible or expensive, and what shipped instead — so the design file matches production.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">Part eight</div>
+      <h2>What generation changes, and what it can't</h2>
+    </div>
+    <ul class="plain">
+      <li><strong>Compressed:</strong> phases 03–04. Wireframe and comp used to cost weeks; a generator produces candidate layouts in minutes, so their value shifts from production to <em>selection</em>.</li>
+      <li><strong>Unchanged:</strong> phases 01–02. Discovery and IA depend on facts only the client holds — legal name, real prices, actual staff, what the business is trying to sell. Nothing invents those safely.</li>
+      <li><strong>More important, not less:</strong> phase 07. Generated output needs the same QA matrix, the same keyboard pass and the same performance budget — with the added job of checking nothing was fabricated.</li>
+      <li><strong>The new failure mode:</strong> plausible sameness. Human studios diverged because they had different clients, constraints and taste; a model's first proposal is the mode of its training data, so the discipline is to generate several directions and deliberately discard the likeliest.</li>
+      <li><strong>The durable rule:</strong> ship a system, not pages. Bespoke markup could never be patched fleet-wide in 2005 and still can't in 2026 — which is exactly why generated sites should be structured content plus a swappable theme, not hand-written HTML.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <div class="eyebrow">Sources</div>
+    <ol>
+      <li><a href="https://cliquestudios.com/university/resources/web-design-process">The 7 Key Stages of Every Web Design Process</a> — Clique Studios</li>
+      <li><a href="https://www.uxpin.com/studio/blog/prototypes-wireframes-mockup-difference/">Prototype vs. Wireframe vs. Mockup</a> — UXPin</li>
+      <li><a href="https://ux247.com/usability-principles/">Jakob Nielsen's 10 Usability Heuristics</a> — UX24/7</li>
+      <li><a href="https://www.freecodecamp.org/news/a-brief-history-of-responsive-web-design/">A Brief History of Responsive Web Design</a> — freeCodeCamp</li>
+      <li><a href="https://www.smashingmagazine.com/2016/08/photoshop-etiquette-for-responsive-web-design/">Photoshop Etiquette for Responsive Web Design</a> — Smashing Magazine</li>
+      <li><a href="https://www.figma.com/blog/design-systems-from-the-basics-to-big-things-ahead/">Design Systems: From the Basics to Big Things Ahead</a> — Figma</li>
+      <li><a href="https://pagepro.co/blog/web-development-best-practices/">Web Development Best Practices 2026</a> — Pagepro</li>
+      <li><a href="https://www.netguru.com/blog/web-development-best-practices">Web development best practices: a 2026 engineering guide</a> — Netguru</li>
+    </ol>
+  </footer>
+
+</div>
