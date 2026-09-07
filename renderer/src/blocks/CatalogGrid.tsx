@@ -23,7 +23,7 @@ function CatalogGrid({ props, layout }: { props: P; layout: string }) {
         {props.eyebrow && <p className="eyebrow">{props.eyebrow}</p>}
         <h2 className="heading">{props.title}</h2>
       </header>
-      <div className="catalog__items">
+      <div className="catalog__items" data-count={props.items.length}>
         {props.items.map((it) => (
           <article className="cat" key={it.name}>
             <div className="cat__media">

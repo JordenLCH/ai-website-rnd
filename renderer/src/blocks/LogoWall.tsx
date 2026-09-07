@@ -13,7 +13,7 @@ function LogoWall({ props, layout }: { props: P; layout: string }) {
     <section className="block logos" data-layout={layout}>
       <div className="logos__inner">
         {props.title && <p className="eyebrow logos__title">{props.title}</p>}
-        <ul className="logos__items">
+        <ul className="logos__items" data-count={props.items.length}>
           {props.items.map((i) => (
             <li key={i.label}><span className="logos__label">{i.label}</span>{i.note && <span className="logos__note">{i.note}</span>}</li>
           ))}

@@ -99,8 +99,36 @@ These read as machine-made because they are the defaults everything converges on
 - Centre-aligned everything, all sections at identical rhythm
 - Generic Inter/Poppins for both display and body
 - Full-width hero, three feature cards, testimonial, CTA — in that order, every time
+- **Monospace for `--font-eyebrow` and `--font-numeral`.** This is the most-reached-for "technical"
+  gesture and it is now the single strongest tell. Those two tokens feed roughly twenty call sites —
+  eyebrows, stat figures, photo captions, product meta, footer headings, legal notes — so choosing
+  mono once puts 30–45 monospaced elements on a page. Real manufacturer, law and clinic sites do not
+  do this. Figures want `font-variant-numeric: tabular-nums`, not a second typeface, and the renderer
+  already applies it. If a technical register is genuinely the direction, buy it with weight,
+  tracking and rule-work; at most keep mono for step numbers and nothing else.
 
 None of these are forbidden individually. The tell is using several together with no reason.
+
+## Two numbers to check before you commit a theme
+
+Both were caught in review after three independent runs got them wrong the same way.
+
+- **Display size against the column it sits in, not against the viewport.** A `--display-size` that
+  resolves to ~100px inside a 560px hero column breaks a headline into six two-word lines. Divide the
+  column width by the rendered size: fewer than about 18 characters per line means the type is too
+  big for the space, however good it looks alone. `clamp(2.2rem, 5.4cqi, 4rem)` is a safe ceiling for
+  a half-width hero; only go past it when the column is full-bleed.
+- **Item counts against the grid they land in.** `hairline-catalog` is 3-up, `grid-hairline` is 4-up.
+  Four products into a 3-up grid leaves a one-cell final row. The renderer now picks a column count
+  that divides the items, but the composition still reads better when the count fits the grid — 4 or
+  6 products, not 5 or 7.
+
+## The example below is a mode generator — read it, then go somewhere else
+
+A blind run building this exact client rejected the worked example below on the grounds that it *is*
+the worked example, and still landed beside it. Three runs of the same brief produced three names for
+one look: same block order, same layout map, same palette, same photographs in the same roles. Treat
+what follows as the direction to beat, not the direction to take.
 
 ## Keeping a fleet distinct
 
