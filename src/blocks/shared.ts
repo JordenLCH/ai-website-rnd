@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import type { z } from 'zod'
+import { z } from 'zod'
 
 export type BlockRenderProps<P> = { props: P; layout: string }
 
@@ -30,7 +30,11 @@ export type Deprecation<P = any> = {
 }
 
 export type CatalogEntry<P = any> = {
-  schema: z.ZodType<P>
+  /** ZodType's third parameter is the *input* type. Leaving it `any` matters because .default()
+   *  and .optional() make a schema's input differ from its output: a block whose props include
+   *  `actions: z.array(...).default([])` produces a P where actions is required, while the schema
+   *  accepts input where it is absent. Pinning input to P rejects the block's own schema. */
+  schema: z.ZodType<P, z.ZodTypeDef, any>
   layouts: readonly string[]
   Component: ComponentType<BlockRenderProps<P>>
   /** Cross-check props against the layout the theme chose. Returns problems, not exceptions. */
@@ -40,3 +44,22 @@ export type CatalogEntry<P = any> = {
 }
 
 export const Img = z.object({ src: z.string(), alt: z.string() })
+
+/** Page key -> URL. Must match the build farm's output paths (platform/src/build.ts writes
+ *  `home` to index.html and every other key to <key>/index.html) and the sitemap in seo.ts.
+ *
+ *  This exists because the catalog rendered navigation as `<a data-page="about">` with no href at
+ *  all: not a link, not focusable, not announced, and not followable. Every generated site was
+ *  multi-page and had nothing joining the pages together. */
+export function hrefFor(page: string): string {
+  if (/^(https?:)?\/\//.test(page) || page.startsWith('mailto:') || page.startsWith('tel:')) return page
+  if (page.startsWith('/') || page.startsWith('#')) return page
+  return page === 'home' ? '/' : `/${page}/`
+}
+
+/** A call to action. `page` is optional so every bundle written before this stays valid, but a
+ *  button without one renders as inert text — which is what the whole catalog did until now. */
+export const ActionSchema = z.object({
+  label: z.string(),
+  page: z.string().optional(),
+})

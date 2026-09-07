@@ -1,11 +1,11 @@
 import { z } from 'zod'
-import type { CatalogEntry } from './shared'
+import { hrefFor, type CatalogEntry } from './shared'
 
 const Props = z.object({
   kicker: z.string().optional(),
   title: z.string(),
   body: z.string().optional(),
-  action: z.object({ label: z.string() }).optional(),
+  action: z.object({ label: z.string(), page: z.string().optional() }).optional(),
   image: z.string().optional(),
   imageAlt: z.string().optional(),
 })
@@ -22,7 +22,9 @@ function Promo({ props, layout }: { props: P; layout: string }) {
           <h2 className="heading promo__title">{props.title}</h2>
           {props.body && <p className="promo__body">{props.body}</p>}
         </div>
-        {props.action && <div className="promo__action"><span className="btn btn--primary">{props.action.label}</span></div>}
+        {props.action && <div className="promo__action">{props.action.page
+          ? <a className="btn btn--primary" href={hrefFor(props.action.page)}>{props.action.label}</a>
+          : <span className="btn btn--primary">{props.action.label}</span>}</div>}
       </div>
     </section>
   )

@@ -106,7 +106,45 @@
       }
     }
 
+    // Tap targets. WCAG 2.2 AA's floor is 24x24 CSS px; every design system that has measured
+    // thumbs (M3 48dp, Apple HIG 44pt) sets its own target far above it. Both are reported
+    // separately, because 24 is the legal minimum and 44 is the one a person feels.
+    let tap = '';
+    let tapMin = 1e9, tapOn = '';
+    for (const el of blk.querySelectorAll('a[href], button, [role="button"], input, select, summary')) {
+      const r = el.getBoundingClientRect();
+      if (r.width < 1 || r.height < 1) continue;
+      // Inline links inside a paragraph are text, not targets — 2.5.8 exempts them.
+      const inProse = el.tagName === 'A' && el.closest('p, li, figcaption');
+      if (inProse) continue;
+      const side = Math.min(r.width, r.height);
+      if (side < tapMin) { tapMin = side; tapOn = (el.innerText || el.getAttribute('aria-label') || el.tagName).trim().slice(0, 18); }
+    }
+    if (tapMin < 24) tap = `TAP TARGET ${Math.round(tapMin)}px "${tapOn}" — under the 24px WCAG floor`;
+    else if (tapMin < 44) tap = `tap target ${Math.round(tapMin)}px "${tapOn}" — under the 44-48px design floor`;
+
+    // Content that is not readable at rest. A reveal gated on an observer that never fires — the
+    // element already on screen at load, JS erroring, the clip-path collapsing the box the
+    // observer measures — leaves a section that validates, renders, and says nothing. The rule
+    // that prevents the whole class: animations start from a *visible* state.
+    let hidden = '';
+    for (const el of blk.querySelectorAll('*')) {
+      if (hidden) break;
+      const txt = el.innerText ? el.innerText.trim() : '';
+      if (txt.length < 20) continue;
+      if (el.closest('[hidden], [aria-hidden="true"], dialog, [role="menu"], [role="dialog"], details:not([open])')) continue;
+      const cs = getComputedStyle(el);
+      // inset(0 0 100% 0) collapses the box to a line — the known reveal bug, since it also
+      // collapses what IntersectionObserver measures, so the reveal can never fire.
+      const clipped = /inset\([^)]*100%/.test(cs.clipPath || '');
+      if (Number(cs.opacity) < 0.05 || cs.visibility === 'hidden' || clipped) {
+        hidden = `HIDDEN AT REST "${txt.slice(0, 24)}" (opacity ${cs.opacity}, clip-path ${cs.clipPath || 'none'}) — content must be readable before any reveal fires`;
+      }
+    }
+
     const flags = [];
+    if (hidden) flags.push(hidden);
+    if (tap) flags.push(tap);
     if (collide) flags.push(collide);
     if (over) flags.push('OVERFLOW +' + over + 'px');
     if (orphan) flags.push(orphan);

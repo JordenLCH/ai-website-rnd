@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { CatalogEntry } from './shared'
+import { hrefFor, type CatalogEntry } from './shared'
 
 const Props = z.object({
   eyebrow: z.string().optional(),
@@ -7,7 +7,7 @@ const Props = z.object({
   tiers: z.array(z.object({
     name: z.string(), price: z.string(), unit: z.string().optional(),
     body: z.string().optional(), features: z.array(z.string()).min(1),
-    action: z.object({ label: z.string() }), featured: z.boolean().optional(),
+    action: z.object({ label: z.string(), page: z.string().optional() }), featured: z.boolean().optional(),
   })).min(2).max(4),
 })
 type P = z.infer<typeof Props>
@@ -27,7 +27,9 @@ function Pricing({ props, layout }: { props: P; layout: string }) {
             <p className="tier__price"><span>{t.price}</span>{t.unit && <em>{t.unit}</em>}</p>
             {t.body && <p className="tier__body">{t.body}</p>}
             <ul className="tier__features">{t.features.map((f) => <li key={f}>{f}</li>)}</ul>
-            <span className="btn btn--primary tier__cta">{t.action.label}</span>
+            {t.action.page
+              ? <a className="btn btn--primary tier__cta" href={hrefFor(t.action.page)}>{t.action.label}</a>
+              : <span className="btn btn--primary tier__cta">{t.action.label}</span>}
           </div>
         ))}
       </div>
