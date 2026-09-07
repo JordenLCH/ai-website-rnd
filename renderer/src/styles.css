@@ -284,7 +284,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .features[data-layout="alternating-rows"] .feature__body { color: var(--muted); margin: 0; max-width: 44ch; }
 
 .features[data-layout="cards-soft"] .features__items { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
-.features[data-layout="cards-soft"] .feature { background: var(--card); border-radius: var(--radius); padding: calc(var(--gap) * .8);
+.features[data-layout="cards-soft"] .feature { background: var(--raised, var(--card)); border-radius: var(--radius); padding: calc(var(--gap) * .8);
   box-shadow: var(--elev-1); border: var(--border) solid var(--line); }
 .features[data-layout="cards-soft"] .feature__media img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: var(--radius-img); margin-bottom: 1rem; }
 .features[data-layout="cards-soft"] .feature__title { font-family: var(--font-display); font-size: 1.2rem; margin: 0 0 .5rem; letter-spacing: var(--display-tracking); }
@@ -341,7 +341,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .stats[data-layout="airy-columns"] .stat__label { font-size: .92rem; color: var(--muted); margin-top: .9rem; }
 
 .stats[data-layout="boxed-grid"] .stats__items { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); }
-.stats[data-layout="boxed-grid"] .stat { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); padding: calc(var(--gap) * .7); }
+.stats[data-layout="boxed-grid"] .stat { background: var(--raised, var(--card)); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); padding: calc(var(--gap) * .7); }
 .stats[data-layout="boxed-grid"] .stat__value { font-family: var(--font-numeral); font-variant-numeric: tabular-nums; font-size: clamp(1.8rem, 3.6cqi, 2.6rem); font-weight: var(--display-weight); line-height: 1; }
 .stats[data-layout="boxed-grid"] .stat__label { font-size: .88rem; color: var(--muted); margin-top: .8rem; }
 @container (max-width: 760px) {
@@ -515,7 +515,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .loc__address { margin: 0; color: var(--muted); white-space: pre-line; }
 .loc__note { margin: .6rem 0 0; font-size: .88rem; color: var(--muted); }
 .locations[data-layout="cards"] .locations__items { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
-.locations[data-layout="cards"] .loc { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); padding: calc(var(--gap) * .7); }
+.locations[data-layout="cards"] .loc { background: var(--raised, var(--card)); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); padding: calc(var(--gap) * .7); }
 .locations[data-layout="cards"] .locations__media { display: none; }
 .locations[data-layout="split-panel"] .locations__inner { display: grid; grid-template-columns: .9fr 1.1fr; gap: var(--gap); align-items: center; }
 .locations[data-layout="split-panel"] .locations__items { display: grid; gap: calc(var(--gap) * .6); }
@@ -613,7 +613,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .tier__features li { padding-left: 1.1rem; position: relative; color: var(--muted); }
 .tier__features li::before { content: "—"; position: absolute; left: 0; color: var(--accent-fg, var(--color-accent)); }
 .pricing[data-layout="cards-tiers"] .pricing__tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
-.pricing[data-layout="cards-tiers"] .tier { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); padding: calc(var(--gap) * .8); display: flex; flex-direction: column; }
+.pricing[data-layout="cards-tiers"] .tier { background: var(--raised, var(--card)); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); padding: calc(var(--gap) * .8); display: flex; flex-direction: column; }
 .pricing[data-layout="cards-tiers"] .tier[data-featured="true"] { border-color: var(--color-accent); border-width: calc(var(--border) * 2); }
 .pricing[data-layout="cards-tiers"] .tier__cta { margin-top: auto; text-align: center; }
 .pricing[data-layout="table-compare"] .pricing__tiers { display: grid; grid-template-columns: repeat(3, 1fr); border-top: var(--border) solid var(--line); }
@@ -691,7 +691,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .steps[data-layout="numbered-rail"] .step__title { margin: 0; }
 .steps[data-layout="numbered-rail"] .step__body { max-width: 58ch; }
 .steps[data-layout="cards-row"] .steps__items { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); }
-.steps[data-layout="cards-row"] .step { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); padding: calc(var(--gap) * .7); }
+.steps[data-layout="cards-row"] .step { background: var(--raised, var(--card)); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); padding: calc(var(--gap) * .7); }
 .steps[data-layout="inline-flow"] .steps__items { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); }
 .steps[data-layout="inline-flow"] .step { border-top: calc(var(--border) * 2) solid var(--ink); padding-top: .9rem; }
 @container (max-width: 900px) {
@@ -821,7 +821,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .p-row--wrap { flex-wrap: wrap; }
 .p-grid { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); min-width: 0; }
 .p-grid > * { min-width: 0; }
-.p-card { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); }
+.p-card { background: var(--raised, var(--card)); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); }
 .p-card--plain { background: transparent; border: 0; box-shadow: none; }
 [data-pgap="none"] { gap: 0; } [data-pgap="xs"] { gap: var(--sp-xs); } [data-pgap="sm"] { gap: var(--sp-sm); }
 [data-pgap="md"] { gap: var(--sp-md); } [data-pgap="lg"] { gap: var(--sp-lg); } [data-pgap="xl"] { gap: var(--sp-xl); }
@@ -996,6 +996,20 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .hero__crumbs em { font-style: normal; color: var(--ink); }
 .hero__crumbs i { font-style: normal; opacity: .45; margin-left: .45rem; }
 
+
+/* Surface ramp.
+   The validator asks a theme to express depth with a surface step rather than a shadow on
+   everything, and until now no theme could act on that: nothing in this stylesheet read a ramp
+   token except one badge background, so an author who added --color-surface-2 changed nothing on
+   the page. All six themes in the fleet trip that rule, which is the shape of a diagnostic nobody
+   can resolve. Same defect --color-focus had, and the same fix — give it a consumer.
+
+   --raised is the step a card or panel sits on above its own section. Either spelling of the token
+   works, matching the validator's /^--(color-)?surface-([2-9]|raised|high)/, and the final fallback
+   is the tone's own card colour so a theme with no ramp renders exactly as before. */
+.section { --raised: var(--color-surface-2, var(--surface-2, var(--card))); }
+.section[data-tone="surface"] { --raised: var(--color-surface-3, var(--surface-3, var(--color-surface-2, var(--surface-2, var(--card))))); }
+.section[data-tone="inverse"] { --raised: var(--color-inverse-surface-2, var(--card)); }
 
 /* ---------- interaction states ----------
    Derived from tokens, not designed per component — Material 3's state-layer idea, which is the
