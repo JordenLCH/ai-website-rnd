@@ -67,9 +67,14 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 }
 .site img { display: block; max-width: 100%; filter: var(--img-filter); }
 
+/* --color-accent is a field colour: it backs buttons and accent-tone sections, where the text on
+   it flips to --color-on-accent. --accent-fg is the *text* role, and on a light tone it needs its
+   own value, because a colour chosen to be a good field is usually too light to be legible type on
+   white. Themes set --color-accent-ink for that; it falls back to the accent, so nothing changes
+   for a theme dark enough not to need it. */
 .section { background: var(--bg); color: var(--ink); }
-.section[data-tone="default"] { --bg: var(--color-bg);         --ink: var(--color-ink);         --muted: var(--color-muted);         --line: var(--color-line);         --btn-bg: var(--color-accent); --btn-fg: var(--color-on-accent); --card: var(--color-surface); --accent-fg: var(--color-accent); }
-.section[data-tone="surface"] { --bg: var(--color-surface);    --ink: var(--color-ink);         --muted: var(--color-muted);         --line: var(--color-line);         --btn-bg: var(--color-accent); --btn-fg: var(--color-on-accent); --card: var(--color-bg); --accent-fg: var(--color-accent); }
+.section[data-tone="default"] { --bg: var(--color-bg);         --ink: var(--color-ink);         --muted: var(--color-muted);         --line: var(--color-line);         --btn-bg: var(--color-accent); --btn-fg: var(--color-on-accent); --card: var(--color-surface); --accent-fg: var(--color-accent-ink, var(--color-accent)); }
+.section[data-tone="surface"] { --bg: var(--color-surface);    --ink: var(--color-ink);         --muted: var(--color-muted);         --line: var(--color-line);         --btn-bg: var(--color-accent); --btn-fg: var(--color-on-accent); --card: var(--color-bg); --accent-fg: var(--color-accent-ink, var(--color-accent)); }
 .section[data-tone="inverse"] { --bg: var(--color-inverse-bg); --ink: var(--color-inverse-ink); --muted: var(--color-inverse-muted); --line: var(--color-inverse-line); --btn-bg: var(--color-accent); --btn-fg: var(--color-on-accent); --card: color-mix(in oklab, var(--color-inverse-ink) 7%, var(--color-inverse-bg));
   /* a dark brand colour disappears on a dark tone — lift it toward the section's ink */
   --accent-fg: color-mix(in oklab, var(--color-accent) 45%, var(--color-inverse-ink)); }
@@ -117,8 +122,14 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .notice__body { margin: 0; font-size: .88rem; line-height: 1.55; color: var(--muted); max-width: 78ch; }
 .notice__meta { margin: 0; font-size: .78rem; color: var(--muted); opacity: .8; }
 .notice[data-layout="inline-rule"] .notice__inner { border-top: var(--border) solid var(--line); padding-top: .9rem; }
+/* The box is drawn to the measure, not to the page.
+   .notice__body caps at 78ch for readability, but .notice__inner stretched to --maxw, so the
+   border enclosed roughly four hundred pixels of nothing. Empty space inside a visible box reads
+   as a mistake in a way the same space in an unbordered section does not — the border is a claim
+   about where the content ends. fit-content keeps the frame on the text. */
 .notice[data-layout="boxed-aside"] .notice__inner { border: var(--border) solid var(--line);
-  border-radius: var(--radius); padding: var(--sp-md); background: var(--card); }
+  border-radius: var(--radius); padding: var(--sp-md); background: var(--card);
+  width: fit-content; max-width: min(var(--maxw), 88ch); margin-inline: 0; }
 .notice[data-layout="footnote"] .notice__body { font-size: .8rem; }
 .notice[data-layout="footnote"] .notice__inner { border-top: var(--border) solid var(--line); padding-top: .7rem; }
 /* the accent edge marks a notice as a notice without shouting */
@@ -315,8 +326,12 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
   border-radius: var(--radius-img); }
 .gallery__item[data-kind="cutout"] img { object-fit: contain; }
 [data-tone="inverse"] .gallery__item[data-kind="cutout"] { background: color-mix(in srgb, #fff 92%, var(--color-accent)); }
+/* A caption is a sentence, not a label. It used to inherit --eyebrow-transform and the full
+   eyebrow tracking, so on a theme with uppercase eyebrows a three-line caption arrived as three
+   lines of wide-tracked capitals — the least readable setting available, applied to the copy that
+   explains the picture. Keep the eyebrow face for register, drop the shouting. */
 .gallery__item figcaption { font-family: var(--font-eyebrow); font-size: .74rem; color: var(--muted); margin-top: .6rem;
-  text-transform: var(--eyebrow-transform); letter-spacing: var(--eyebrow-tracking); }
+  letter-spacing: calc(var(--eyebrow-tracking) * .35); line-height: 1.45; }
 /* fixed rows plus a full-height image left no box for the caption, so it drew
    outside the cell and the following row painted over it */
 .gallery[data-layout="mosaic"] .gallery__items { display: grid; grid-template-columns: repeat(4, 1fr);
@@ -325,13 +340,18 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .gallery[data-layout="mosaic"] .gallery__item[data-i="3"] { grid-column: span 2; }
 .gallery[data-layout="mosaic"] .gallery__item img { flex: 1 1 auto; min-height: 0; }
 .gallery__item figcaption { flex: 0 0 auto; }
-.gallery[data-layout="uniform-grid"] .gallery__items { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
-.gallery[data-layout="uniform-grid"] .gallery__item img { aspect-ratio: 4 / 3; }
+/* `height: 100%` on the base image beats aspect-ratio inside a stretched grid row: the flex column
+   is as tall as its tallest sibling, so a tile with a two-line caption handed its image the spare
+   height and the "uniform" grid came out with images 275px, 295px, 275px across a row. Where a
+   layout declares an aspect ratio, the ratio has to be what sets the height. */
+.gallery[data-layout="uniform-grid"] .gallery__items { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gap); align-items: start; }
+.gallery[data-layout="uniform-grid"] .gallery__item img { aspect-ratio: 4 / 3; height: auto; flex: 0 0 auto; }
 .gallery[data-layout="filmstrip"] .gallery__items { display: grid; grid-auto-flow: column; grid-auto-columns: 68cqi; gap: calc(var(--gap) * .6); overflow-x: auto; padding-bottom: 1rem; }
-.gallery[data-layout="filmstrip"] .gallery__item img { aspect-ratio: 16 / 10; }
+.gallery[data-layout="filmstrip"] .gallery__item img { aspect-ratio: 16 / 10; height: auto; flex: 0 0 auto; }
 @container (max-width: 760px) {
   .gallery[data-layout="mosaic"] .gallery__items { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 30cqi; }
-  .gallery[data-layout="uniform-grid"] .gallery__items { grid-template-columns: repeat(2, 1fr); }
+  .gallery[data-layout="uniform-grid"] .gallery__items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* ---------- SpecTable ---------- */
@@ -431,14 +451,27 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .tl__title { font-family: var(--font-display); font-size: 1.12rem; margin: 0 0 .4rem; letter-spacing: var(--display-tracking); }
 .tl__body { color: var(--muted); margin: 0; max-width: 52ch; font-size: .95rem; }
 .timeline[data-layout="vertical-rail"] .timeline__items { display: grid; gap: calc(var(--gap) * .9); }
-.timeline[data-layout="vertical-rail"] .tl { display: grid; grid-template-columns: 8rem 1fr; gap: var(--gap);
-  border-top: var(--border) solid var(--line); padding-top: calc(var(--gap) * .55); }
+/* Marker, title, body — a column each, and the same reasoning as the Steps rail.
+   The old `8rem 1fr` was a fixed 128px label column with nothing stopping a longer marker from
+   spilling out of it: "Commencement" at 1.5rem overran its track and printed straight through the
+   title beside it. Grid items do not clip, so an over-long label in a fixed track is not a
+   near-miss, it is overlapping text — and it never crosses the section edge, so an overflow check
+   that measures against the container cannot see it.
+   minmax(0, …) on every track lets a long word wrap instead of widening the row. */
+.timeline[data-layout="vertical-rail"] .tl { display: grid;
+  grid-template-columns: minmax(0, 9rem) minmax(0, 15rem) minmax(0, 1fr); gap: var(--gap);
+  border-top: var(--border) solid var(--line); padding-top: calc(var(--gap) * .55); align-items: start; }
+.timeline[data-layout="vertical-rail"] .tl__marker { font-size: 1.15rem; line-height: 1.25; overflow-wrap: anywhere; }
+.timeline[data-layout="vertical-rail"] .tl__copy { display: contents; }
+.timeline[data-layout="vertical-rail"] .tl__title { margin: 0; }
+.timeline[data-layout="vertical-rail"] .tl__body { max-width: 58ch; }
 .timeline[data-layout="horizontal-steps"] .timeline__items { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); }
 .timeline[data-layout="horizontal-steps"] .tl { border-top: calc(var(--border) * 2) solid var(--ink); padding-top: 1rem; }
 .timeline[data-layout="horizontal-steps"] .tl__marker { margin-bottom: .6rem; }
 @container (max-width: 800px) {
   .timeline[data-layout="horizontal-steps"] .timeline__items { grid-template-columns: repeat(2, 1fr); }
-  .timeline[data-layout="vertical-rail"] .tl { grid-template-columns: 1fr; gap: .5rem; }
+  .timeline[data-layout="vertical-rail"] .tl { grid-template-columns: minmax(0, 1fr); gap: .5rem; }
+  .timeline[data-layout="vertical-rail"] .tl__body { max-width: 52ch; }
 }
 
 /* ---------- Locations ---------- */
@@ -544,7 +577,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .tier__body { color: var(--muted); font-size: .93rem; margin: 0 0 1.2rem; }
 .tier__features { list-style: none; margin: 0 0 1.6rem; padding: 0; display: grid; gap: .55rem; font-size: .93rem; }
 .tier__features li { padding-left: 1.1rem; position: relative; color: var(--muted); }
-.tier__features li::before { content: "—"; position: absolute; left: 0; color: var(--color-accent); }
+.tier__features li::before { content: "—"; position: absolute; left: 0; color: var(--accent-fg, var(--color-accent)); }
 .pricing[data-layout="cards-tiers"] .pricing__tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
 .pricing[data-layout="cards-tiers"] .tier { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); padding: calc(var(--gap) * .8); display: flex; flex-direction: column; }
 .pricing[data-layout="cards-tiers"] .tier[data-featured="true"] { border-color: var(--color-accent); border-width: calc(var(--border) * 2); }
@@ -607,7 +640,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 /* ---------- Steps ---------- */
 .steps__head { margin-bottom: calc(var(--gap) * 1.1); }
 .steps__items { list-style: none; margin: 0 auto; padding: 0; }
-.step__n { font-family: var(--font-numeral); font-size: 1.4rem; color: var(--color-accent); font-weight: 600; }
+.step__n { font-family: var(--font-numeral); font-size: 1.4rem; color: var(--accent-fg, var(--color-accent)); font-weight: 600; }
 .step__title { font-family: var(--font-display); font-size: 1.14rem; margin: .3rem 0 .5rem; letter-spacing: var(--display-tracking); }
 .step__body { color: var(--muted); margin: 0; font-size: .95rem; max-width: 46ch; }
 .steps[data-layout="numbered-rail"] .steps__items { display: grid; gap: calc(var(--gap) * .8); }
@@ -768,7 +801,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .p-row[data-palign="start"] { align-items: flex-start; }
 .p-row[data-palign="end"] { align-items: flex-end; }
 [data-pmaxw="prose"] { max-width: 62ch; } [data-pmaxw="narrow"] { max-width: 44ch; }
-[data-ptone="muted"] { color: var(--muted); } [data-ptone="accent"] { color: var(--color-accent); }
+[data-ptone="muted"] { color: var(--muted); } [data-ptone="accent"] { color: var(--accent-fg, var(--color-accent)); }
 
 /* --- content primitives --- */
 .p-h { font-family: var(--font-display); font-weight: var(--display-weight);
