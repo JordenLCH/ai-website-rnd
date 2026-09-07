@@ -74,7 +74,11 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
   /* a dark brand colour disappears on a dark tone — lift it toward the section's ink */
   --accent-fg: color-mix(in oklab, var(--color-accent) 45%, var(--color-inverse-ink)); }
 .section[data-tone="accent"]  { --bg: var(--color-accent);     --ink: var(--color-on-accent);
-  --muted: color-mix(in oklab, var(--color-on-accent) 74%, transparent);
+  /* 74% here failed WCAG on every accent dark enough to need white text: an accent field that is
+     itself only ~5:1 against its own ink has no luminance headroom left for a second, quieter text
+     colour, so the muted step has to be nearly opaque. On accent, carry the quiet register with
+     size and weight rather than opacity — the colour cannot do it. */
+  --muted: color-mix(in oklab, var(--color-on-accent) 90%, transparent);
   --line: color-mix(in oklab, var(--color-on-accent) 26%, transparent);
   --btn-bg: var(--color-on-accent); --btn-fg: var(--color-accent);
   --card: color-mix(in oklab, var(--color-on-accent) 10%, transparent);
@@ -254,10 +258,23 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .features[data-layout="text-columns"] .feature__title { font-family: var(--font-display); font-size: 1.1rem; margin: 0 0 .5rem; }
 .features[data-layout="text-columns"] .feature__body { color: var(--muted); font-size: .93rem; margin: 0; }
 
+/* The [data-count] selectors above carry attribute specificity, and a container query adds none —
+   so without matching that specificity here, a 5- or 6-item grid stayed at five or six columns all
+   the way down to 360px and tore straight off the page. `[data-count]` matches any value at the
+   same weight and wins on order.
+   minmax(0, 1fr) rather than 1fr for the same reason as .p-grid: a bare 1fr floors at min-content,
+   so a long word in one card pushes the whole row wider than its container instead of wrapping. */
 @container (max-width: 900px) {
-  .features[data-layout="grid-hairline"] .features__items,
+  .features[data-layout="grid-hairline"] .features__items[data-count],
   .features[data-layout="cards-soft"] .features__items,
-  .features[data-layout="text-columns"] .features__items { grid-template-columns: repeat(2, 1fr); }
+  .features[data-layout="text-columns"] .features__items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* One column on a phone. This step did not exist: every grid in the catalog stopped collapsing at
+   two, which is legible at 768 and unreadable at 360. */
+@container (max-width: 560px) {
+  .features[data-layout="grid-hairline"] .features__items[data-count],
+  .features[data-layout="cards-soft"] .features__items,
+  .features[data-layout="text-columns"] .features__items { grid-template-columns: minmax(0, 1fr); }
 }
 @container (max-width: 700px) {
   .features[data-layout="alternating-rows"] .feature { grid-template-columns: 1fr; }
@@ -373,14 +390,21 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 [data-tone="accent"] .logos[data-layout="hairline-row"] .logos__items li {
   border-color: color-mix(in oklab, var(--color-on-accent) 28%, transparent); }
 @container (max-width: 700px) {
-  .logos[data-layout="hairline-row"] .logos__items { grid-template-columns: repeat(2, 1fr); }
+  /* [data-count] to match the count rules' specificity — see the note on Features. */
+  .logos[data-layout="hairline-row"] .logos__items[data-count] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .logos[data-layout="hairline-row"] .logos__items li:last-child { grid-column: auto; }
   .logos[data-layout="hairline-row"] .logos__items[data-count="3"] li:last-child,
   .logos[data-layout="hairline-row"] .logos__items[data-count="5"] li:last-child,
   .logos[data-layout="hairline-row"] .logos__items[data-count="7"] li:last-child { grid-column: span 2; }
 }
+@container (max-width: 460px) {
+  /* Client names are short; two columns still fit a phone. One column only when they cannot. */
+  .logos[data-layout="hairline-row"] .logos__items[data-count] { grid-template-columns: minmax(0, 1fr); }
+  .logos[data-layout="hairline-row"] .logos__items[data-count] li:last-child { grid-column: auto; }
+}
 .logos[data-layout="muted-grid"] .logos__items { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--gap); color: var(--muted); }
-@container (max-width: 800px) { .logos[data-layout="muted-grid"] .logos__items { grid-template-columns: repeat(3, 1fr); } }
+@container (max-width: 800px) { .logos[data-layout="muted-grid"] .logos__items { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@container (max-width: 460px) { .logos[data-layout="muted-grid"] .logos__items { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* ---------- FAQ ---------- */
 .faq__head { margin-bottom: calc(var(--gap) * 1.1); }
@@ -398,7 +422,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .faq[data-layout="two-col-list"] .faq__items[data-count="5"] .faq__item:last-child,
 .faq[data-layout="two-col-list"] .faq__items[data-count="7"] .faq__item:last-child,
 .faq[data-layout="two-col-list"] .faq__items[data-count="9"] .faq__item:last-child { grid-column: span 2; }
-@container (max-width: 800px) { .faq[data-layout="two-col-list"] .faq__items { grid-template-columns: 1fr; } }
+@container (max-width: 800px) { .faq[data-layout="two-col-list"] .faq__items[data-count] { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---------- Timeline ---------- */
 .timeline__head { margin-bottom: calc(var(--gap) * 1.2); }
@@ -560,15 +584,24 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
   border-top: var(--border) solid var(--line); padding-top: calc(var(--gap) * .5); }
 .catalog[data-layout="wide-list"] .cat__media img { aspect-ratio: 3 / 2; }
 .catalog[data-layout="wide-list"] .cat__name { margin-top: 0; }
+/* [data-count] again — same trap as Features. The count rules above out-specify a plain
+   .catalog__items selector, and a container query adds no specificity of its own, so a 4-, 5- or
+   8-item catalogue held its full column count down to 360px. */
 @container (max-width: 900px) {
   .catalog[data-layout="cards-grid"] .catalog__items,
-  .catalog[data-layout="hairline-catalog"] .catalog__items { grid-template-columns: repeat(2, 1fr); }
+  .catalog[data-layout="hairline-catalog"] .catalog__items[data-count] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   /* the span rules above assume 3 columns; at 2 they would leave a hole */
   .catalog[data-layout="hairline-catalog"] .catalog__items .cat:last-child { grid-column: auto; }
   .catalog[data-layout="hairline-catalog"] .catalog__items[data-count="3"] .cat:last-child,
   .catalog[data-layout="hairline-catalog"] .catalog__items[data-count="5"] .cat:last-child,
   .catalog[data-layout="hairline-catalog"] .catalog__items[data-count="7"] .cat:last-child { grid-column: span 2; }
   .catalog[data-layout="wide-list"] .cat { grid-template-columns: 1fr; }
+}
+@container (max-width: 560px) {
+  .catalog[data-layout="cards-grid"] .catalog__items,
+  .catalog[data-layout="hairline-catalog"] .catalog__items[data-count] { grid-template-columns: minmax(0, 1fr); }
+  /* a span of 2 in a 1-column grid overflows the track rather than filling it */
+  .catalog[data-layout="hairline-catalog"] .catalog__items[data-count] .cat:last-child { grid-column: auto; }
 }
 
 /* ---------- Steps ---------- */

@@ -7,7 +7,7 @@
     "--color-muted": "#5A6478",
     "--color-line": "rgba(11,19,43,0.16)",
     "--color-accent": "#F26522",
-    "--color-on-accent": "#FFFFFF",
+    "--color-on-accent": "#2B1200",
     "--color-inverse-bg": "#0B132B",
     "--color-inverse-ink": "#EEF1F6",
     "--color-inverse-muted": "#94A0B8",
