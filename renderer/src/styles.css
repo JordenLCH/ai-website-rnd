@@ -783,7 +783,21 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
   --motion-duration: 620ms;
   --motion-ease: cubic-bezier(.22,.61,.36,1);
   --parallax-y: 0px;
+  /* Brands the native checkbox, radio and range in one declaration. Without it a contact form
+     with a consent checkbox shows the OS blue in the middle of a committed palette — the one
+     control on the page that ignores the theme. */
+  accent-color: var(--color-accent);
 }
+
+/* Orphans. `balance` is already on the display and heading primitives; `pretty` is its
+   counterpart for running copy — it holds back the last few words so a paragraph cannot end on a
+   single word alone on its own line. Costs nothing, applies everywhere text runs long.
+
+   Applied to the elements running copy actually lands in rather than an enumerated class list:
+   blocks name their body copy differently (.prose, .lede, .feature__body, .step__body, .p-text)
+   and any list will keep missing the next one. The headings already set `balance` explicitly on
+   .display / .heading, so they are unaffected. */
+.site :where(p, li, dd, figcaption, blockquote) { text-wrap: pretty; }
 
 .free { position: relative; overflow: clip; min-height: var(--min-h); display: grid; align-content: var(--align, start); }
 .free[data-pad="none"] { padding-block: 0; }
@@ -903,7 +917,12 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 [data-motion="slide-right"] { opacity: 0; transform: translate3d(calc(var(--motion-distance) * -1.6), 0, 0); }
 [data-motion="scale-in"] { opacity: 0; transform: scale(.965); }
 [data-motion="reveal-clip"] { clip-path: inset(0 0 88% 0); opacity: .001; }
-[data-motion][data-inview="true"] { opacity: 1; transform: none; clip-path: inset(0 0 0 0); }
+[data-motion][data-inview="true"] { opacity: 1; transform: none; clip-path: inset(0 0 0 0);
+  /* will-change promotes the element to its own compositor layer and holds it there. A reveal
+     runs once, but every revealed section on a long page keeps its layer for the life of the
+     document — on a 20-section page that is 20 retained layers doing nothing. Release it the
+     moment the animation it was reserved for has finished. */
+  will-change: auto; }
 @media (prefers-reduced-motion: reduce) {
   [data-motion] { opacity: 1 !important; transform: none !important; clip-path: none !important; transition: none !important; }
   .free__bg { transform: none !important; }
@@ -1034,20 +1053,31 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
        .faq__item summary, .p-card, .cat, .footer__col a, .loc a) {
   transition: box-shadow var(--motion-state) var(--motion-ease),
               color var(--motion-state) var(--motion-ease),
-              border-color var(--motion-state) var(--motion-ease);
+              border-color var(--motion-state) var(--motion-ease),
+              transform var(--motion-state) var(--motion-ease);
 }
 
 /* An inset shadow at full spread paints over the background and under the text, so it works as a
-   state layer on any surface without a wrapper element or a second background. */
-:where(.btn, .faq__item summary, .p-card, .cat):hover {
-  box-shadow: inset 0 0 0 999px color-mix(in oklab, currentColor 8%, transparent);
+   state layer on any surface without a wrapper element or a second background.
+
+   Gated on (hover: hover): touch has no hover, but a tap still fires :hover and the browser
+   leaves it applied until the next tap lands elsewhere — so on a phone the last card or button
+   touched stays lit, which reads as a stuck selected state on something that is not selectable.
+   Gating the rule is the fix rather than overriding it later, because the resting shadow differs
+   per element (.p-card rests at --elev-1, .p-card--plain and .cat at none) and any override has
+   to guess which one to restore. */
+@media (hover: hover) {
+  :where(.btn, .faq__item summary, .p-card, .cat):hover {
+    box-shadow: inset 0 0 0 999px color-mix(in oklab, currentColor 8%, transparent);
+  }
+  /* Cards additionally lift, because a card is already a raised surface and the pointer should say so. */
+  :where(.p-card, .cat):hover { box-shadow: var(--elev-2),
+    inset 0 0 0 999px color-mix(in oklab, currentColor 6%, transparent); }
 }
+/* :active is real on touch — it is the press itself, and it ends when the finger lifts. */
 :where(.btn, .faq__item summary, .p-card, .cat):active {
   box-shadow: inset 0 0 0 999px color-mix(in oklab, currentColor 12%, transparent);
 }
-/* Cards additionally lift, because a card is already a raised surface and the pointer should say so. */
-:where(.p-card, .cat):hover { box-shadow: var(--elev-2),
-  inset 0 0 0 999px color-mix(in oklab, currentColor 6%, transparent); }
 
 /* A state layer is not a focus indicator. Keyboard focus needs its own visible mark at 3:1 or
    better, and :focus-visible rather than :focus so a mouse click does not leave a ring behind. */
@@ -1064,6 +1094,12 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
   outline-color: var(--color-on-accent);
 }
 
+/* A press needs to move. The state layer alone changes tone but not position, which is the
+   "buttons that snap" tell — the control acknowledges the pointer without ever feeling pressed.
+   1px is the whole effect; more reads as a toy. */
+:where(.btn):active { transform: translateY(1px); }
+
 @media (prefers-reduced-motion: reduce) {
   :where(.btn, .p-link, .faq__item summary, .p-card, .cat) { transition: none; }
+  :where(.btn):active { transform: none; }
 }
