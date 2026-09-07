@@ -124,6 +124,88 @@ function accentMismatches(props: unknown, path: string[] = []): string[] {
   return out
 }
 
+/** Rough hue of a CSS colour, 0-360, or null if it isn't one we can read.
+ *  Only hex and hsl() — enough for a theme token, and a wrong guess here should
+ *  produce silence, not a false accusation. */
+function hueOf(v: string): number | null {
+  const hsl = /hsla?\(\s*([\d.]+)/.exec(v)
+  if (hsl) return Number(hsl[1]) % 360
+  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(v.trim())
+  if (!hex) return null
+  const h = hex[1].length === 3 ? hex[1].split('').map((c) => c + c).join('') : hex[1]
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255)
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min
+  if (d === 0) return null
+  const deg = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4
+  return (deg * 60 + 360) % 360
+}
+
+const MONO = /\bmono(space)?\b|\b(JetBrains|IBM Plex Mono|Space Mono|Roboto Mono|Fira Code|Courier|Menlo|Consolas|SF Mono)\b/i
+
+/** Design tells that are checkable from theme.json alone, no rendering needed.
+ *
+ *  None of these are errors. Each names a pattern that is fine when it was chosen and
+ *  telling when it was defaulted into — which is a distinction a validator cannot make,
+ *  so the output is "say why", not "change it". */
+function slopTells(theme: { name: string; tokens: Record<string, string> }): Issue[] {
+  const out: Issue[] = []
+  const t = theme.tokens
+
+  // 1. One radius on every surface. The dominant tell of mechanically assembled design:
+  //    buttons, cards, images and fields all sharing an identical corner reads as a kit,
+  //    because a designer sizes the radius to the surface.
+  const radii = ['--radius', '--radius-img', '--btn-radius', '--radius-tight']
+    .map((k) => t[k]).filter(Boolean)
+  if (radii.length >= 3 && new Set(radii).size === 1) {
+    out.push({
+      where: 'theme.tokens',
+      message: `every radius token is "${radii[0]}" — one corner on every surface is the most common tell of assembled-not-designed. Size the radius to the surface, or set --radius-tight smaller`,
+      severity: 'warning',
+    })
+  }
+
+  // 2. Indigo/violet accent as the only non-neutral colour. Traced directly to Tailwind's
+  //    bg-indigo-500 default and named as the loudest single AI tell of 2026.
+  const accentHue = hueOf(t['--color-accent'] ?? '')
+  if (accentHue !== null && accentHue >= 235 && accentHue <= 285) {
+    const others = ['--color-bg', '--color-surface', '--color-ink', '--color-inverse-bg']
+      .map((k) => hueOf(t[k] ?? '')).filter((h): h is number => h !== null)
+    if (others.length === 0) {
+      out.push({
+        where: 'theme.tokens.--color-accent',
+        message: `accent sits in the indigo/violet band (hue ${Math.round(accentHue)}) against an otherwise neutral palette — that is the Tailwind default and the loudest current AI tell. Keep it only if the brand actually owns that colour`,
+        severity: 'warning',
+      })
+    }
+  }
+
+  // 3. Monospace confined to labels and numerals. It reads as structured and technical, which
+  //    is exactly why every generator reaches for it — three independent runs of one brief in
+  //    this repo all did. It is on track to be as telling as an unchosen Inter.
+  const monoRoles = ['--font-eyebrow', '--font-numeral'].filter((k) => MONO.test(t[k] ?? ''))
+  const monoElsewhere = ['--font-display', '--font-body'].some((k) => MONO.test(t[k] ?? ''))
+  if (monoRoles.length && !monoElsewhere) {
+    out.push({
+      where: 'theme.tokens',
+      message: `monospace on ${monoRoles.join(' and ')} and nowhere else — the default "make it look technical" move. Justify it against small-caps or a condensed sans, or drop it`,
+      severity: 'warning',
+    })
+  }
+
+  // Not a tell, but the reason the tells above are the only ones worth checking: a theme that
+  // varies nothing but colour and size has left the levers that carry identity untouched.
+  const structural = ['--scale-ratio', '--density', '--motion-duration', '--motion-ease', '--grid-cols', '--radius-tight']
+  if (!structural.some((k) => k in t)) {
+    out.push({
+      where: 'theme.tokens',
+      message: `no structural tokens set (${structural.join(', ')}) — this theme varies only colour and size, which is the cheapest kind of variation and the easiest to see through. Rhythm, ratio and motion carry more identity than hue`,
+      severity: 'info',
+    })
+  }
+
+  return out
+}
+
 export function validateBundle(rawSite: unknown, rawTheme: unknown):
   { ok: boolean; issues: Issue[]; density: Density[]; unverified: string[] } {
   const issues: Issue[] = []
@@ -161,7 +243,28 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown):
     if (b.unverified === true || hasUnverifiedNode(b.props)) unverified.push(where)
     for (const m of accentMismatches(b.props)) issues.push({ where, message: m, severity: 'warning' })
 
-    const parsed = entry.schema.safeParse(b.props)
+    // Current shape first; on failure, the block's declared old shapes, newest first. A bundle
+    // written against last year's catalog stays valid and renders correctly — the alternative is
+    // a fleet-wide rewrite of stored JSON every time a prop is renamed, which is a migration with
+    // no undo. See Deprecation in blocks/shared.ts.
+    let parsed = entry.schema.safeParse(b.props)
+    if (!parsed.success && entry.deprecated?.length) {
+      for (const d of entry.deprecated) {
+        const old = d.schema.safeParse(b.props)
+        if (!old.success) continue
+        const forward = entry.schema.safeParse(d.migrate(old.data))
+        if (!forward.success) {
+          // The migration itself is broken. That is a platform bug, not a content bug, and it must
+          // not read as "the author wrote bad props".
+          issues.push({ where, message: `migration for ${b.type} (${d.note}) produced props the current schema rejects — platform bug, not a content problem`, severity: 'error' })
+          break
+        }
+        parsed = forward
+        b.props = forward.data as Record<string, unknown>
+        issues.push({ where, message: `${b.type} uses a deprecated prop shape and was migrated in place: ${d.note}. Re-package to persist it`, severity: 'info' })
+        break
+      }
+    }
     if (!parsed.success) {
       for (const i of parsed.error.issues) {
         issues.push({ where: `${where}.props.${i.path.join('.')}`, message: i.message, severity: 'error' })
@@ -315,6 +418,8 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown):
       })
     }
   }
+
+  issues.push(...slopTells(theme))
 
   const unused = Object.keys(theme.sectionStyles).filter((k) => !usedSlugs.has(k))
   // A shared theme legitimately defines slugs this site does not use, so this is

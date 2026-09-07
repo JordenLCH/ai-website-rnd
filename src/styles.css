@@ -26,7 +26,38 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .stage[data-flag="on"] .section { position: relative; }
 
 /* ---------- generated site: token-only from here down ---------- */
+
+/* Structural token defaults.
+ *
+ * These six carry more identity than colour, because they change rhythm and structure rather
+ * than surface: a generator can randomise a hex code plausibly, so palette variation is the
+ * cheapest kind and reads as the same site recoloured. Ratio, density, motion, grid, radius
+ * pairing and elevation are what a designer would actually name as the decisions.
+ *
+ * Every one has a default here, so a theme that omits them renders exactly as it did before
+ * they existed. Themes opt in; nothing breaks by not opting in. */
 .site {
+  /* Type scale ratio, not resolved sizes. "Tight, high-contrast hierarchy" (1.2) vs "generous
+     editorial hierarchy" (1.414) is one number, and it is the number a designer names. */
+  --scale-ratio: 1.25;
+  /* Whitespace as a deliberate dial rather than a constant. Uniform density across a whole site
+     is itself a tell of an unconsidered choice; vary this per section via sectionStyles.vars. */
+  --density: 1;
+  /* Motion as duration + easing, the way mature systems tokenise it. Easing choice is a
+     personality decision — springy reads differently from soft — not a default to inherit. */
+  --motion-duration: 520ms;
+  --motion-ease: cubic-bezier(.22, .61, .36, 1);
+  /* Grid: column count and how far a breakout escapes the measure. Breakouts are reserved for
+     a dominant image or a pull-quote; the token is what makes that a choice rather than a hack. */
+  --grid-cols: 12;
+  --breakout: 12cqi;
+  /* Radius as a *pair*. One radius on every surface is the single most mechanical-looking tell
+     in generated design — small surfaces (chips, fields, table cells) want less than cards do. */
+  --radius-tight: 4px;
+  /* Two-step elevation instead of one shadow reused everywhere at 0.1 opacity. */
+  --elev-1: 0 1px 2px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.05);
+  --elev-2: var(--shadow, 0 24px 60px rgba(0,0,0,.10));
+
   container-type: inline-size;
   font-family: var(--font-body);
   font-size: var(--body-size);
@@ -49,7 +80,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
   --card: color-mix(in oklab, var(--color-on-accent) 10%, transparent);
   --accent-fg: var(--color-on-accent); }
 
-.block { padding: var(--pad-y) clamp(20px, 4cqi, 56px); }
+.block { padding: calc(var(--pad-y) * var(--density)) clamp(20px, 4cqi, 56px); }
 .block > * { max-width: var(--maxw); margin-inline: auto; }
 
 /* type primitives */
@@ -153,7 +184,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .hero[data-layout="split-editorial"] > * { max-width: none; }
 .hero[data-layout="split-editorial"] .hero__copy { order: -1; }
 .hero[data-layout="split-editorial"] .hero__media img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover;
-  border-radius: var(--radius-img); box-shadow: var(--shadow); }
+  border-radius: var(--radius-img); box-shadow: var(--elev-2); }
 
 .hero[data-layout="centered-poster"] { text-align: center; display: grid; justify-items: center; }
 .hero[data-layout="centered-poster"] .hero__copy { order: -1; max-width: 42ch; }
@@ -161,7 +192,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .hero[data-layout="centered-poster"] .actions { justify-content: center; }
 .hero[data-layout="centered-poster"] .hero__media { width: 100%; margin-top: calc(var(--gap) * 1.2); }
 .hero[data-layout="centered-poster"] .hero__media img { width: 100%; aspect-ratio: 21 / 9; object-fit: cover;
-  border-radius: var(--radius-img); box-shadow: var(--shadow); }
+  border-radius: var(--radius-img); box-shadow: var(--elev-2); }
 
 .hero[data-layout="stacked-title"] { padding-block: calc(var(--pad-y) * .85); }
 .hero[data-layout="stacked-title"] .hero__media { display: none; }
@@ -175,7 +206,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 /* ---------- MediaText ---------- */
 .mediatext__inner { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); align-items: center;
   max-width: var(--maxw); margin-inline: auto; }
-.mediatext__media img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius-img); box-shadow: var(--shadow); }
+.mediatext__media img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius-img); box-shadow: var(--elev-2); }
 .mediatext[data-layout="image-right"] .mediatext__media { order: 2; }
 .mediatext[data-layout="image-left"] .mediatext__copy { order: 2; }
 .mediatext[data-layout="overlap-offset"] .mediatext__inner { grid-template-columns: 1.15fr .85fr; align-items: start; }
@@ -205,14 +236,14 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .features[data-layout="alternating-rows"] .feature { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); align-items: center; }
 .features[data-layout="alternating-rows"] .feature[data-index="1"] .feature__media { order: 2; }
 .features[data-layout="alternating-rows"] .feature__media img { width: 100%; aspect-ratio: 5 / 4; object-fit: cover;
-  border-radius: var(--radius-img); box-shadow: var(--shadow); background: var(--card); }
+  border-radius: var(--radius-img); box-shadow: var(--elev-2); background: var(--card); }
 .features[data-layout="alternating-rows"] .feature__title { font-family: var(--font-display); font-size: 1.6rem;
   font-weight: var(--display-weight); letter-spacing: var(--display-tracking); margin: 0 0 .7rem; }
 .features[data-layout="alternating-rows"] .feature__body { color: var(--muted); margin: 0; max-width: 44ch; }
 
 .features[data-layout="cards-soft"] .features__items { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
 .features[data-layout="cards-soft"] .feature { background: var(--card); border-radius: var(--radius); padding: calc(var(--gap) * .8);
-  box-shadow: var(--shadow); border: var(--border) solid var(--line); }
+  box-shadow: var(--elev-1); border: var(--border) solid var(--line); }
 .features[data-layout="cards-soft"] .feature__media img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: var(--radius-img); margin-bottom: 1rem; }
 .features[data-layout="cards-soft"] .feature__title { font-family: var(--font-display); font-size: 1.2rem; margin: 0 0 .5rem; letter-spacing: var(--display-tracking); }
 .features[data-layout="cards-soft"] .feature__body { color: var(--muted); font-size: .95rem; margin: 0; }
@@ -397,7 +428,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .locations[data-layout="cards"] .locations__media { display: none; }
 .locations[data-layout="split-panel"] .locations__inner { display: grid; grid-template-columns: .9fr 1.1fr; gap: var(--gap); align-items: center; }
 .locations[data-layout="split-panel"] .locations__items { display: grid; gap: calc(var(--gap) * .6); }
-.locations[data-layout="split-panel"] .locations__media img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius-img); box-shadow: var(--shadow); }
+.locations[data-layout="split-panel"] .locations__media img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius-img); box-shadow: var(--elev-2); }
 @container (max-width: 800px) {
   .locations[data-layout="cards"] .locations__items { grid-template-columns: 1fr; }
   .locations[data-layout="split-panel"] .locations__inner { grid-template-columns: 1fr; }
@@ -677,7 +708,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .p-row--wrap { flex-wrap: wrap; }
 .p-grid { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); min-width: 0; }
 .p-grid > * { min-width: 0; }
-.p-card { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.p-card { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); }
 .p-card--plain { background: transparent; border: 0; box-shadow: none; }
 [data-pgap="none"] { gap: 0; } [data-pgap="xs"] { gap: var(--sp-xs); } [data-pgap="sm"] { gap: var(--sp-sm); }
 [data-pgap="md"] { gap: var(--sp-md); } [data-pgap="lg"] { gap: var(--sp-lg); } [data-pgap="xl"] { gap: var(--sp-xl); }
@@ -735,6 +766,19 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .p-spacer[data-size="sm"] { height: var(--sp-sm); } .p-spacer[data-size="md"] { height: var(--sp-md); }
 .p-spacer[data-size="lg"] { height: var(--sp-lg); } .p-spacer[data-size="xl"] { height: var(--sp-xl); }
 
+/* --- structural tokens in use --- */
+/* A breakout escapes the measure on both sides. Grid theory reserves this for a dominant image
+   or a pull-quote; giving it a token is what makes it a stated choice rather than a one-off
+   negative margin somebody copied into a second block. */
+[data-breakout] { width: calc(100% + var(--breakout) * 2); max-width: none;
+  margin-inline: calc(var(--breakout) * -1); }
+[data-breakout="full"] { width: 100cqi; margin-inline: calc(50% - 50cqi); }
+/* Column-aware layouts read the grid token instead of hardcoding twelve. */
+.p-grid[data-cols="auto"] { grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr)); }
+/* The one type step with no token of its own, derived from the ratio rather than guessed. */
+.p-h3, .p-subheading { font-family: var(--font-display); font-weight: var(--display-weight);
+  font-size: calc(var(--body-size) * var(--scale-ratio)); line-height: 1.25; margin: 0; }
+
 /* --- motion: declared in JSON, executed here --- */
 [data-motion] { will-change: transform, opacity; transition:
   opacity var(--motion-duration) var(--motion-ease) var(--motion-delay, 0ms),
@@ -768,7 +812,8 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 
 .p-badge { display: inline-flex; align-items: center; gap: .4em; font-family: var(--font-eyebrow);
   font-size: var(--badge-size, .7rem); text-transform: uppercase; letter-spacing: .1em;
-  font-weight: 600; padding: .38em .7em; border-radius: 999px; line-height: 1; white-space: nowrap; }
+  font-weight: 600; padding: .38em .7em; border-radius: var(--radius-badge, var(--radius-tight));
+  line-height: 1; white-space: nowrap; }
 .p-badge--accent { background: var(--color-accent); color: var(--on-accent, #fff); }
 .p-badge--quiet { background: var(--surface-2, var(--card)); color: var(--muted); }
 .p-badge--outline { border: var(--border) solid var(--line); color: var(--ink); }
@@ -816,7 +861,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .p-field__label i { font-style: normal; color: var(--accent-fg, var(--color-accent)); margin-left: .2rem; }
 .p-field input, .p-field textarea, .p-field select {
   font: inherit; font-size: .95rem; color: var(--ink); background: var(--card);
-  border: var(--border) solid var(--line); border-radius: var(--radius);
+  border: var(--border) solid var(--line); border-radius: var(--radius-tight);
   padding: .75rem .85rem; width: 100%; transition: border-color .15s, background .15s; }
 .p-field input:focus, .p-field textarea:focus, .p-field select:focus {
   outline: none; border-color: var(--color-accent); background: var(--bg); }
