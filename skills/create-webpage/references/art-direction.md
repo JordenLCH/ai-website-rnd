@@ -4,7 +4,7 @@
 
 ```jsonc
 { "name": "acme-industrial",
-  "tokens": { "--color-bg": "...", "--font-display": "...", ... },   // 39 tokens
+  "tokens": { "--color-bg": "...", "--font-display": "...", ... },   // 39 core + 8 structural
   "sectionStyles": {                                                 // slug -> resolution
     "hero/home": { "layout": "overlay-fullbleed", "tone": "inverse" },
     "hero/statement": { "layout": "centered-poster", "tone": "default",
@@ -22,7 +22,8 @@ teams reliably over-invest in colour and under-invest in the top three.
 1. **Layout selection per slug** — which of a block's layouts each role resolves to
 2. **Tone assignment** — which sections go `inverse` / `accent` / `surface` rather than `default`
 3. **Font pairing + display weight** — 800 vs 300 changes a brand more than any hue
-4. **Vertical rhythm and radius** — `--pad-y` 104px vs 156px, `--radius` 0 vs 18px
+4. **Vertical rhythm, type ratio and radius pairing** — `--pad-y` 104px vs 156px, `--scale-ratio`
+   1.2 vs 1.414, `--radius` 18px against a `--radius-tight` of 2px
 5. **Colour roles** — last, and least
 
 A theme that only changes colours will look like the same site in a different shirt. If two of your
@@ -41,6 +42,23 @@ themes share a layout map, they are the same theme.
 --btn-weight --img-filter`
 
 **Scene (2):** `--hero-min` (hero height in `cqi`), `--overlay` (gradient over hero photos)
+
+**Structural (8, optional but the highest-leverage set):**
+
+| Token | Typical range | What it decides |
+|---|---|---|
+| `--scale-ratio` | `1.2` – `1.5` | The type scale *ratio*, not a resolved size. 1.2 is tight and high-contrast; 1.414 is generous and editorial. This is the number a designer would name |
+| `--density` | `0.7` – `1.4` | Multiplier on section padding. Set it **per section** via `vars` — uniform density across a whole site is itself a tell that nobody made a choice |
+| `--motion-duration` | `280ms` – `700ms` | Half of the motion decision |
+| `--motion-ease` | a `cubic-bezier` | The other half, and the one that carries personality — springy reads differently from soft. Both have defaults, so a theme that omits them still animates |
+| `--grid-cols` | `6` – `16` | Column count for grid-aware layouts |
+| `--breakout` | `0` – `18cqi` | How far a dominant image or pull-quote escapes `--maxw`. `0` means this theme never breaks the measure |
+| `--radius-tight` | `0` – `8px` | The **small-surface** radius: chips, fields, table cells. Pairs with `--radius` for cards. One radius on every surface is the most mechanical-looking tell in generated design, and the validator flags it |
+| `--elev-1` | a shadow | The near step. `--elev-2` defaults to `--shadow`, so cards sit close to the page and photographic media floats above it — two steps, not one shadow reused everywhere at 0.1 opacity |
+
+These matter more than colour because a model can randomise a hex code plausibly, so palette
+variation is the cheapest kind and reads as the same site recoloured. Ratio, rhythm and motion change
+the page's structure, which is much harder to fake and much harder to mistake for another site.
 
 Sizes use `clamp()` with `cqi` units so sections survive being rendered at any width — editor panes,
 previews, split views. Media queries would break those; container units don't.
@@ -107,7 +125,24 @@ These read as machine-made because they are the defaults everything converges on
   already applies it. If a technical register is genuinely the direction, buy it with weight,
   tracking and rule-work; at most keep mono for step numbers and nothing else.
 
+- **One radius on every surface.** A card, a button, an input and an image all at the same corner
+  reads as a kit rather than a design — a person sizes the radius to the surface. Set `--radius-tight`
+  below `--radius` and the tell disappears.
+- **An indigo or violet accent against an otherwise neutral palette.** This is Tailwind's
+  `bg-indigo-500` default and the loudest single tell of 2026. Use it only if the brand owns it.
+- **A soft shadow at ~0.1 opacity on everything.** That is what CSS tutorials teach first, not an
+  elevation system. Two steps (`--elev-1`, `--elev-2`) is enough and reads as considered.
+- **Weightless headline copy** — "Build faster. Ship smarter." If the headline stays true with a
+  competitor's name in place of the client's, it is decoration. This one is not visual and no
+  validator can catch it.
+
 None of these are forbidden individually. The tell is using several together with no reason.
+
+**Three of these are now checked mechanically** from `theme.json` alone — uniform radius, an
+indigo-band accent on a neutral palette, and monospace confined to labels. They come back as
+*warnings*, not errors, because each is fine when it was chosen and telling when it was defaulted
+into, and a validator cannot tell those apart. Answer them with a reason or a change; do not clear
+them by reflex.
 
 ## Two numbers to check before you commit a theme
 
