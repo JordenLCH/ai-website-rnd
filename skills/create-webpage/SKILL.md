@@ -138,10 +138,29 @@ likely to be sent back.
 
 ▸ Show it. Iterate on tokens only. Content does not exist yet, so nothing is wasted.
 
-### 4. Sitemap — roles, still no copy
-Propose pages and, for each, an ordered list of **section roles**:
+### 4. Sitemap — sample the architecture, then roles, still no copy
+A **section role** is the job a section does on the page — proof, range, story, spec, process —
+not a block type and not a theme slug. A page is an ordered list of roles:
 
 > **Products** — hero (subpage) · catalogue grid · spec table · media+text · CTA
+
+**Sample the home-page architecture the way step 2 samples art direction.** Write three orderings
+with self-assessed probabilities, discard the likeliest, and pick from the tail. Without this every
+site opens `hero → stats → catalogue`, because that is the mode — and three independent runs of one
+brief produced three art directions and *one* structure, which is what made them read as one site in
+three colourways. Colour and type cannot rescue an identical page order.
+
+Things to vary, in descending order of how much they change the page:
+
+1. **What comes first after the hero** — proof figures, the range itself, a single story, or a
+   spec table. Leading with the catalogue instead of stats is a different company.
+2. **Whether a role appears at all.** A site with no FAQ and no gallery is not an incomplete site.
+   Five strong sections beat nine even ones.
+3. **Where the dark and accent bands fall**, which the tone rhythm rule already checks.
+4. **Page count and page split.** Four pages that each answer one question beat six that overlap.
+
+Fewer sections, more content per section, is almost always the better tail choice — it is also what
+the density gate rewards.
 
 A wrong sitemap caught here costs one message. Caught after copy exists it costs a rewrite.
 ▸ Let the human add, remove and reorder.

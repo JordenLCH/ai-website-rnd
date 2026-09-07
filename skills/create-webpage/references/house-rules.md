@@ -13,6 +13,12 @@ says nothing still reads as a free template.
   footer, and blocks whose schema caps them (`Stats`, `Locations`). Reach for `Figure`+`Caption`,
   `KeyValue`, `Marker` and `Badge` before writing more prose — specificity is what raises density,
   length is not.
+- **Imagery.** A `cutout` image in an inverse-tone section disappears against the dark ground — the
+  section has pictures and still looks empty. And no photograph should carry four sections: one
+  image placed four or more times across a site is what makes two sites from one asset folder look
+  like the same site.
+- **Type.** Monospace on `--font-eyebrow` / `--font-numeral` is flagged. Those two tokens feed ~20
+  call sites, so choosing mono once sets 30-45 elements on a page in it, captions included.
 - **Provenance.** Invented content is marked, not banned. Prose and captions are free; a figure,
   price, date or testimonial you did not get from the brief needs `"unverified": true` on the block,
   which excludes it from JSON-LD and llms.txt and blocks publish until a human clears it. Identity

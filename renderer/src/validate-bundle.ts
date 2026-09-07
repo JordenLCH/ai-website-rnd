@@ -68,6 +68,33 @@ function measure(props: unknown): { words: number; leaves: number; images: numbe
   return { words, leaves, images }
 }
 
+/** Every declared image kind in a props tree, wherever it is spelled. */
+function imageKinds(props: unknown): string[] {
+  const out: string[] = []
+  const visit = (v: unknown) => {
+    if (Array.isArray(v)) { v.forEach(visit); return }
+    if (v && typeof v === 'object') {
+      const o = v as Record<string, unknown>
+      for (const k of ['kind', 'imageKind']) if (typeof o[k] === 'string') out.push(o[k] as string)
+      Object.values(o).forEach(visit)
+    }
+  }
+  visit(props)
+  return out
+}
+
+/** Every image path in a props tree. */
+function imagePaths(props: unknown): string[] {
+  const out: string[] = []
+  const visit = (v: unknown, key?: string) => {
+    if (typeof v === 'string') { if (key && IMAGE_KEYS.has(key)) out.push(v); return }
+    if (Array.isArray(v)) { v.forEach((x) => visit(x, key)); return }
+    if (v && typeof v === 'object') for (const [k, x] of Object.entries(v as Record<string, unknown>)) visit(x, k)
+  }
+  visit(props)
+  return out
+}
+
 /** Walk any props tree looking for the node-level provenance mark. */
 function hasUnverifiedNode(props: unknown): boolean {
   if (Array.isArray(props)) return props.some(hasUnverifiedNode)
@@ -124,6 +151,8 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown):
   const unverified: string[] = []
   /** tone per page, in document order, for the band-rhythm check */
   const toneRun = new Map<string, string[]>()
+  /** how often each image is placed, across the whole site */
+  const imageUse = new Map<string, number>()
 
   for (const [where, b] of sections) {
     const entry = catalog[b.type]
@@ -162,6 +191,18 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown):
       const page = where.startsWith('pages.') ? where.split('.')[1] : null
       if (page) toneRun.set(page, [...(toneRun.get(page) ?? []), style.tone])
     }
+
+    // A product shot on white, dropped into an inverse-tone section, reads as a hole
+    // punched in the page — the section has images and still looks empty. The same
+    // reasoning already gates overlay-fullbleed; it applies to any dark ground.
+    if (style && style.tone === 'inverse' && imageKinds(b.props).includes('cutout')) {
+      issues.push({
+        where,
+        message: 'a "cutout" image sits in an inverse-tone section — a product shot on white disappears against a dark ground; use an "environment" or "detail" image, or move the section to a light tone',
+        severity: 'warning',
+      })
+    }
+    for (const src of imagePaths(b.props)) imageUse.set(src, (imageUse.get(src) ?? 0) + 1)
 
     const role = (b.props as any)?.role
     const sparseOk = SPARSE_TYPES.has(b.type) || (typeof role === 'string' && SPARSE_ROLES.has(role))
@@ -247,6 +288,32 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown):
   }
   for (const pageKey of Object.keys(site.pages)) {
     if (!h1Pages.has(pageKey)) issues.push({ where: `pages.${pageKey}`, message: 'page has no Hero, so no h1 — bad for SEO and for orientation', severity: 'warning' })
+  }
+
+  // Monospace for eyebrows and numerals is the most-reached-for "technical" gesture
+  // and now the strongest sameness tell: those two tokens feed ~20 call sites, so one
+  // choice puts 30-45 monospaced elements on a page — captions, product meta, every
+  // figure. Numerals want tabular-nums, which the renderer already applies.
+  const monoTokens = (['--font-eyebrow', '--font-numeral'] as const)
+    .filter((k) => /\bmono(space)?\b|ui-monospace|Courier/i.test(theme.tokens[k] ?? ''))
+  if (monoTokens.length) {
+    issues.push({
+      where: 'theme.tokens',
+      message: `${monoTokens.join(' and ')} set to a monospace face — it reaches ~20 call sites and reads as a generated-site tell; use the body stack and let font-variant-numeric handle figure alignment`,
+      severity: 'warning',
+    })
+  }
+
+  // The same photograph in the same role across a site is what makes two sites built
+  // from one asset folder look like one site.
+  for (const [src, n] of imageUse) {
+    if (n >= 4) {
+      issues.push({
+        where: 'site',
+        message: `"${src.split('/').pop()}" is placed ${n} times — one photograph carrying four sections reads as a thin asset set; vary it or cut a section`,
+        severity: 'info',
+      })
+    }
   }
 
   const unused = Object.keys(theme.sectionStyles).filter((k) => !usedSlugs.has(k))
