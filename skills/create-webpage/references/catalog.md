@@ -15,7 +15,7 @@ appearance (`hero/dark-overlay`); name it after its editorial role (`hero/home`)
 4. Evidence — Stats, Testimonials, LogoWall, SpecTable
 5. Commerce — CatalogGrid, Pricing, Gallery
 6. Conversion — CTA, ContactForm, Locations, FAQ
-7. People & posts — Team, PostList
+7. People & posts — Team, PostList, Notice
 8. FreeSection + primitives
 
 ---
@@ -98,7 +98,9 @@ is genuinely load-bearing.
 ## 5. Commerce
 
 **CatalogGrid** — layouts `cards-grid`, `hairline-catalog`, `wide-list`
-`{ eyebrow?, title, items: [{name, body?, meta?, tag?, image, imageAlt}] (2–8) }`
+`{ eyebrow?, title, items: [{name, body?, points?: [string] (2–8), meta?, tag?, image, imageAlt}] (2–8) }`
+Use `points` for sub-items under one entry — practice sub-services, product variants, included
+scope. Do not flatten a list into `meta` as slash-separated prose; `meta` is one short line.
 
 **Pricing** — layouts `cards-tiers`, `table-compare`
 `{ eyebrow?, title, tiers: [{name, price, unit?, body?, features: [string], action: {label}, featured?}] (2–4) }`
@@ -123,10 +125,26 @@ If the brief has no prices, use honest values — `Included`, `Quoted`, `Per uni
 
 ## 7. People & posts
 
-**Team** — layouts `photo-grid`, `minimal-list` — `{ eyebrow?, title, items: [{name, role, image?, imageAlt?}] (2–8) }`
+**Team** — layouts `photo-grid`, `minimal-list`
+`{ eyebrow?, title, items: [{name?, role, credential?, bio?, image?, imageAlt?}] (2–8) }`
+`name` is optional. A firm that does not publish who works there can still describe the roles that
+would handle the work — `role` + `credential` + `bio`, no name — and that is the honest way to write
+the section instead of inventing partners or dropping the page. Only named members become `Person`
+in JSON-LD. Unnamed entries require `minimal-list`; `photo-grid` without names is a grid of stock
+photography and the validator rejects it.
+
 **PostList** — layouts `cards-three`, `list-rows` — `{ eyebrow?, title, items: [{title, excerpt?, meta, image?, imageAlt?}] (2–6) }`
 
-Only use these when the brief supplies real people or real posts. Inventing either misrepresents the client.
+Never invent a named person or a post. An unnamed `Team` entry is the supported alternative; there is
+no equivalent for `PostList` — omit it.
+
+**Notice** — layouts `inline-rule`, `boxed-aside`, `footnote`
+`{ kind: legal|regulatory|safety|pricing, title?, body, meta? }`
+Disclaimers and regulated-industry notices: "nothing here is legal advice", "no solicitor-client
+relationship is created", a safety warning, a pricing caveat. **Use this rather than `RichText`.**
+Block type is what the schema generator reads, so a disclaimer written as `RichText` is
+indistinguishable from marketing prose and gets harvested into the page description and `llms.txt`
+as though the client were asserting it. `Notice` is excluded from both by design.
 
 ## 8. FreeSection
 

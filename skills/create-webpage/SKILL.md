@@ -258,7 +258,15 @@ you must never do is let an invention pass as sourced. Three tiers:
 |---|---|---|
 | **Write freely** | headings, section copy, captions, feature framing, step names, alt text | no mark needed |
 | **Write and mark** | stats, spec values, prices, dates, counts, testimonials | allowed, set `"unverified": true` on the block |
-| **Never** | `org.json`: legal name, registration number, certifications, credentialled people, `sameAs` | leave the field out |
+| **Never** | `org.json`: legal name, registration number, certifications, credentialled people, `sameAs`; and any **named** person or post | leave the field out |
+
+For a client who does not publish their people, `Team` accepts entries with a `role` and
+`credential` but no `name` — describe who would handle the work rather than inventing partners.
+For regulated copy ("not legal advice", "no solicitor-client relationship"), use the `Notice`
+block, never `RichText`: it is excluded from JSON-LD and `llms.txt`, which `RichText` is not.
+Set `org.businessType` (`LegalService`, `Dentist`, `AutoRepair`, `Accounting`…) and
+`org.people[].personType` (`Attorney`, `Physician`…) at intake — a professional practice typed
+as a bare `LocalBusiness` is indexed as a shop with an address.
 
 `"unverified": true` on a block does three things: the preview marks it and lists it as the human's
 edit checklist, the build farm **excludes it from JSON-LD and llms.txt**, and publishing is refused

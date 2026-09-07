@@ -6,6 +6,9 @@ const Props = z.object({
   title: z.string(),
   items: z.array(z.object({
     name: z.string(), body: z.string().optional(),
+    /** Sub-items under one entry — practice sub-services, product variants, included scope.
+     *  Without this a list had to be flattened into `meta` as slash-separated prose. */
+    points: z.array(z.string()).min(2).max(8).optional(),
     meta: z.string().optional(), tag: z.string().optional(),
     image: z.string(), imageAlt: z.string(),
   })).min(2).max(8),
@@ -30,6 +33,11 @@ function CatalogGrid({ props, layout }: { props: P; layout: string }) {
             <div className="cat__copy">
               <h3 className="cat__name">{it.name}</h3>
               {it.body && <p className="cat__body">{it.body}</p>}
+              {it.points && (
+                <ul className="cat__points">
+                  {it.points.map((pt) => <li key={pt}>{pt}</li>)}
+                </ul>
+              )}
               {it.meta && <p className="cat__meta">{it.meta}</p>}
             </div>
           </article>

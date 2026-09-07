@@ -25,7 +25,14 @@ export type Org = {
   certifications?: string[]   // ISO 9001, BIFMA, CAAM — authority granted by someone else
   awards?: string[]
   areaServed?: string[]       // GEO: markets and regions actually served
-  people?: Array<{ name: string; role: string; credential?: string; sameAs?: string }>
+  /** A schema.org LocalBusiness subtype — LegalService, Dentist, AutoRepair, Accounting…
+   *  A law firm typed as a bare LocalBusiness is indexed as a shop with an address; the
+   *  subtype is what puts it in the right professional-services surfaces. Set at intake:
+   *  it is a fact about the business, not something to infer from marketing copy. */
+  businessType?: string
+  people?: Array<{ name: string; role: string; credential?: string; sameAs?: string
+    /** A schema.org Person subtype — Attorney, Physician, Dentist. Omit if none applies. */
+    personType?: string }>
   numberOfEmployees?: string
   foundingLocation?: string
 }
@@ -61,9 +68,14 @@ const blocks = (page: Page) => page.blocks
 const first = (page: Page, type: string) => page.blocks.find((b) => b.type === type)
 
 /** Every block that carries a section heading, so headings can be summarised without markup. */
+const NON_CLAIM_TYPES = new Set(['Notice', 'Breadcrumb'])
+
 function outline(page: Page): string[] {
   const out: string[] = []
   for (const b of blocks(page)) {
+    // A disclaimer is the business disclaiming something. Harvested into a page description
+    // or an llms.txt summary it reads as the business asserting it instead.
+    if (NON_CLAIM_TYPES.has(b.type)) continue
     const p = b.props as Record<string, unknown>
     if (typeof p.title === 'string') out.push(p.title)
     if (b.type === 'FreeSection') {
@@ -139,7 +151,9 @@ export function jsonLd(rawSite: Site, pageKey: string, org: Org): object[] {
     ...(org.awards?.length ? { award: org.awards } : {}),
     ...(org.people?.length
       ? { employee: org.people.map((p) => ({
-          '@type': 'Person', name: p.name, jobTitle: p.role,
+          // Attorney/Physician/etc. are Person subtypes; using one is what makes a
+          // credentialled individual legible as a practitioner rather than as staff.
+          '@type': p.personType ?? 'Person', name: p.name, jobTitle: p.role,
           ...(p.credential ? { hasCredential: { '@type': 'EducationalOccupationalCredential', name: p.credential } } : {}),
           ...(p.sameAs ? { sameAs: p.sameAs } : {}),
         })) }
@@ -161,7 +175,9 @@ export function jsonLd(rawSite: Site, pageKey: string, org: Org): object[] {
     const items = (locations.props as any).items as Array<{ name: string; address: string; note?: string }>
     // GEO: a physical address turns the Organization into a LocalBusiness, which is what
     // "near me" style queries and map surfaces actually read.
-    organization['@type'] = ['Organization', 'LocalBusiness']
+    organization['@type'] = org.businessType
+      ? ['Organization', 'LocalBusiness', org.businessType]
+      : ['Organization', 'LocalBusiness']
     // Addresses on the page supplement the registered one from intake rather than replacing it.
     const fromPage = items.map((l) => ({
       '@type': 'PostalAddress', name: l.name, streetAddress: l.address.replace(/\n/g, ', '),

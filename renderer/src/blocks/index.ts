@@ -22,11 +22,12 @@ import { entry as Team } from './Team'
 import { entry as Promo } from './Promo'
 import { entry as PostList } from './PostList'
 import { entry as Breadcrumb } from './Breadcrumb'
+import { entry as Notice } from './Notice'
 import { entry as FreeSection } from './FreeSection'
 
 /** The catalog. AI may only emit these type names, with props matching these schemas. */
 export const catalog: Record<string, CatalogEntry> = {
   Nav, Hero, MediaText, Gallery, SpecTable, Features, Stats, Testimonials,
   LogoWall, FAQ, Timeline, Locations, ContactForm, RichText, CTA, Footer,
-  Pricing, CatalogGrid, Steps, Team, Promo, PostList, Breadcrumb, FreeSection,
+  Pricing, CatalogGrid, Steps, Team, Promo, PostList, Breadcrumb, Notice, FreeSection,
 }
