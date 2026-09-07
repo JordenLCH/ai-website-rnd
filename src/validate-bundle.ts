@@ -11,21 +11,37 @@ export type Issue = { where: string; message: string; severity: 'error' | 'warni
 /** Per-section content measurement. A section that occupies a screen and says forty words
  *  is what makes a generated site read as an unfinished template rather than a company's
  *  website, so density is measured and reported rather than left to taste. */
-export type Density = { where: string; words: number; leaves: number; images: number; sparseOk: boolean }
+export type Density = { where: string; words: number; leaves: number; images: number; sparseOk: boolean; imageCapable: boolean }
 
-/** Prop keys whose strings are copy a visitor reads. Everything else in a props tree is
- *  structure (`el`, `area`, `kind`) or an asset path, and counting those would flatter
- *  an empty section into looking full. */
-const COPY_KEYS = new Set([
-  'text', 'title', 'body', 'lede', 'label', 'caption', 'quote', 'author', 'role',
-  'eyebrow', 'subtitle', 'heading', 'summary', 'blurb', 'description', 'name',
-  'question', 'answer', 'value', 'items', 'k', 'v', 'price', 'note',
+/** Structure, not copy: enum values, asset paths, grid coordinates, page keys. Everything
+ *  else in a props tree is counted, because the first version of this whitelisted the copy
+ *  keys instead and silently scored a six-question FAQ at zero — a whitelist fails closed on
+ *  every key nobody thought of, and it fails on the blocks that carry the most content. */
+const STRUCTURAL_KEYS = new Set([
+  'el', 'type', 'variant', 'layout', 'kind', 'size', 'tone', 'align', 'justify', 'maxw',
+  'ratio', 'role', 'style', 'area', 'span', 'page', 'level', 'cols', 'gap', 'pad', 'accent',
+  'alt', 'imageAlt', 'imageKind', 'motion', 'parallax', 'delay', 'href', 'url', 'id', 'slug',
 ])
-const IMAGE_KEYS = new Set(['src', 'image', 'logo', 'photo'])
+const IMAGE_KEYS = new Set(['src', 'image', 'logo', 'photo', 'ogImage'])
 
-/** Sections that legitimately say little: a hero is a headline, a CTA is one sentence. */
-const SPARSE_TYPES = new Set(['Hero', 'CTA', 'Breadcrumb', 'Nav', 'Footer', 'LogoWall', 'Promo'])
+/** An enum slipping past the key filter still should not read as content. Copy is either
+ *  multi-word or capitalised; a bare lowercase token like "fade-up" is a value. */
+const ENUMISH = /^[a-z0-9]+(?:[-_][a-z0-9]+)*$/
+
+/** Blocks whose schema caps how much they can hold: a Stats bar is four short figures and a
+ *  title, and no amount of authoring makes it reach a prose floor. Flagging them taught
+ *  creators to pad the one block that must not be padded. */
+const SPARSE_TYPES = new Set([
+  'Hero', 'CTA', 'Breadcrumb', 'Nav', 'Footer', 'LogoWall', 'Promo', 'Stats', 'Locations',
+])
 const SPARSE_ROLES = new Set(['hero', 'cta', 'quote', 'nav', 'footer'])
+
+/** Types whose schema has somewhere to put a picture. The images-per-page target is measured
+ *  against these, because an Steps/Timeline/FAQ page cannot reach it at any effort. */
+const IMAGE_CAPABLE = new Set([
+  'Hero', 'MediaText', 'Gallery', 'CatalogGrid', 'Team', 'PostList', 'Promo', 'LogoWall',
+  'Testimonials', 'FreeSection',
+])
 
 const WORDS_TARGET = 60, WORDS_FLOOR = 20
 const LEAVES_TARGET = 6, LEAVES_FLOOR = 3
@@ -36,12 +52,14 @@ function measure(props: unknown): { words: number; leaves: number; images: numbe
   const visit = (v: unknown, key?: string) => {
     if (typeof v === 'string') {
       if (key && IMAGE_KEYS.has(key)) { images++; return }
-      if (!key || !COPY_KEYS.has(key)) return
-      const w = v.trim().split(/\s+/).filter(Boolean).length
-      if (w) { words += w; leaves++ }
+      if (key && STRUCTURAL_KEYS.has(key)) return
+      const t = v.trim()
+      if (!t || ENUMISH.test(t)) return
+      const w = t.split(/\s+/).length
+      words += w; leaves++
       return
     }
-    if (Array.isArray(v)) { for (const x of v) visit(x, key) ; return }
+    if (Array.isArray(v)) { for (const x of v) visit(x, key); return }
     if (v && typeof v === 'object') {
       for (const [k, x] of Object.entries(v as Record<string, unknown>)) visit(x, k)
     }
@@ -148,17 +166,17 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown):
     const role = (b.props as any)?.role
     const sparseOk = SPARSE_TYPES.has(b.type) || (typeof role === 'string' && SPARSE_ROLES.has(role))
     const m = measure(b.props)
-    density.push({ where, ...m, sparseOk })
+    density.push({ where, ...m, sparseOk, imageCapable: IMAGE_CAPABLE.has(b.type) })
     if (!sparseOk) {
       if (m.leaves === 0) {
         issues.push({ where, message: 'section carries no readable copy at all', severity: 'error' })
-      } else if (m.words < WORDS_FLOOR || m.leaves < LEAVES_FLOOR) {
+      } else if (m.words < WORDS_FLOOR && m.leaves < LEAVES_FLOOR) {
         issues.push({
           where,
           message: `thin section — ${m.words} words across ${m.leaves} content nodes (floor ${WORDS_FLOOR}/${LEAVES_FLOOR}, aim ${WORDS_TARGET}/${LEAVES_TARGET}). A full-height section this empty reads as a template placeholder`,
           severity: 'warning',
         })
-      } else if (m.words < WORDS_TARGET || m.leaves < LEAVES_TARGET) {
+      } else if (m.words < WORDS_TARGET && m.leaves < LEAVES_TARGET) {
         issues.push({
           where,
           message: `under-filled — ${m.words} words across ${m.leaves} content nodes, aim ${WORDS_TARGET}/${LEAVES_TARGET}. Add captions, spec rows or numbered detail rather than more whitespace`,
@@ -199,6 +217,7 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown):
     if (own.length < 3) continue
     const words = own.reduce((a, d) => a + d.words, 0)
     const images = own.reduce((a, d) => a + d.images, 0)
+    const capable = own.filter((d) => d.imageCapable).length
     if (words < PAGE_WORDS_TARGET) {
       issues.push({
         where: `pages.${pageKey}`,
@@ -206,10 +225,10 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown):
         severity: 'info',
       })
     }
-    if (images < Math.ceil(own.length / 2)) {
+    if (capable && images < Math.ceil(capable / 2)) {
       issues.push({
         where: `pages.${pageKey}`,
-        message: `${images} images across ${own.length} sections — aim for one per two sections`,
+        message: `${images} images across ${capable} sections that can carry one — aim for one per two`,
         severity: 'info',
       })
     }
