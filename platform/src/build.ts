@@ -6,8 +6,9 @@
 import { mkdirSync, writeFileSync, readFileSync, cpSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { renderToStaticMarkup } from 'react-dom/server'
-import { createElement } from 'react'
+// Both come from the renderer's install, never platform's — see renderer/src/ssr.ts. Importing
+// react-dom/server directly here silently gives the blocks a second React and breaks every hook.
+import { createElement, renderToStaticMarkup } from '../../renderer/src/ssr'
 import { catalog } from '../../renderer/src/blocks/index'
 import { validateBundle } from '../../renderer/src/validate-bundle'
 import type { Site, Theme, Page } from '../../renderer/src/schema'
@@ -55,7 +56,7 @@ function renderPage(page: Page, site: Site, theme: Theme) {
 }
 
 export function buildSite(site: Site, theme: Theme, org: Org, outDir: string,
-  opts: { allowUnverified?: boolean } = {}) {
+  opts: { allowUnverified?: boolean; bundleDir?: string } = {}) {
   const { ok, issues, unverified } = validateBundle(site, theme)
   if (!ok) return { ok: false as const, issues, written: [] as string[] }
 
@@ -120,8 +121,22 @@ ${meta.ogImage ? `<meta property="og:image" content="${meta.ogImage}">` : ''}
     written.push(join(outDir, name))
   }
 
-  const assets = join(RENDERER, '..', 'public', 'img')
-  if (existsSync(assets)) cpSync(assets, join(outDir, 'img'), { recursive: true })
+  // The creator's own assets, under /img/<client>/ — the path convention every bundle's props use.
+  //
+  // This used to copy the renderer's demo images and nothing else, which meant a published client
+  // site had every image broken *and* shipped four unrelated demo clients' photo folders. It is the
+  // build-farm twin of the preview bug where /img/ was served from the renderer package instead of
+  // the creator's assets/, and it hid for the same reason: the repo's own sample bundles are the
+  // ones whose images live in the renderer, so everything looked right from inside the repo.
+  const bundleAssets = opts.bundleDir ? join(opts.bundleDir, 'assets') : null
+  if (bundleAssets && existsSync(bundleAssets)) {
+    cpSync(bundleAssets, join(outDir, 'img', site.client), { recursive: true })
+  } else {
+    // Sample content in this repo keeps its images in the renderer's public dir. Copy only the
+    // folder this site actually references, never the whole demo set.
+    const demo = join(RENDERER, '..', 'public', 'img', site.client)
+    if (existsSync(demo)) cpSync(demo, join(outDir, 'img', site.client), { recursive: true })
+  }
 
   return { ok: true as const, issues, written }
 }
