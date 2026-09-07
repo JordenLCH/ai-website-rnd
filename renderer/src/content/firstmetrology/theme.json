@@ -4,7 +4,7 @@
     "--color-bg": "#FFFFFF",
     "--color-surface": "#F1F4F7",
     "--color-ink": "#111827",
-    "--color-muted": "#7F8C8D",
+    "--color-muted": "#636E6F",
     "--color-line": "rgba(17,24,39,0.14)",
     "--color-accent": "#0066CC",
     "--color-on-accent": "#FFFFFF",

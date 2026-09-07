@@ -199,6 +199,58 @@ function slopTells(theme: { name: string; tokens: Record<string, string> }): Iss
   return out
 }
 
+/** Relative luminance of a hex colour, or null if it isn't a plain hex. */
+function relLum(v: string): number | null {
+  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(v.trim())
+  if (!hex) return null
+  const h = hex[1].length === 3 ? hex[1].split('').map((c) => c + c).join('') : hex[1]
+  const ch = [0, 2, 4].map((i) => {
+    const v2 = parseInt(h.slice(i, i + 2), 16) / 255
+    return v2 <= 0.03928 ? v2 / 12.92 : Math.pow((v2 + 0.055) / 1.055, 2.4)
+  })
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2]
+}
+
+function contrastRatio(a: string, b: string): number | null {
+  const [x, y] = [relLum(a), relLum(b)]
+  if (x === null || y === null) return null
+  const [hi, lo] = x > y ? [x, y] : [y, x]
+  return (hi + 0.05) / (lo + 0.05)
+}
+
+/** WCAG AA on the pairs a theme actually paints, checkable from theme.json alone.
+ *
+ *  This exists because a whole-fleet design QA pass found the starter's own default theme —
+ *  the one every creator clones — running muted body text at 3.48:1 on white. Nothing caught it:
+ *  the renderer cannot know which pairs are text-on-background, and by the time a person is
+ *  looking at a rendered page they are judging the layout, not sampling colours.
+ *
+ *  Only body-size text is checked, at 4.5:1. Display type is often large enough for the 3:1 bar,
+ *  and guessing which is which from tokens alone would produce false accusations. */
+function contrastIssues(theme: { tokens: Record<string, string> }): Issue[] {
+  const t = theme.tokens
+  const pairs: Array<[string, string, string]> = [
+    ['--color-muted', '--color-bg', 'muted body text on the page background'],
+    ['--color-muted', '--color-surface', 'muted body text on a surface-tone section'],
+    ['--color-ink', '--color-bg', 'body text on the page background'],
+    ['--color-on-accent', '--color-accent', 'text on an accent-tone section'],
+    ['--color-inverse-muted', '--color-inverse-bg', 'muted body text on an inverse-tone section'],
+    ['--color-inverse-ink', '--color-inverse-bg', 'body text on an inverse-tone section'],
+  ]
+  const out: Issue[] = []
+  for (const [fg, bg, what] of pairs) {
+    if (!(fg in t) || !(bg in t)) continue
+    const r = contrastRatio(t[fg], t[bg])
+    if (r === null || r >= 4.5) continue
+    out.push({
+      where: `theme.tokens.${fg}`,
+      message: `${what} is ${r.toFixed(2)}:1 against ${bg} — WCAG AA needs 4.5:1 for body text. Darken ${fg} (or lighten it, on a dark ground) until it clears`,
+      severity: 'warning',
+    })
+  }
+  return out
+}
+
 export function validateBundle(rawSite: unknown, rawTheme: unknown):
   { ok: boolean; issues: Issue[]; density: Density[]; unverified: string[] } {
   const issues: Issue[] = []
@@ -413,6 +465,7 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown):
   }
 
   issues.push(...slopTells(theme))
+  issues.push(...contrastIssues(theme))
 
   const unused = Object.keys(theme.sectionStyles).filter((k) => !usedSlugs.has(k))
   // A shared theme legitimately defines slugs this site does not use, so this is
