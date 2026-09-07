@@ -28,20 +28,34 @@ So: keep structure rigid, make art direction genuinely different each time. A si
 If the `blackdash-catalog` MCP is connected, **call `catalog_list` first, every time**. Blocks ship
 weekly; anything written down in this skill is a snapshot that will eventually be wrong. Then call
 `catalog_get` for just the blocks you intend to use — pulling all of them wastes the context you
-need for composition. Record the returned `catalogVersion` in the bundle.
+need for composition. Say in your handoff which `catalogVersion` you built against — there is no
+field for it in `site.json`, so it belongs in your written summary, not in the JSON.
 
 The MCP serves the catalog only — it is read-only, and everything else is a repo script:
 
 ```
-npm run validate -- site.json theme.json   # same module the build farm runs
-npm run dev                                # preview, hot-reloads on JSON edits
-./tools/compress.sh <client> site.json theme.json assets/   # zips the SOURCE bundle
+npm run validate -- <client>   # same module the build farm runs
+npm run dev                    # preview at :5183, hot-reloads on JSON edits
+./package.sh <client>          # zips the SOURCE bundle for upload
 ```
 
 Validate before previewing: it costs a second and catches what a screenshot never will. Package with
-`compress.sh` rather than zipping a build — shipping HTML freezes the site, and it can then never be
-re-themed or receive a fleet-wide patch. The platform builds from the bundle using the pinned
-`catalogVersion`.
+`package.sh` rather than zipping a build — shipping HTML freezes the site, and it can then never be
+re-themed or receive a fleet-wide patch.
+
+### Where files go
+
+```
+content/<client>/site.json      the pages
+content/<client>/theme.json     the tokens and slug mappings
+content/<client>/org.json       the organisation facts
+assets/<client>/<file>.webp     every image for that client
+```
+
+**An image at `assets/<client>/photo.webp` is referenced in JSON as `/img/<client>/photo.webp`.**
+The preview serves `/img/` out of `assets/`. Put a client's images under their own folder — the
+packager zips only that folder, so a flat `assets/` ships every other client's photographs inside
+the bundle.
 
 `references/catalog.md` is the offline fallback for when the MCP is unreachable. Say which one you
 used, so a stale-catalog bug is diagnosable later.
@@ -135,9 +149,13 @@ A wrong sitemap caught here costs one message. Caught after copy exists it costs
 ### 5. Home page — one page of real copy, then stop
 Write the home page fully. Nothing else. Stop.
 
-Write it **at full density**. A section that fills a screen and carries forty words is what makes a
-generated site read as an unfinished template rather than a company's website, and it is the single
-most common failure here — more damaging than any colour or layout choice. See "Density" below.
+Write it **at full density**: aim for **60+ words and 6+ content nodes per section**, **700+ words
+per page**, and one image per two sections that can carry one. A section that fills a screen and
+carries forty words is what makes a generated site read as an unfinished template rather than a
+company's website, and it is the single most common failure here — more damaging than any colour or
+layout choice. Hero, CTA, quote, nav and footer are exempt; so are blocks that cannot hold more
+(`Stats`, `Locations`). The full guidance, and the primitives that get you there, are under
+"Density" below — read it before writing, not after.
 
 One page is enough to settle every question that generalises: tone of voice, how much detail a
 section carries, what terminology the client uses for their own products, what claims are off-limits.

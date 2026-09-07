@@ -3,6 +3,21 @@
 Three independent gates run over generated JSON. The first two are ordinary validation; the third is
 the one that actually protects design quality.
 
+## Gate 0 — density and provenance
+
+Two checks run before the others are worth caring about, because a structurally perfect page that
+says nothing still reads as a free template.
+
+- **Density.** Per section: 60+ words and 6+ content nodes (warning below 20 and 3). Per page: 700+
+  words, and one image per two sections that can carry one. Exempt: `Hero`, `CTA`, quote, nav,
+  footer, and blocks whose schema caps them (`Stats`, `Locations`). Reach for `Figure`+`Caption`,
+  `KeyValue`, `Marker` and `Badge` before writing more prose — specificity is what raises density,
+  length is not.
+- **Provenance.** Invented content is marked, not banned. Prose and captions are free; a figure,
+  price, date or testimonial you did not get from the brief needs `"unverified": true` on the block,
+  which excludes it from JSON-LD and llms.txt and blocks publish until a human clears it. Identity
+  facts in `org.json` are never invented. See the tier table in SKILL.md.
+
 ## Gate 1 — schema
 Every block's props parse against its schema: required fields present, arrays within min/max,
 enums legal. Unknown block types are rejected.
