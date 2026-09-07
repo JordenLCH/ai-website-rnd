@@ -229,6 +229,7 @@ function contrastRatio(a: string, b: string): number | null {
  *  and guessing which is which from tokens alone would produce false accusations. */
 function contrastIssues(theme: { tokens: Record<string, string> }): Issue[] {
   const t = theme.tokens
+  const out0: Issue[] = []
   const pairs: Array<[string, string, string]> = [
     ['--color-muted', '--color-bg', 'muted body text on the page background'],
     ['--color-muted', '--color-surface', 'muted body text on a surface-tone section'],
@@ -237,7 +238,24 @@ function contrastIssues(theme: { tokens: Record<string, string> }): Issue[] {
     ['--color-inverse-muted', '--color-inverse-bg', 'muted body text on an inverse-tone section'],
     ['--color-inverse-ink', '--color-inverse-bg', 'body text on an inverse-tone section'],
   ]
-  const out: Issue[] = []
+  // --color-accent has two jobs and only one of them is text. As a field it backs buttons and
+  // accent bands; as type it colours step numbers, credentials, markers and list bullets. A
+  // colour bright enough to be a good field is usually illegible as type on a light ground —
+  // wungadv's gold read 2.10:1 — so the text role gets its own token, falling back to the accent.
+  const accentInk = t['--color-accent-ink'] ?? t['--color-accent']
+  if (accentInk) {
+    for (const bg of ['--color-bg', '--color-surface'] as const) {
+      if (!(bg in t)) continue
+      const r = contrastRatio(accentInk, t[bg])
+      if (r === null || r >= 4.5) continue
+      out0.push({
+        where: '--color-accent-ink' in t ? 'theme.tokens.--color-accent-ink' : 'theme.tokens.--color-accent',
+        message: `accent used as text is ${r.toFixed(2)}:1 against ${bg} — step numbers, credentials and markers are set in it. Set --color-accent-ink to a darker form; --color-accent stays as the field colour for buttons and accent bands`,
+        severity: 'warning',
+      })
+    }
+  }
+  const out: Issue[] = [...out0]
   for (const [fg, bg, what] of pairs) {
     if (!(fg in t) || !(bg in t)) continue
     const r = contrastRatio(t[fg], t[bg])
