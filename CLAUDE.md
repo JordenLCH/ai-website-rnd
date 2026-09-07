@@ -58,19 +58,22 @@ turns red and lists issues when a bundle is invalid.
 
 ## Where each concern lives, and why
 
-**The catalog MCP is HTTP, not stdio.** Both `.mcp.json` files use `type: "http"` with a bearer
-token. `ai-website/.mcp.json` is committed, so it reads the token from `${CATALOG_TOKEN}` rather than
-holding it — export it before starting a session:
+**Never hand-edit `.mcp.json`.** It is gitignored in both repos and written by `setup-mcp.sh`,
+because it holds a live token and because an edited copy drifts out of sync with
+`mcp/.catalog-token` — which surfaces as an unexplained auth failure at the next session start.
+`mcp/tunnel.sh` runs the script for you, so starting the server also configures this repo.
 
 ```bash
-export CATALOG_TOKEN="$(cat mcp/.catalog-token)"   # worth putting in your shell profile
+./setup-mcp.sh --show          # what is configured now
+./setup-mcp.sh --env           # reference $CATALOG_TOKEN instead of writing the token
+./setup-mcp.sh <token> <url>   # another endpoint: staging, a dev tunnel
 ```
 
-`site-starter/.mcp.json` is gitignored and carries the literal token and the public tunnel URL, which
-is what a creator on another machine gets from `./setup-mcp.sh`. The stdio form was the earlier
-default and was dropped as the config: it cold-starts `tsx` at session init and intermittently
-misses the client's connect timeout, which surfaces as `CONNECTION_CLOSED` with nothing to debug.
-An already-running HTTP server survives client restarts.
+Both repos use `type: "http"` with a bearer token — this repo against `127.0.0.1:8787`, and
+`site-starter` against the public tunnel, which is what a creator on another machine gets. The
+stdio form still exists as an entry point but is no longer the config: it cold-starts `tsx` at
+session init and intermittently misses the client's connect timeout, which surfaces as
+`CONNECTION_CLOSED` with nothing to debug. An already-running HTTP server survives client restarts.
 
 Two failure modes worth telling apart. `CONNECTION_CLOSED` / connection refused means the local
 server on `:8787` is not running. A **502 from the tunnel** means the same thing seen from outside —

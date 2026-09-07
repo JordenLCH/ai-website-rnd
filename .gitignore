@@ -20,3 +20,6 @@ dev/
 # per-repo agent claim board, never committed
 workers.md
 better_AI_demo
+
+# written by setup-mcp.sh, holds a live catalog token
+.mcp.json

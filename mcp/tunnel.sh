@@ -16,6 +16,10 @@ TOKEN="$(cat .catalog-token)"
 CATALOG_TOKEN="$TOKEN" PORT="$PORT" npm run --silent http & SERVER=$!
 trap 'kill $SERVER 2>/dev/null || true' EXIT
 
+# Point this repo at the server we just started. Hand-editing .mcp.json is how it drifts out of
+# sync with the token on disk, which surfaces as an unexplained auth failure at session start.
+../setup-mcp.sh "$TOKEN" "http://127.0.0.1:$PORT" >/dev/null
+
 # Dynamic cloudflared quick-tunnel disabled — fixed port 8787, named tunnel
 # (cod3r.men -> localhost:8787) added manually via cloudflared config.
 # cloudflared tunnel --url "http://localhost:$PORT" > /tmp/cf-catalog.log 2>&1 & TUNNEL=$!
@@ -29,6 +33,8 @@ trap 'kill $SERVER 2>/dev/null || true' EXIT
 echo
 echo "catalog live at $URL/mcp"
 echo "health:        curl -sS $URL/health"
+echo
+echo "this repo is configured against http://127.0.0.1:$PORT/mcp — restart your agent to pick it up."
 echo
 echo "in the creator's site-starter checkout:"
 echo
