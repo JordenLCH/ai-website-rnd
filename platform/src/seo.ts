@@ -188,6 +188,9 @@ export function jsonLd(rawSite: Site, pageKey: string, org: Org): object[] {
 
   graph.push({ '@type': 'WebPage', '@id': url, url, name: page.title, isPartOf: { '@id': `${org.url}#org` } })
 
+  // FAQPage no longer earns a rich result — deprecated Search-wide 2026-05-07. Kept because the
+  // markup is still correct, costs nothing, and non-Google consumers still read it. Do not promise
+  // a SERP change from it.
   const faq = first(page, 'FAQ')
   if (faq) {
     graph.push({
@@ -212,6 +215,8 @@ export function jsonLd(rawSite: Site, pageKey: string, org: Org): object[] {
     })
   }
 
+  // Self-serving Review markup has not produced stars since 2019, and Google's 2026-07-24 fake-review
+  // policy makes an unverified one an actual liability — which is why verified() runs first.
   const quotes = first(page, 'Testimonials')
   if (quotes) {
     graph.push(...((quotes.props as any).items as Array<{ quote: string; author: string; role?: string }>)
@@ -219,6 +224,8 @@ export function jsonLd(rawSite: Site, pageKey: string, org: Org): object[] {
                      itemReviewed: { '@id': `${org.url}#org` } })))
   }
 
+  // HowTo rich results were retired in September 2023. Same reasoning as FAQPage above: emitted for
+  // correctness and non-Google consumers, not for Search.
   const steps = first(page, 'Steps')
   if (steps) {
     graph.push({
@@ -256,8 +263,10 @@ export function robots(org: Org): string {
   return `User-agent: *\nAllow: /\n\nSitemap: ${new URL('/sitemap.xml', org.url).href}\n`
 }
 
-/** AEO: a plain-language map of the site for answer engines, built from the same tree.
- *  Answer engines reward stating the facts plainly far more than keyword density. */
+/** A plain-language map of the site, built from the same tree.
+ *  Google stated in June 2026 that llms.txt has no effect on Search or AI Overviews. It is emitted
+ *  because it is nearly free and some non-Google readers consume it — not because it is an AEO
+ *  feature. The thing that actually moves answer-engine grounding is Organization from org.json. */
 export function llmsTxt(rawSite: Site, org: Org): string {
   // llms.txt is read by answer engines as fact, so it gets the same filter as JSON-LD.
   const site = verified(rawSite)

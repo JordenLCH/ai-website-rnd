@@ -84,6 +84,16 @@ of existing sites. Those change on the platform's schedule and a creator's machi
 Anything written into the skill is a snapshot that will eventually be wrong, so the skill calls
 `catalog_list` first and treats its bundled `references/catalog.md` as an offline fallback.
 
+**Block schemas change; stored bundles do not get rewritten.** A block's `deprecated` array
+(`renderer/src/blocks/shared.ts`) holds each old prop shape plus a pure `migrate()` to the current
+one. `validate-bundle.ts` tries the current schema first, then these newest-first, taking the first
+that parses — so a site written against last year's catalog stays valid and renders correctly with no
+bulk rewrite of stored JSON, which is a migration with no undo. Rules: pure functions only, never
+chain (each entry migrates straight to *current*), and add a fixture to `renderer/tools/migrations.ts`
+the same day — `npm run migrations` fails if a declared deprecation has none. Drop an entry only once
+a fleet sweep shows zero sites on that shape; unlike a public CMS the fleet here is enumerable, so
+that cleanup can actually finish.
+
 **Validation lives with the renderer** (`renderer/src/validate-bundle.ts`), imported by both the
 creator CLI and — in production — the build farm. Two copies of a validator means "valid locally,
 fails on publish", which erodes trust in a platform faster than any missing feature.
@@ -94,15 +104,19 @@ re-themed, cannot receive a fleet-wide SEO/AEO patch, and cannot be migrated whe
 **SEO/AEO/GEO, hosting and refresh are server concerns**, implemented in `platform/`. The build farm
 renders the same React catalog the preview uses, then derives every artifact from the content tree:
 
-| Source | Becomes |
-|---|---|
-| `FAQ` block | `FAQPage` |
-| `Locations` block | `LocalBusiness` + `PostalAddress` |
-| `SpecTable` / `CatalogGrid` | `Product` + `additionalProperty` |
-| `Testimonials` | `Review` |
-| `Steps` | `HowTo` |
-| `Hero.breadcrumb` | `BreadcrumbList` |
-| `org.json` | `Organization` — the E-E-A-T carrier |
+| Source | Becomes | What it actually buys, as of 2026-09 |
+|---|---|---|
+| `org.json` | `Organization` / `LocalBusiness` | **Entity understanding.** The highest-value output here — this is what a knowledge panel and an AI answer are grounded on |
+| `Locations` block | `LocalBusiness` + `PostalAddress` | Local pack eligibility |
+| `SpecTable` / `CatalogGrid` | `Product` + `additionalProperty` | Product rich results — still live |
+| `Hero.breadcrumb` | `BreadcrumbList` | Breadcrumb trail in the SERP — still live |
+| `Testimonials` | `Review` | Comprehension only. Self-serving `Review` has not produced stars since 2019, and Google's **2026-07-24 fake-review policy** makes an unverified one a liability — which is why the `unverified` gate strips it |
+| `FAQ` block | `FAQPage` | **No rich result.** Deprecated Search-wide on **2026-05-07**. Valid markup, machine-readable, zero SERP effect |
+| `Steps` block | `HowTo` | **No rich result.** Retired **September 2023**. Same status as FAQ |
+
+Do not tell a client that an FAQ or Steps block earns a rich result — it has not for years. Emitting
+them is still right (they cost nothing and describe the page accurately to non-Google consumers), but
+the honest pitch for this pipeline is **entity clarity via `org.json`**, not SERP decoration.
 
 `org.json` holds what marketing copy never states and a model must not invent: legal name, founding
 date, registration number, address, phone, email, `sameAs` profiles, certifications, credentialled
