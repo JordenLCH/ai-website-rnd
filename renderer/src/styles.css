@@ -185,7 +185,17 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 }
 
 /* ---------- Hero ---------- */
-.hero[data-layout="overlay-fullbleed"] { position: relative; display: grid; align-items: end; min-height: var(--hero-min);
+/* A hero is sized against the screen, not against the page's width.
+   --hero-min is expressed in cqi, which is a *horizontal* unit, so the taller the monitor got the
+   worse this behaved: 78cqi on a 2000px-wide window is a 1560px hero — taller than the viewport
+   showing it, with the headline pushed below the fold by its own hero. Every theme in the fleet
+   used a cqi value, so every one had it.
+   Capping at 82svh keeps the section under a screenful, which is what a person builds by hand: the
+   fold should cut through the hero so there is visible evidence the page continues. svh rather than
+   vh so a mobile browser's collapsing toolbar does not change the height mid-scroll, and a floor of
+   30rem so a short landscape phone still has room for a headline. */
+.hero[data-layout="overlay-fullbleed"] { position: relative; display: grid; align-items: end;
+  min-height: clamp(30rem, var(--hero-min), 82svh);
   padding-block: calc(var(--pad-y) * 1.15); overflow: hidden; }
 .hero[data-layout="overlay-fullbleed"] > * { max-width: none; }
 .hero[data-layout="overlay-fullbleed"] .hero__media { position: absolute; inset: 0; }
@@ -292,6 +302,11 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
   .features[data-layout="alternating-rows"] .feature[data-index="1"] .feature__media { order: 0; }
 }
 
+/* Card layouts carry one treatment: surface, hairline, radius and the near elevation step.
+   Four of them had the first three and no shadow, so cards-row and boxed-grid read flatter than
+   .p-card and cards-soft on the same page. A card is a surface lifted off the page — the radius
+   and the lift are the same statement, and a theme that sets --radius: 0 and a flat --elev-1
+   turns both off together rather than having to remember each block. */
 /* ---------- Stats ---------- */
 .stats__inner { max-width: var(--maxw); margin-inline: auto; }
 .stats__title { margin-bottom: calc(var(--gap) * .9); }
@@ -307,7 +322,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .stats[data-layout="airy-columns"] .stat__label { font-size: .92rem; color: var(--muted); margin-top: .9rem; }
 
 .stats[data-layout="boxed-grid"] .stats__items { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); }
-.stats[data-layout="boxed-grid"] .stat { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); padding: calc(var(--gap) * .7); }
+.stats[data-layout="boxed-grid"] .stat { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); padding: calc(var(--gap) * .7); }
 .stats[data-layout="boxed-grid"] .stat__value { font-family: var(--font-numeral); font-variant-numeric: tabular-nums; font-size: clamp(1.8rem, 3.6cqi, 2.6rem); font-weight: var(--display-weight); line-height: 1; }
 .stats[data-layout="boxed-grid"] .stat__label { font-size: .88rem; color: var(--muted); margin-top: .8rem; }
 @container (max-width: 760px) {
@@ -481,7 +496,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .loc__address { margin: 0; color: var(--muted); white-space: pre-line; }
 .loc__note { margin: .6rem 0 0; font-size: .88rem; color: var(--muted); }
 .locations[data-layout="cards"] .locations__items { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
-.locations[data-layout="cards"] .loc { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); padding: calc(var(--gap) * .7); }
+.locations[data-layout="cards"] .loc { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); padding: calc(var(--gap) * .7); }
 .locations[data-layout="cards"] .locations__media { display: none; }
 .locations[data-layout="split-panel"] .locations__inner { display: grid; grid-template-columns: .9fr 1.1fr; gap: var(--gap); align-items: center; }
 .locations[data-layout="split-panel"] .locations__items { display: grid; gap: calc(var(--gap) * .6); }
@@ -579,7 +594,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .tier__features li { padding-left: 1.1rem; position: relative; color: var(--muted); }
 .tier__features li::before { content: "—"; position: absolute; left: 0; color: var(--accent-fg, var(--color-accent)); }
 .pricing[data-layout="cards-tiers"] .pricing__tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
-.pricing[data-layout="cards-tiers"] .tier { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); padding: calc(var(--gap) * .8); display: flex; flex-direction: column; }
+.pricing[data-layout="cards-tiers"] .tier { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); padding: calc(var(--gap) * .8); display: flex; flex-direction: column; }
 .pricing[data-layout="cards-tiers"] .tier[data-featured="true"] { border-color: var(--color-accent); border-width: calc(var(--border) * 2); }
 .pricing[data-layout="cards-tiers"] .tier__cta { margin-top: auto; text-align: center; }
 .pricing[data-layout="table-compare"] .pricing__tiers { display: grid; grid-template-columns: repeat(3, 1fr); border-top: var(--border) solid var(--line); }
@@ -657,7 +672,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .steps[data-layout="numbered-rail"] .step__title { margin: 0; }
 .steps[data-layout="numbered-rail"] .step__body { max-width: 58ch; }
 .steps[data-layout="cards-row"] .steps__items { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); }
-.steps[data-layout="cards-row"] .step { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); padding: calc(var(--gap) * .7); }
+.steps[data-layout="cards-row"] .step { background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); padding: calc(var(--gap) * .7); }
 .steps[data-layout="inline-flow"] .steps__items { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); }
 .steps[data-layout="inline-flow"] .step { border-top: calc(var(--border) * 2) solid var(--ink); padding-top: .9rem; }
 @container (max-width: 900px) {
