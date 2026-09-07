@@ -140,8 +140,6 @@ function hueOf(v: string): number | null {
   return (deg * 60 + 360) % 360
 }
 
-const MONO = /\bmono(space)?\b|\b(JetBrains|IBM Plex Mono|Space Mono|Roboto Mono|Fira Code|Courier|Menlo|Consolas|SF Mono)\b/i
-
 /** Design tells that are checkable from theme.json alone, no rendering needed.
  *
  *  None of these are errors. Each names a pattern that is fine when it was chosen and
@@ -154,9 +152,14 @@ function slopTells(theme: { name: string; tokens: Record<string, string> }): Iss
   // 1. One radius on every surface. The dominant tell of mechanically assembled design:
   //    buttons, cards, images and fields all sharing an identical corner reads as a kit,
   //    because a designer sizes the radius to the surface.
+  //    Zero everywhere is the exception and is deliberately not flagged: a hard-cornered Swiss or
+  //    brutalist theme is a stated position, and the first version of this rule fired on five of the
+  //    most considered themes in the fleet while staying silent on the defaulted ones. The tell is a
+  //    shared *non-zero* radius — "pick a number, apply it to every surface".
   const radii = ['--radius', '--radius-img', '--btn-radius', '--radius-tight']
     .map((k) => t[k]).filter(Boolean)
-  if (radii.length >= 3 && new Set(radii).size === 1) {
+  const allZero = radii.every((r) => /^0(px|rem|em|%)?$/.test(r.trim()))
+  if (radii.length >= 3 && new Set(radii).size === 1 && !allZero) {
     out.push({
       where: 'theme.tokens',
       message: `every radius token is "${radii[0]}" — one corner on every surface is the most common tell of assembled-not-designed. Size the radius to the surface, or set --radius-tight smaller`,
@@ -179,18 +182,8 @@ function slopTells(theme: { name: string; tokens: Record<string, string> }): Iss
     }
   }
 
-  // 3. Monospace confined to labels and numerals. It reads as structured and technical, which
-  //    is exactly why every generator reaches for it — three independent runs of one brief in
-  //    this repo all did. It is on track to be as telling as an unchosen Inter.
-  const monoRoles = ['--font-eyebrow', '--font-numeral'].filter((k) => MONO.test(t[k] ?? ''))
-  const monoElsewhere = ['--font-display', '--font-body'].some((k) => MONO.test(t[k] ?? ''))
-  if (monoRoles.length && !monoElsewhere) {
-    out.push({
-      where: 'theme.tokens',
-      message: `monospace on ${monoRoles.join(' and ')} and nowhere else — the default "make it look technical" move. Justify it against small-caps or a condensed sans, or drop it`,
-      severity: 'warning',
-    })
-  }
+  // 3. Monospace-for-labels already has a rule further up with a better message. One tell, one
+  //    warning — a duplicate teaches people to skim the list, which costs more than it catches.
 
   // Not a tell, but the reason the tells above are the only ones worth checking: a theme that
   // varies nothing but colour and size has left the levers that carry identity untouched.

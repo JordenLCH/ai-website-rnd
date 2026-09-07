@@ -5,7 +5,8 @@
     "dev": "vite",
     "build": "vite build",
     "validate": "node --import tsx tools/validate.ts",
-    "migrations": "node --import tsx tools/migrations.ts"
+    "migrations": "node --import tsx tools/migrations.ts",
+    "bench": "node --import tsx tools/bench.ts"
   },
   "dependencies": {
     "react": "^19.0.0",
