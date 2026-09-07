@@ -195,8 +195,12 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
    vh so a mobile browser's collapsing toolbar does not change the height mid-scroll, and a floor of
    30rem so a short landscape phone still has room for a headline. */
 .hero[data-layout="overlay-fullbleed"] { position: relative; display: grid; align-items: end;
-  min-height: clamp(30rem, var(--hero-min), 82svh);
-  padding-block: calc(var(--pad-y) * 1.15); overflow: hidden; }
+  min-height: clamp(28rem, var(--hero-min), 78svh);
+  /* Capping min-height did not shrink this hero, because min-height cannot: at 1400x800 the
+     section measured 866px against a 656px cap, so its *content* was the driver. --pad-y is a
+     section rhythm value sized for text sections, and 1.15x of it put ~137px above and below the
+     copy inside a section that is already a full screen. The hero gets its own, smaller band. */
+  padding-block: clamp(2rem, var(--pad-y) * .55, 4.5rem); overflow: hidden; }
 .hero[data-layout="overlay-fullbleed"] > * { max-width: none; }
 .hero[data-layout="overlay-fullbleed"] .hero__media { position: absolute; inset: 0; }
 .hero[data-layout="overlay-fullbleed"] .hero__media img { width: 100%; height: 100%; object-fit: cover; }
