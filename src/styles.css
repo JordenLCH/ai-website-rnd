@@ -98,8 +98,12 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .heading { font-family: var(--font-display); font-size: var(--heading-size); font-weight: var(--display-weight);
   letter-spacing: var(--display-tracking); line-height: 1.15; margin: 0; text-wrap: balance; }
 /* A heading set at 27-32px across a 1240px measure runs to ~76 characters on
-   one line. Cap the measure, not the size — the size is doing useful work. */
-.heading { max-width: 24ch; }
+   one line. Cap the measure, not the size — the size is doing useful work.
+   32ch, not 24: the tighter cap was tuned on short headings and punished long ones. A
+   167-character statement heading came out as seven stacked lines in 36% of the section's width,
+   which reads as a wall of type beside an empty half. 32 characters a line is still inside the
+   20-40 range good practice asks for. */
+.heading { max-width: 32ch; }
 
 .eyebrow { font-family: var(--font-eyebrow); font-size: var(--eyebrow-size); text-transform: var(--eyebrow-transform);
   letter-spacing: var(--eyebrow-tracking); color: var(--muted); margin: 0 0 1.1em; }
@@ -313,7 +317,9 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
    turns both off together rather than having to remember each block. */
 /* ---------- Stats ---------- */
 .stats__inner { max-width: var(--maxw); margin-inline: auto; }
-.stats__title { margin-bottom: calc(var(--gap) * .9); }
+/* The stats title sits above a figure row that spans the full width, so it is a statement band
+   rather than a column heading and can carry a longer measure without looking loose. */
+.stats__title { margin-bottom: calc(var(--gap) * .9); max-width: 46ch; }
 .stats[data-layout="inline-bar"] { padding-block: calc(var(--pad-y) * .52); }
 .stats[data-layout="inline-bar"] .stats__items { display: grid; grid-template-columns: repeat(4, 1fr); }
 .stats[data-layout="inline-bar"] .stat { padding: 0 clamp(12px, 2cqi, 28px); border-left: var(--border) solid var(--line); }
