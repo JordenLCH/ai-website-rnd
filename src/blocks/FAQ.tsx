@@ -16,7 +16,7 @@ function FAQ({ props, layout }: { props: P; layout: string }) {
         {props.eyebrow && <p className="eyebrow">{props.eyebrow}</p>}
         <h2 className="heading">{props.title}</h2>
       </header>
-      <div className="faq__items">
+      <div className="faq__items" data-count={props.items.length}>
         {props.items.map((it) => (
           <details className="faq__item" key={it.q}>
             <summary>{it.q}</summary>

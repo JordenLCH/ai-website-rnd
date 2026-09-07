@@ -19,7 +19,7 @@ function Features({ props, layout }: { props: P; layout: string }) {
         {props.eyebrow && <p className="eyebrow">{props.eyebrow}</p>}
         <h2 className="heading">{props.title}</h2>
       </header>
-      <div className="features__items">
+      <div className="features__items" data-count={props.items.length}>
         {props.items.map((it, i) => (
           <article className="feature" key={it.title} data-index={i % 2}>
             {it.image && <div className="feature__media"><img src={it.image} alt={it.imageAlt ?? ''} /></div>}
