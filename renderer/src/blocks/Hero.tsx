@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { CatalogEntry } from './shared'
+import { hrefFor, type CatalogEntry } from './shared'
 
 const Props = z.object({
   /** A trail belongs inside the hero, above the eyebrow. As its own section it pushes
@@ -8,7 +8,7 @@ const Props = z.object({
   eyebrow: z.string().optional(),
   title: z.string(),
   body: z.string().optional(),
-  actions: z.array(z.object({ label: z.string(), kind: z.enum(['primary', 'ghost']) })).max(2).default([]),
+  actions: z.array(z.object({ label: z.string(), kind: z.enum(['primary', 'ghost']), page: z.string().optional() })).max(2).default([]),
   image: z.string().optional(),
   imageAlt: z.string().optional(),
   /** What the photo actually is. Overlay layouts need something you can put text on. */
@@ -29,7 +29,7 @@ function Hero({ props, layout }: { props: P; layout: string }) {
           <nav className="hero__crumbs">
             {breadcrumb.map((c, i) => (
               <span key={c.label}>
-                {c.page ? <a data-page={c.page}>{c.label}</a> : <em>{c.label}</em>}
+                {c.page ? <a href={hrefFor(c.page)} data-page={c.page}>{c.label}</a> : <em>{c.label}</em>}
                 {i < breadcrumb.length - 1 && <i aria-hidden="true">/</i>}
               </span>
             ))}
@@ -40,7 +40,9 @@ function Hero({ props, layout }: { props: P; layout: string }) {
         {body && <p className="lede">{body}</p>}
         {actions.length > 0 && (
           <div className="actions">
-            {actions.map((a) => <span key={a.label} className={`btn btn--${a.kind}`}>{a.label}</span>)}
+            {actions.map((a) => a.page
+              ? <a key={a.label} className={`btn btn--${a.kind}`} href={hrefFor(a.page)}>{a.label}</a>
+              : <span key={a.label} className={`btn btn--${a.kind}`}>{a.label}</span>)}
           </div>
         )}
       </div>

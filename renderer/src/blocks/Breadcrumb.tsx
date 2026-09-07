@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { CatalogEntry } from './shared'
+import { hrefFor, type CatalogEntry } from './shared'
 
 const Props = z.object({
   items: z.array(z.object({ label: z.string(), page: z.string().optional() })).min(2).max(5),
@@ -13,7 +13,7 @@ function Breadcrumb({ props, layout }: { props: P; layout: string }) {
       <ol className="crumbs__items">
         {props.items.map((c, i) => (
           <li key={c.label}>
-            {c.page ? <a data-page={c.page}>{c.label}</a> : <span>{c.label}</span>}
+            {c.page ? <a href={hrefFor(c.page)} data-page={c.page}>{c.label}</a> : <span>{c.label}</span>}
             {i < props.items.length - 1 && <i aria-hidden="true">/</i>}
           </li>
         ))}

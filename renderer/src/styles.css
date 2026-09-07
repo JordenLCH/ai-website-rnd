@@ -47,6 +47,10 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
      personality decision — springy reads differently from soft — not a default to inherit. */
   --motion-duration: 520ms;
   --motion-ease: cubic-bezier(.22, .61, .36, 1);
+  /* Interaction feedback is a different job from a scroll reveal and wants its own duration:
+     a hover that takes half a second reads as lag, not as polish. Durations are tokens assigned
+     by role, not numbers picked per animation. */
+  --motion-state: 140ms;
   /* Grid: column count and how far a breakout escapes the measure. Breakouts are reserved for
      a dominant image or a pull-quote; the token is what makes that a choice rather than a hack. */
   --grid-cols: 12;
@@ -112,7 +116,12 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .prose:last-child { margin-bottom: 0; }
 
 .actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 2rem; }
-.btn { display: inline-block; padding: var(--btn-pad); border-radius: var(--btn-radius); font-weight: var(--btn-weight);
+/* min-height 44px: WCAG 2.2 puts the floor at 24px, Apple HIG asks 44 and Material 48. 24 is the
+   legal minimum, not the target — a control sized to the legal minimum is a control designed to
+   the smallest thing that will not fail an audit. inline-flex so the padding centres the label
+   rather than the min-height stretching it. */
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px;
+  padding: var(--btn-pad); border-radius: var(--btn-radius); font-weight: var(--btn-weight);
   font-size: .95rem; border: var(--border) solid transparent; white-space: nowrap; }
 .btn--primary { background: var(--btn-bg); color: var(--btn-fg); }
 .btn--ghost { border-color: var(--line); color: var(--ink); }
@@ -967,8 +976,11 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
   font: inherit; font-size: .95rem; color: var(--ink); background: var(--card);
   border: var(--border) solid var(--line); border-radius: var(--radius-tight);
   padding: .75rem .85rem; width: 100%; transition: border-color .15s, background .15s; }
+/* :focus-visible above supplies the ring. This keeps the border/background shift for pointer
+   focus too, but no longer sets `outline: none` — that removed the only affordance a keyboard
+   user had, on the one block on the site that exists to be typed into. */
 .p-field input:focus, .p-field textarea:focus, .p-field select:focus {
-  outline: none; border-color: var(--color-accent); background: var(--bg); }
+  border-color: var(--color-accent); background: var(--bg); }
 .p-field textarea { resize: vertical; min-height: 7rem; }
 .p-field--textarea { grid-column: 1 / -1; }
 /* chrome rows: let the link cluster shrink rather than collide */
@@ -983,3 +995,50 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .hero__crumbs a:hover { color: var(--ink); }
 .hero__crumbs em { font-style: normal; color: var(--ink); }
 .hero__crumbs i { font-style: normal; opacity: .45; margin-left: .45rem; }
+
+
+/* ---------- interaction states ----------
+   Derived from tokens, not designed per component — Material 3's state-layer idea, which is the
+   part of that system most worth taking wholesale. Instead of picking a hover colour for every
+   component on every tone, overlay the element's own content colour on its own surface at a fixed
+   opacity. One rule covers every button, link, card and summary, on light tones, dark tones and
+   the accent band, and the contrast is automatically right because the overlay is currentColor.
+
+   The stylesheet previously had four :hover rules and *no* :focus-visible at all. Interaction
+   states are one of the clearest tells between a site somebody built and a page somebody
+   generated: real controls answer the pointer and the keyboard. */
+
+:where(.btn, .p-link, .nav__items a, .crumbs__items a, .hero__crumbs a,
+       .faq__item summary, .p-card, .cat, .footer__col a, .loc a) {
+  transition: box-shadow var(--motion-state) var(--motion-ease),
+              color var(--motion-state) var(--motion-ease),
+              border-color var(--motion-state) var(--motion-ease);
+}
+
+/* An inset shadow at full spread paints over the background and under the text, so it works as a
+   state layer on any surface without a wrapper element or a second background. */
+:where(.btn, .faq__item summary, .p-card, .cat):hover {
+  box-shadow: inset 0 0 0 999px color-mix(in oklab, currentColor 8%, transparent);
+}
+:where(.btn, .faq__item summary, .p-card, .cat):active {
+  box-shadow: inset 0 0 0 999px color-mix(in oklab, currentColor 12%, transparent);
+}
+/* Cards additionally lift, because a card is already a raised surface and the pointer should say so. */
+:where(.p-card, .cat):hover { box-shadow: var(--elev-2),
+  inset 0 0 0 999px color-mix(in oklab, currentColor 6%, transparent); }
+
+/* A state layer is not a focus indicator. Keyboard focus needs its own visible mark at 3:1 or
+   better, and :focus-visible rather than :focus so a mouse click does not leave a ring behind. */
+:where(a, button, summary, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent-fg, var(--color-accent));
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+/* On an accent band the accent *is* the background, so the ring has to switch to the ink on it. */
+.section[data-tone="accent"] :where(a, button, summary, input, textarea, select, [tabindex]):focus-visible {
+  outline-color: var(--color-on-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.btn, .p-link, .faq__item summary, .p-card, .cat) { transition: none; }
+}

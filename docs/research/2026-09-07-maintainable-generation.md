@@ -1,14 +1,11 @@
 # Maintainable content-as-data generation: research findings
 
-Scope: patterns worth adopting for a system where AI tools generate validated JSON
-against a block catalog, a platform hosts and patches the fleet, and non-technical
-editors later touch content through a lightweight editor. Research task, no code
-changed.
+Scope: patterns worth adopting where AI tools generate validated JSON against a
+block catalog, a platform hosts/patches the fleet, and non-technical editors
+later touch content through a lightweight editor. Research only, no code changed.
 
-Confidence key: **[V]** verified against a primary source. **[I]** inference —
-my synthesis, not stated by any one source.
+Confidence key: **[V]** verified against a primary source. **[I]** inference.
 
----
 
 ## 1. Patterns worth adopting, ranked by payoff
 
@@ -33,8 +30,8 @@ tests, not just the current schema.
 [Block Deprecation — Block Editor Handbook](https://developer.wordpress.org/block-editor/reference-guides/block-api/block-deprecation/)
 
 **For us:** `renderer/src/validate-bundle.ts` today treats a bundle as valid or
-not, with no "old but known" shape. A `deprecated` list per block type, each with
-a pure `migrate(oldProps) -> newProps`, turns a block's schema change from a
+not, with no "old but known" shape. A `deprecated` list per block type, each
+with a pure `migrate(oldProps) -> newProps`, turns a schema change from a
 fleet-wide incident into a bounded, testable function per historical shape.
 
 ### 1.2 Two-phase, reversible field removal **[V]**
@@ -98,7 +95,6 @@ change ripples through the whole frontend. **For us:** already the architecture
 code (`platform/src/build.ts`, `seo.ts`) treats the bundle schema as the
 contract rather than reaching into renderer internals.
 
----
 
 ## 2. Traps specific to this system, with early warning signs
 
@@ -143,7 +139,6 @@ auto-mutates live content unattended — migrations are explicit, dry-run-first
 **Warning sign:** the refresh cron applies a `migrate` function and republishes
 with no before/after diff logged anywhere reviewable.
 
----
 
 ## 3. The escape-hatch question: recommendation
 
@@ -182,24 +177,22 @@ using it "non-conforming" so it visibly opts out of fleet-wide patches. Never a
 generic `rawHtml` prop on an existing block — that reintroduces coupling inside
 every block that adopts it.
 
----
 
 ## 4. Migration mechanics to actually build
 
-1. Add an optional `deprecated` array to a block's schema: each entry has the
-   old prop shape plus a pure `migrate(oldProps) -> newProps`.
+1. Add an optional `deprecated` array to a block's schema: old prop shape plus
+   a pure `migrate(oldProps) -> newProps`.
 2. `validate-bundle.ts` tries the current schema first, then each deprecated
    entry in order (first-match, non-chained, matching Gutenberg); on match, run
-   `migrate` and re-validate the result before accepting.
-3. Build farm chooses: patch-and-rewrite the bundle in place (preferred — keeps
-   `deprecated` arrays short, per §2) vs. migrate-on-render only (defers
-   rewrite, lets deprecated arrays grow unless swept).
+   `migrate`, re-validate the result before accepting.
+3. Build farm patches-and-rewrites the bundle in place (preferred, keeps
+   `deprecated` arrays short) rather than migrate-on-render only (lets them
+   grow unless swept).
 4. Every `migrate` needs a fixture test frozen at deprecation time — Gutenberg's
    docs flag this as exactly what breaks silently when skipped.
-5. Track fleet usage per deprecated entry (`fleet_siblings`-style); when usage
-   hits zero, delete the entry and its test in the same change.
+5. Track fleet usage per deprecated entry (`fleet_siblings`-style); at zero
+   usage, delete the entry and its test in the same change.
 
----
 
 ## 5. Minimum viable content editor
 
@@ -229,7 +222,6 @@ slices: still schema-backed, but arranged visually in page context).
 This keeps the editor a thin form generator over an already-enforced schema —
 no second content model, no page builder, no new server infrastructure.
 
----
 
 ## 6. Source list
 

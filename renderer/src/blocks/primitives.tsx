@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { hrefFor } from './shared'
 
 /** ~14 primitives. Every visual value is a token name, never a raw value. */
 export const EL = [
@@ -120,7 +121,9 @@ export function Render({ node }: { node: Node }): React.ReactElement | null {
         {(n.author || n.role) && <figcaption>{n.author}{n.role && <span>{n.role}</span>}</figcaption>}
       </figure>
     )
-    case 'Button': return <span className={`btn btn--${n.kind}`} {...b}>{n.label}</span>
+    case 'Button': return n.page
+      ? <a className={`btn btn--${n.kind}`} href={hrefFor(n.page)} {...b}>{n.label}</a>
+      : <span className={`btn btn--${n.kind}`} {...b}>{n.label}</span>
     case 'Image': return (
       <div className={`p-img p-img--${n.ratio ?? 'landscape'}`} data-kind={n.kind} {...b}>
         <img src={n.src} alt={n.alt} />

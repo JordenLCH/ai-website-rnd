@@ -35,7 +35,7 @@ function ContactForm({ props, layout }: { props: P; layout: string }) {
                   : <input type={f.type} />}
             </label>
           ))}
-          <span className="btn btn--primary form__submit">{props.action.label}</span>
+          <button type="submit" className="btn btn--primary form__submit">{props.action.label}</button>
         </div>
       </div>
     </section>

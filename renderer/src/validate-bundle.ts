@@ -269,6 +269,144 @@ function contrastIssues(theme: { tokens: Record<string, string> }): Issue[] {
   return out
 }
 
+/** Three system-level habits every mature design system encodes and a hand-assembled theme
+ *  usually skips. All are checkable from theme.json alone, none is an error.
+ *
+ *  They are grouped because they share a cause: a theme that sets colours and sizes but never
+ *  decides *by role* — which surface is raised, what a focused control looks like, how wide a
+ *  line of text is allowed to get. That is the difference between a palette and a system. */
+function systemIssues(theme: { tokens: Record<string, string> }): Issue[] {
+  const out: Issue[] = []
+  const t = theme.tokens
+  const has = (re: RegExp) => Object.keys(t).some((k) => re.test(k))
+
+  // 1. Depth. Material 3's rule after a decade of shadow-everything: express elevation with a
+  //    surface step first, shadow only for things that genuinely float and can be dismissed.
+  //    A shadow on a near-black ground is close to invisible, so a dark theme with shadows and no
+  //    surface ramp has no working depth cue at all.
+  const shadows = Object.keys(t).filter((k) => /shadow|elevation/i.test(k))
+  const ramp = has(/^--(color-)?surface-([2-9]|raised|high)/)
+  if (shadows.length && !ramp) {
+    out.push({
+      where: 'theme.tokens',
+      message: `depth is expressed only by shadow (${shadows.join(', ')}) with no surface ramp — add --color-surface-2/-3 and raise the surface instead. Shadow reads weakly on dark grounds and flattens hierarchy when every block carries one; keep it for things that float and can be dismissed (menus, dialogs, toasts)`,
+      severity: 'info',
+    })
+  }
+
+  // 2. Focus. The one state auditors check first and designers forget, because it never appears
+  //    in a static comp. WCAG 2.2 wants the indicator itself at 3:1 against what it sits on.
+  const focus = t['--color-focus'] ?? t['--focus-ring'] ?? t['--color-focus-ring']
+  if (!focus) {
+    out.push({
+      where: 'theme.tokens',
+      message: 'no focus-indicator token (--color-focus) — keyboard users get whatever the browser default is, which is frequently invisible against a branded ground. Set one and check it on both the light and inverse grounds',
+      severity: 'info',
+    })
+  } else {
+    for (const bg of ['--color-bg', '--color-inverse-bg'] as const) {
+      if (!(bg in t)) continue
+      const r = contrastRatio(focus, t[bg])
+      if (r === null || r >= 3) continue
+      out.push({
+        where: 'theme.tokens.--color-focus',
+        message: `focus indicator is ${r.toFixed(2)}:1 against ${bg} — WCAG 2.2 AA needs 3:1 for the indicator itself, not just for text`,
+        severity: 'warning',
+      })
+    }
+  }
+
+  // 3. Measure. Two of the audit's layout bugs came from per-block character caps tuned on one
+  //    heading — the studio habit is to set the measure once, as a token, and let the column
+  //    follow from it.
+  const measure = t['--measure'] ?? t['--measure-body']
+  const ch = measure ? Number(/^([\d.]+)ch$/.exec(measure.trim())?.[1]) : NaN
+  if (measure && Number.isFinite(ch) && (ch < 45 || ch > 75)) {
+    out.push({
+      where: 'theme.tokens',
+      message: `body measure is ${ch}ch — running text reads best between 45 and 75 characters; outside that the eye loses the line on the return sweep`,
+      severity: 'warning',
+    })
+  }
+
+  return out
+}
+
+/** Blocks a visitor reads as evidence, and blocks that ask for something. A studio orders a page
+ *  so the evidence lands before the ask — proof placed after the request has nothing left to
+ *  support. Both sets are deliberately small: a wrong guess here produces a false accusation
+ *  about editorial judgement, which is worse than staying quiet. */
+const PROOF_TYPES = new Set(['Testimonials', 'LogoWall', 'Stats', 'Team'])
+const ASK_TYPES = new Set(['CTA'])
+
+/** Every plausible spelling of a call-to-action label in a props tree. Used only to compare
+ *  wordings with each other, never to judge the copy itself. */
+function ctaLabels(props: unknown): string[] {
+  const out: string[] = []
+  const visit = (v: unknown, key?: string) => {
+    if (typeof v === 'string') {
+      if (key && /^(label|cta|action|buttonText)$/i.test(key) && v.trim()) out.push(v.trim())
+      return
+    }
+    if (Array.isArray(v)) { v.forEach((x) => visit(x, key)); return }
+    if (v && typeof v === 'object') for (const [k, x] of Object.entries(v as Record<string, unknown>)) visit(x, k)
+  }
+  visit(props)
+  return out
+}
+
+type Placed = { where: string; type: string; layout: string; tone: string }
+
+/** Page-order rules a studio applies by eye, made checkable.
+ *
+ *  None are errors. Each describes a page that validates, renders and still reads as assembled:
+ *  the same shape twice in a row, an ask with no evidence in front of it, a long page with one
+ *  action at the bottom, or the same action called three different things. All four are visible
+ *  in a 50%-zoom scroll and invisible to every other check here. */
+function structureIssues(pages: Map<string, Placed[]>): Issue[] {
+  const out: Issue[] = []
+  for (const [page, run] of pages) {
+    // 1. Two consecutive sections of the same type *and* layout read as one long section, and the
+    //    second one stops being read. Alternating image-left / image-right counts as one shape.
+    for (let i = 1; i < run.length; i++) {
+      if (run[i].type === run[i - 1].type && run[i].layout === run[i - 1].layout) {
+        out.push({
+          where: run[i].where,
+          message: `same shape twice in a row — ${run[i].type}/${run[i].layout} follows an identical section. Two adjacent sections of one shape scroll as a single block; change the layout on one of them or merge them`,
+          severity: 'info',
+        })
+        break
+      }
+    }
+
+    // 2. Proof belongs in front of the first ask.
+    const firstAsk = run.findIndex((b) => ASK_TYPES.has(b.type))
+    if (firstAsk > 0) {
+      const proofBefore = run.slice(0, firstAsk).some((b) => PROOF_TYPES.has(b.type))
+      const proofAfter = run.slice(firstAsk).some((b) => PROOF_TYPES.has(b.type))
+      if (!proofBefore && proofAfter) {
+        out.push({
+          where: run[firstAsk].where,
+          message: `the first ask on this page comes before any evidence — the proof sections all sit after it. Move one above the ask; a testimonial the visitor reads after being asked has nothing left to support`,
+          severity: 'info',
+        })
+      }
+    }
+
+    // 3. A long page with a single action at the very end asks once, after the reader has already
+    //    decided. Studios repeat the same action roughly every two screens.
+    const asks = run.map((b, i) => (ASK_TYPES.has(b.type) ? i : -1)).filter((i) => i >= 0)
+    if (run.length >= 8 && asks.length === 1 && asks[0] >= run.length - 2) {
+      out.push({
+        where: `pages.${page}`,
+        message: `${run.length} sections and one action, at the bottom — repeat the same CTA around the midpoint. Identical wording, so it reads as one action offered twice, not two different ones`,
+        severity: 'info',
+      })
+    }
+  }
+  return out
+}
+
 export function validateBundle(rawSite: unknown, rawTheme: unknown):
   { ok: boolean; issues: Issue[]; density: Density[]; unverified: string[] } {
   const issues: Issue[] = []
@@ -298,6 +436,10 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown):
   const toneRun = new Map<string, string[]>()
   /** how often each image is placed, across the whole site */
   const imageUse = new Map<string, number>()
+  /** type + resolved layout per page, in document order, for the page-order rules */
+  const placed = new Map<string, Placed[]>()
+  /** every wording used for a call to action, across the site */
+  const askWordings = new Set<string>()
 
   for (const [where, b] of sections) {
     const entry = catalog[b.type]
@@ -355,8 +497,18 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown):
 
     if (style) {
       const page = where.startsWith('pages.') ? where.split('.')[1] : null
-      if (page) toneRun.set(page, [...(toneRun.get(page) ?? []), style.tone])
+      if (page) {
+        toneRun.set(page, [...(toneRun.get(page) ?? []), style.tone])
+        // Every FreeSection resolves to the one layout "free", so type+layout says nothing about
+        // what it looks like — its shape is the role and the column count it was composed with.
+        const p = b.props as any
+        const shape = b.type === 'FreeSection'
+          ? `free:${p?.role ?? '?'}:${p?.grid?.cols ?? '?'}`
+          : style.layout
+        placed.set(page, [...(placed.get(page) ?? []), { where, type: b.type, layout: shape, tone: style.tone }])
+      }
     }
+    if (ASK_TYPES.has(b.type)) for (const l of ctaLabels(b.props)) askWordings.add(l.toLowerCase())
 
     // A product shot on white, dropped into an inverse-tone section, reads as a hole
     // punched in the page — the section has images and still looks empty. The same
@@ -482,7 +634,19 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown):
     }
   }
 
+  // One action, called three things, reads as three different offers — so the wordings are
+  // compared across the whole site rather than per page.
+  if (askWordings.size >= 3) {
+    issues.push({
+      where: 'site',
+      message: `the call to action is worded ${askWordings.size} different ways (${[...askWordings].slice(0, 4).join(' / ')}) — repeat one wording so it reads as the same action offered again, not a new one`,
+      severity: 'info',
+    })
+  }
+
+  issues.push(...structureIssues(placed))
   issues.push(...slopTells(theme))
+  issues.push(...systemIssues(theme))
   issues.push(...contrastIssues(theme))
 
   const unused = Object.keys(theme.sectionStyles).filter((k) => !usedSlugs.has(k))
