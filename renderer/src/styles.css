@@ -162,8 +162,18 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .notice[data-layout="boxed-aside"] .notice__inner { border: var(--border) solid var(--line);
   border-radius: var(--radius); padding: var(--sp-md); background: var(--card);
   width: fit-content; max-width: min(var(--maxw), 88ch); margin-inline: 0; }
+/* A footnote is the small print at the foot of a page, and its separator is a short rule — the
+   full-width rule is what inline-rule uses to divide the flow. The two layouts previously differed
+   by .08rem of type size and nothing else: two slugs, one appearance, so a theme choosing between
+   them was choosing nothing. */
+.notice[data-layout="footnote"] { padding-block: calc(var(--pad-y) * .3); }
+.notice[data-layout="footnote"] .notice__inner { position: relative; padding-top: .7rem; gap: .2rem; }
+.notice[data-layout="footnote"] .notice__inner::before {
+  content: ""; position: absolute; inset-block-start: 0; inset-inline-start: 0;
+  width: 4.5rem; border-top: var(--border) solid var(--line); }
+.notice[data-layout="footnote"] .notice__title { font-size: .76rem; }
 .notice[data-layout="footnote"] .notice__body { font-size: .8rem; }
-.notice[data-layout="footnote"] .notice__inner { border-top: var(--border) solid var(--line); padding-top: .7rem; }
+.notice[data-layout="footnote"] .notice__meta { font-size: .72rem; }
 /* the accent edge marks a notice as a notice without shouting */
 .notice[data-kind="legal"][data-layout="boxed-aside"] .notice__inner,
 .notice[data-kind="regulatory"][data-layout="boxed-aside"] .notice__inner {
@@ -347,7 +357,18 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
    padding, so it runs far below a copy column that is usually six or seven lines — top-aligning
    both left a column of copy with an empty half beneath it. */
 .mediatext[data-layout="overlap-offset"] .mediatext__inner { grid-template-columns: 1.15fr .85fr; align-items: center; }
-.mediatext[data-layout="overlap-offset"] .mediatext__media { order: 2; margin-top: calc(var(--gap) * -1.4); }
+/* An overlap, not an offset. -1.4 * gap lifted the image ~40px and the two columns still sat
+   side by side with a gutter between them — nothing overlapped anything, which is the one thing
+   the slug names. The image now runs under the copy column's edge: a negative inline margin pulls
+   it into the gutter, and the copy is raised above it so the text stays legible. */
+.mediatext[data-layout="overlap-offset"] .mediatext__media { order: 2; position: relative; z-index: 0;
+  margin-top: calc(var(--gap) * -1.4); margin-inline-start: calc(var(--gap) * -1.6); }
+/* Stacked, there is no column edge to run under, and the inline pull just walks the image off the
+   left of the page. */
+@container (max-width: 860px) {
+  .mediatext[data-layout="overlap-offset"] .mediatext__media { margin-inline-start: 0; margin-top: 0; }
+}
+.mediatext[data-layout="overlap-offset"] .mediatext__copy { position: relative; z-index: 1; }
 .mediatext[data-layout="overlap-offset"] .mediatext__media img { aspect-ratio: 3 / 4; }
 .mediatext .heading + .prose { margin-top: 1.2rem; }
 @container (max-width: 760px) {
@@ -363,12 +384,22 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .features[data-layout="grid-hairline"] .features__items[data-count="5"] { grid-template-columns: repeat(5, 1fr); }
 .features[data-layout="grid-hairline"] .feature { padding: calc(var(--gap) * .9) calc(var(--gap) * .7);
   border-right: var(--border) solid var(--line); border-bottom: var(--border) solid var(--line); }
-.features[data-layout="grid-hairline"] .feature__media img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--radius-img); margin-bottom: 1.1rem; }
+/* aspect-ratio was already set here but not enforced against a cutout: a square product shot and
+   a 16:9 photograph in the same row put their titles on different baselines, because the media
+   box grew to whatever arrived. `height` with `object-fit: cover` pins the box; the intrinsic
+   ratio of the file stops mattering, which is the point — the row is a row. */
+.features[data-layout="grid-hairline"] .feature__media img { width: 100%; aspect-ratio: 3 / 2; height: auto; object-fit: cover; border-radius: var(--radius-img); margin-bottom: 1.1rem; }
+.features[data-layout="grid-hairline"] .feature__media,
+.features[data-layout="cards-soft"] .feature__media { display: block; }
 .features[data-layout="grid-hairline"] .feature__title { font-family: var(--font-display); font-size: 1.06rem; letter-spacing: var(--display-tracking); margin: 0 0 .5rem; }
 .features[data-layout="grid-hairline"] .feature__body { color: var(--muted); font-size: .92rem; margin: 0; }
 
 .features[data-layout="alternating-rows"] .features__items { display: grid; gap: calc(var(--gap) * 1.6); }
-.features[data-layout="alternating-rows"] .feature { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); align-items: center; }
+/* 1fr 1fr gave a three-line paragraph half the page against a 600px image, so every row read as
+   mostly empty. The copy column is the one with a natural maximum — a measure — so the image takes
+   the surplus instead of the text stretching to meet it. */
+.features[data-layout="alternating-rows"] .feature { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: calc(var(--gap) * 1.2); align-items: center; }
+.features[data-layout="alternating-rows"] .feature__body { max-width: 54ch; }
 /* Features.image is optional, and this layout is copy-beside-picture. With no picture the second
    track stayed open and every row became text in the left half of the page beside nothing —
    which reads as a broken image, not as whitespace. One column when there is no media. */
@@ -384,7 +415,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .features[data-layout="cards-soft"] .features__items { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: var(--gap);   --cols-max: 3; --cols-4: 2;}
 .features[data-layout="cards-soft"] .feature { background: var(--raised, var(--card)); border-radius: var(--radius); padding: calc(var(--gap) * .8);
   box-shadow: var(--elev-1); border: var(--border) solid var(--line); }
-.features[data-layout="cards-soft"] .feature__media img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: var(--radius-img); margin-bottom: 1rem; }
+.features[data-layout="cards-soft"] .feature__media img { width: 100%; aspect-ratio: 16 / 10; height: auto; object-fit: cover; border-radius: var(--radius-img); margin-bottom: 1rem; }
 .features[data-layout="cards-soft"] .feature__title { font-family: var(--font-display); font-size: 1.2rem; margin: 0 0 .5rem; letter-spacing: var(--display-tracking); }
 .features[data-layout="cards-soft"] .feature__body { color: var(--muted); font-size: .95rem; margin: 0; }
 
@@ -509,6 +540,12 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
   grid-auto-rows: minmax(15cqi, auto); gap: calc(var(--gap) * .5); }
 .gallery[data-layout="mosaic"] .gallery__item[data-i="0"] { grid-column: span 2; grid-row: span 2; }
 .gallery[data-layout="mosaic"] .gallery__item[data-i="3"] { grid-column: span 2; }
+/* The mosaic's spans assume the row fills. At counts that leave a tail, the last tile widens to
+   close the row rather than sitting as an orphan beside dead space — the same treatment
+   hairline-catalog gives its 7th card. */
+.gallery[data-layout="mosaic"] .gallery__items[data-count="4"] .gallery__item:last-child,
+.gallery[data-layout="mosaic"] .gallery__items[data-count="6"] .gallery__item:last-child { grid-column: span 2; }
+.gallery[data-layout="mosaic"] .gallery__items[data-count="5"] .gallery__item:last-child { grid-column: span 4; }
 .gallery[data-layout="mosaic"] .gallery__item img { flex: 1 1 auto; min-height: 0; }
 .gallery__item figcaption { flex: 0 0 auto; }
 /* `height: 100%` on the base image beats aspect-ratio inside a stretched grid row: the flex column
@@ -530,6 +567,18 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .spec__label { font-family: var(--font-eyebrow); font-size: var(--eyebrow-size); text-transform: var(--eyebrow-transform);
   letter-spacing: var(--eyebrow-tracking); color: var(--muted); margin: 0 0 .8rem; font-weight: 500; }
 .spec__row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); padding: .8rem 0; border-top: var(--border) solid var(--line); }
+/* The value column started at 50% with a full gap of nothing in between, so a short label and its
+   value read as two unrelated columns. A spec sheet is a set of pairs: the label takes the width
+   it needs, a dotted leader crosses the gap, and the value sits against it. */
+.spec[data-layout="stacked-rows"] .spec__row { grid-template-columns: minmax(0, auto) minmax(0, 1fr) max-content;
+  gap: .75rem; align-items: baseline; }
+.spec[data-layout="stacked-rows"] .spec__row dt { color: var(--muted); }
+.spec[data-layout="stacked-rows"] .spec__row dt::after {
+  content: ""; display: block; }
+.spec[data-layout="stacked-rows"] .spec__row::before {
+  content: ""; grid-column: 2; align-self: end; margin-bottom: .28em;
+  border-bottom: 1px dotted var(--line); }
+.spec[data-layout="stacked-rows"] .spec__row dd { grid-column: 3; text-align: right; font-family: var(--font-numeral); }
 .spec__row dt { color: var(--muted); margin: 0; }
 .spec__row dd { margin: 0; }
 .spec__rows { margin: 0; }
@@ -549,7 +598,12 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .quote__role { display: block; }
 .quotes[data-layout="single-large"] blockquote { font-size: clamp(1.6rem, 3.6cqi, 2.6rem); }
 .quotes[data-layout="single-large"] .quotes__items { max-width: var(--maxw); margin-inline: auto; }
+/* Two columns need two quotes. With one, the layout drew a half-empty row — the same failure
+   shape as a mosaic ending on an orphan tile: a grid whose column count is fixed independently of
+   how many items arrived. One quote is a single-large in everything but the slug, so it renders
+   as one. */
 .quotes[data-layout="two-col"] .quotes__items { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gap); }
+.quotes[data-layout="two-col"] .quotes__items[data-count="1"] { grid-template-columns: minmax(0, 1fr); max-width: 46rem; margin-inline: auto; }
 .quotes[data-layout="two-col"] blockquote { font-size: 1.25rem; }
 .quotes[data-layout="quote-row"] .quotes__items { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: var(--gap);   --cols-max: 3; --cols-4: 2;}
 .quotes[data-layout="quote-row"] .quote { border-left: calc(var(--border) * 2) solid var(--line); padding-left: calc(var(--gap) * .55); }
@@ -563,6 +617,12 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .logos__items { list-style: none; margin: 0; padding: 0; }
 .logos__label { font-family: var(--font-display); font-size: 1.02rem; letter-spacing: var(--display-tracking); }
 .logos__note { display: block; font-size: .8rem; color: var(--muted); margin-top: .25rem; }
+/* Sized by height, not width: logos arrive at wildly different aspect ratios and matching their
+   widths makes a wide wordmark tower over a square badge. Height parity is what reads as "these
+   are peers". */
+.logos__img { height: clamp(1.6rem, 3.4cqi, 2.4rem); width: auto; max-width: 100%;
+  object-fit: contain; filter: var(--img-filter); }
+.logos__items li:has(.logos__img) .logos__label { font-size: .8rem; color: var(--muted); }
 /* was flex-wrap, so cells sized to content and the vertical rules in row two
    landed nowhere near row one's — the "lines not connected" report */
 .logos[data-layout="hairline-row"] .logos__items { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: 0;
@@ -642,7 +702,23 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
    minmax(0, …) on every track lets a long word wrap instead of widening the row. */
 .timeline[data-layout="vertical-rail"] .tl { display: grid;
   grid-template-columns: minmax(0, 9rem) minmax(0, 15rem) minmax(0, 1fr); gap: var(--gap);
-  border-top: var(--border) solid var(--line); padding-top: calc(var(--gap) * .55); align-items: start; }
+  padding-top: calc(var(--gap) * .55); align-items: start; position: relative; }
+/* The rail the slug promises. This layout was three columns with a hairline over each row —
+   readable, but a plain list, and indistinguishable in kind from any other bordered rows on the
+   page. A timeline's whole visual argument is that the entries are on one continuous line, so the
+   line is drawn once down the gutter between the marker and the copy, and each entry sits on it
+   as a node. The per-row border goes: two horizontal rules crossing a vertical one is a table. */
+.timeline[data-layout="vertical-rail"] .timeline__items { position: relative; }
+.timeline[data-layout="vertical-rail"] .timeline__items::before {
+  content: ""; position: absolute; inset-block: .8rem; inset-inline-start: calc(9rem + var(--gap) / 2);
+  width: max(1px, var(--border)); background: var(--line); }
+.timeline[data-layout="vertical-rail"] .tl::before {
+  content: ""; position: absolute; inset-inline-start: calc(9rem + var(--gap) / 2);
+  inset-block-start: calc(var(--gap) * .55 + .42rem);
+  width: 9px; height: 9px; margin-inline-start: -4px; border-radius: 50%;
+  background: var(--accent-fg, var(--color-accent));
+  /* a ring in the section's own ground, so the node reads as sitting on the rail, not crossing it */
+  box-shadow: 0 0 0 4px var(--bg, var(--color-bg)); }
 .timeline[data-layout="vertical-rail"] .tl__marker { font-size: 1.15rem; line-height: 1.25; overflow-wrap: anywhere; }
 .timeline[data-layout="vertical-rail"] .tl__copy { display: contents; }
 .timeline[data-layout="vertical-rail"] .tl__title { margin: 0; }
@@ -652,7 +728,12 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .timeline[data-layout="horizontal-steps"] .tl__marker { margin-bottom: .6rem; }
 @container (max-width: 800px) {
   .timeline[data-layout="horizontal-steps"] .timeline__items { grid-template-columns: repeat(2, 1fr); }
-  .timeline[data-layout="vertical-rail"] .tl { grid-template-columns: minmax(0, 1fr); gap: .5rem; }
+  /* One column: the gutter the rail was drawn in no longer exists, so the rail and its nodes go
+     and the hairline comes back to separate the entries. */
+  .timeline[data-layout="vertical-rail"] .tl { grid-template-columns: minmax(0, 1fr); gap: .5rem;
+    border-top: var(--border) solid var(--line); }
+  .timeline[data-layout="vertical-rail"] .timeline__items::before,
+  .timeline[data-layout="vertical-rail"] .tl::before { display: none; }
   .timeline[data-layout="vertical-rail"] .tl__body { max-width: 52ch; }
 }
 
@@ -709,8 +790,22 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 }
 
 /* ---------- CTA ---------- */
+/* A panel, not a rule. "hard-panel" drew a single hairline above two columns, which is the same
+   visual weight as soft-band and reads as a section divider rather than as an ask — the one block
+   on the page that is supposed to interrupt. The panel is a filled surface with a square corner:
+   hard because it is the accent field and does not soften at the edges, where soft-band is a
+   tinted band that does. */
 .cta[data-layout="hard-panel"] { display: grid; grid-template-columns: 1.3fr .7fr; gap: var(--gap); align-items: end;
-  border-top: var(--border) solid var(--line); max-width: var(--maxw); margin-inline: auto; }
+  background: var(--color-accent); color: var(--color-on-accent);
+  padding: calc(var(--gap) * .9) calc(var(--gap) * .8); border-radius: 0;
+  max-width: var(--maxw); margin-inline: auto; }
+.cta[data-layout="hard-panel"] .heading,
+.cta[data-layout="hard-panel"] .display { color: inherit; }
+.cta[data-layout="hard-panel"] .lede,
+.cta[data-layout="hard-panel"] .cta__note { color: color-mix(in oklab, var(--color-on-accent) 88%, transparent); }
+/* on the accent field the button has to invert, the way an accent-tone section's does */
+.cta[data-layout="hard-panel"] .btn--primary { background: var(--color-on-accent); color: var(--color-accent); }
+.cta[data-layout="hard-panel"] .btn--ghost { border-color: color-mix(in oklab, var(--color-on-accent) 45%, transparent); color: var(--color-on-accent); }
 .cta[data-layout="hard-panel"] > * { max-width: none; }
 .cta[data-layout="hard-panel"] .cta__action { text-align: right; }
 .cta[data-layout="hard-panel"] .cta__note { font-family: var(--font-eyebrow); font-size: .72rem; text-transform: uppercase;
@@ -771,7 +866,12 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
   grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); }
 .foot[data-layout="columns"] .foot__bottom { grid-column: 1 / -1; }
 .foot[data-layout="centered-minimal"] .foot__inner { display: grid; justify-items: center; text-align: center; --align-inline: auto; gap: calc(var(--gap) * .7); }
-.foot[data-layout="centered-minimal"] .foot__cols { display: flex; gap: var(--gap); flex-wrap: wrap; justify-content: center; }
+/* The column titles are hidden in this layout, so three groups ran together as one 12-item row
+   with nothing marking where one ended. A separator between groups restores the boundary without
+   bringing the headings back — which is what "minimal" is choosing against. */
+.foot[data-layout="centered-minimal"] .foot__cols { display: flex; gap: calc(var(--gap) * .8); flex-wrap: wrap; justify-content: center; }
+.foot[data-layout="centered-minimal"] .foot__col + .foot__col {
+  border-inline-start: var(--border) solid var(--line); padding-inline-start: calc(var(--gap) * .8); }
 .foot[data-layout="centered-minimal"] .foot__coltitle { display: none; }
 .foot[data-layout="centered-minimal"] .foot__col ul { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
 .foot[data-layout="centered-minimal"] .foot__bottom { flex-direction: column; align-items: center; text-align: center; --align-inline: auto; width: 100%; }
@@ -795,8 +895,45 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .pricing[data-layout="cards-tiers"] .tier { background: var(--raised, var(--card)); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); padding: calc(var(--gap) * .8); display: flex; flex-direction: column; }
 .pricing[data-layout="cards-tiers"] .tier[data-featured="true"] { border-color: var(--color-accent); border-width: calc(var(--border) * 2); }
 .pricing[data-layout="cards-tiers"] .tier__cta { margin-top: auto; text-align: center; --align-inline: auto; }
-.pricing[data-layout="table-compare"] .pricing__tiers { display: grid; grid-template-columns: repeat(3, 1fr); border-top: var(--border) solid var(--line); }
-.pricing[data-layout="table-compare"] .tier { padding: calc(var(--gap) * .7); border-right: var(--border) solid var(--line); border-bottom: var(--border) solid var(--line); }
+/* A real table now — see CompareTable in Pricing.tsx for why the axis is derived. */
+.pricing__table { width: 100%; border-collapse: collapse; text-align: left; }
+.pricing__table th, .pricing__table td { padding: .7rem calc(var(--gap) * .4);
+  border-bottom: var(--border) solid var(--line); vertical-align: baseline; }
+.pricing__table thead th { border-bottom-width: calc(var(--border) * 2); vertical-align: bottom; }
+.pricing__table thead th:not(:first-child) { text-align: center; }
+.pricing__table thead .tier__name { display: block; font-family: var(--font-display);
+  font-size: 1.05rem; margin-bottom: .3rem; letter-spacing: var(--display-tracking); }
+.pricing__table thead .tier__price { display: block; font-family: var(--font-numeral);
+  font-size: 1.5rem; line-height: 1; margin: 0; }
+.pricing__table thead .tier__price em { font-style: normal; font-size: .78rem; color: var(--muted);
+  font-family: var(--font-body); margin-left: .25rem; }
+/* the featured column is marked by its ground, not by a heavier border — a border on one column
+   of a table reads as a table rule that lost its way */
+.pricing__table thead th[data-featured="true"] { background: var(--card); }
+.pricing__table tbody th { font-weight: 400; color: var(--ink); }
+.pricing__table tbody td { text-align: center; font-size: 1.05rem; }
+.pricing__table td[data-has="true"] { color: var(--accent-fg, var(--color-accent)); }
+.pricing__table td[data-has="false"] { color: var(--muted); opacity: .55; }
+.pricing__table tfoot td { text-align: center; padding-top: calc(var(--gap) * .5); border-bottom: 0; }
+/* Visually hidden, still announced: the row/column meaning is carried by a tick for a sighted
+   reader and has to be carried by words for everyone else. */
+.u-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+/* Stacked, the header row is gone, so each cell has to say which tier it belongs to — a column of
+   bare ticks under a feature name compares nothing. The tier name comes from the cell's own
+   data-tier, so it cannot drift from the header. */
+@container (max-width: 620px) {
+  .pricing__table, .pricing__table tbody, .pricing__table tfoot,
+  .pricing__table tr, .pricing__table th, .pricing__table td { display: block; }
+  .pricing__table thead { display: none; }
+  .pricing__table tbody tr { border-bottom: var(--border) solid var(--line); padding-bottom: .5rem; }
+  .pricing__table tbody th { font-weight: 600; border-bottom: 0; padding: .8rem 0 .3rem; }
+  .pricing__table tbody td { display: flex; justify-content: space-between; align-items: baseline;
+    text-align: left; border-bottom: 0; padding: .15rem 0; font-size: .95rem; }
+  .pricing__table tbody td::before { content: attr(data-tier); color: var(--muted); font-size: .85rem; }
+  .pricing__table tfoot tr { display: grid; gap: .5rem; padding-top: .8rem; }
+  .pricing__table tfoot td:empty { display: none; }
+}
 .pricing[data-layout="table-compare"] .tier:first-child { border-left: var(--border) solid var(--line); }
 @container (max-width: 860px) { .pricing__tiers { grid-template-columns: 1fr !important; } }
 
@@ -814,6 +951,13 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
    it sat under. */
 .cat__meta { font-family: var(--font-eyebrow); font-size: var(--eyebrow-size); text-transform: var(--eyebrow-transform);
   letter-spacing: var(--eyebrow-tracking); color: var(--muted); margin: 0 0 .3rem; }
+/* One line, reserved. In a card grid a two-line category pushed its own title and body down while
+   its neighbours' stayed put, so one card in four sat a line lower than the rest. The box is held
+   at a line's height whether or not the label fills it, and the label is set small enough that a
+   realistic category ("Portable photogrammetry") fits on one.
+   A label long enough to wrap still moves its own card: the complete fix is row subgrid, which
+   needs .cat__copy flattened into the card grid first — a markup change worth doing on its own. */
+.catalog[data-layout="cards-grid"] .cat__meta { min-height: 1lh; font-size: .68rem; }
 .cat { display: flex; flex-direction: column; }
 .cat__copy { display: flex; flex-direction: column; flex: 1 1 auto; padding-top: 1rem; }
 .catalog[data-layout="cards-grid"] .catalog__items { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: var(--gap);   --cols-max: 4; --cols-4: 4;}
@@ -823,13 +967,22 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
    Pad it, round it, and inset the image's radius so the two agree. */
 .catalog[data-layout="cards-grid"] .cat,
 .catalog[data-layout="wide-list"] .cat { padding: .8rem; border-radius: var(--radius-img); }
-/* and pulled back out by the same amount, so the row's outer edges still line up with the
-   section heading. Padding a card without this insets the whole grid and reads as a misaligned
-   row rather than as cards. */
-.catalog[data-layout="cards-grid"] .catalog__items,
-.catalog[data-layout="wide-list"] .catalog__items { margin-inline: -.8rem; }
+/* ...and pulled back out on the *card*, not on the row.
+   Two wrong turns worth recording. Negative-margining the row replaced the `auto` that
+   `.block > *` supplies and it stopped being centred — 107px short on the right at 1440, this
+   repo's own documented gotcha. Growing the row instead centred correctly until the container got
+   narrow, where the grown width exceeds the space available, auto margins resolve to zero, and the
+   overflow all lands on one side. The card carries it: each card bleeds half a gap into the
+   section's padding, the row's own box is untouched, so its centring is never in question. */
+.catalog[data-layout="cards-grid"] .cat,
+.catalog[data-layout="wide-list"] .cat { margin-inline: -.8rem; }
 .catalog[data-layout="cards-grid"] .cat__media img,
 .catalog[data-layout="wide-list"] .cat__media img { border-radius: calc(var(--radius-img) * .6); }
+/* The chip is sized for a 4:5 card, and at this layout's 192px thumbnail it ran nearly the full
+   width of the image — a label competing with the thing it labels. */
+.catalog[data-layout="wide-list"] .cat__tag { font-size: .58rem; letter-spacing: .08em;
+  padding: .2rem .4rem; top: .4rem; left: .4rem; max-width: calc(100% - .8rem);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .catalog[data-layout="hairline-catalog"] .catalog__items { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
   border-top: var(--border) solid var(--line); border-left: var(--border) solid var(--line);   --cols-max: 3; --cols-4: 2;}
 .catalog[data-layout="hairline-catalog"] .cat { padding: calc(var(--gap) * .7);
@@ -956,6 +1109,18 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .post__title { font-family: var(--font-display); font-size: 1.15rem; margin: 0 0 .5rem; letter-spacing: var(--display-tracking); }
 .post__excerpt { color: var(--muted); font-size: .93rem; margin: 0; }
 .posts[data-layout="cards-three"] .posts__items { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: var(--gap);   --cols-max: 3; --cols-4: 2;}
+/* "cards-three" was three columns of bare text — no surface, no border, nothing card-shaped, so
+   it read as list-rows with the images moved. A card is a bounded surface: give it the boundary,
+   and let the media sit flush to the top edge the way a card's media does. */
+.posts[data-layout="cards-three"] .post { display: flex; flex-direction: column;
+  background: var(--card); border: var(--border) solid var(--line); border-radius: var(--radius);
+  overflow: hidden; }
+.posts[data-layout="cards-three"] .post__media img { margin-bottom: 0; border-radius: 0; }
+.posts[data-layout="cards-three"] .post__body,
+.posts[data-layout="cards-three"] .post__meta,
+.posts[data-layout="cards-three"] .post__title { padding-inline: calc(var(--gap) * .55); }
+.posts[data-layout="cards-three"] .post__meta { padding-top: calc(var(--gap) * .55); }
+.posts[data-layout="cards-three"] .post > :last-child { padding-bottom: calc(var(--gap) * .55); margin-bottom: 0; }
 .posts[data-layout="list-rows"] .posts__items { display: grid; gap: 0; }
 .posts[data-layout="list-rows"] .post { display: grid; grid-template-columns: 14rem 1fr; gap: var(--gap);
   border-top: var(--border) solid var(--line); padding: calc(var(--gap) * .5) 0; align-items: start; }

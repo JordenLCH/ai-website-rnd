@@ -10,9 +10,9 @@ import { catalog } from '../../renderer/src/blocks/index.ts'
 const here = dirname(fileURLToPath(import.meta.url))
 export const RENDERER = join(here, '..', '..', 'renderer', 'src')
 
-/** Bumped whenever a block's schema or layout set changes. Bundles record the
- *  version they were generated against so old bundles can still be rebuilt. */
-export const CATALOG_VERSION = '0.4.1'
+/** Derived from the catalog's own shape — see renderer/src/catalog-version.ts. It was a literal
+ *  here, bumped by hand, and it had already fallen behind two schema changes. */
+export { CATALOG_VERSION } from '../../renderer/src/catalog-version.ts'
 
 /** One line per block: enough for a model to choose, cheap enough to send every session. */
 const SUMMARY: Record<string, string> = {

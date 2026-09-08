@@ -5,18 +5,24 @@
  *  AEO / GEO artifact from the content tree rather than from markup. */
 import { mkdirSync, writeFileSync, readFileSync, cpSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module'
 // Both come from the renderer's install, never platform's — see renderer/src/ssr.ts. Importing
 // react-dom/server directly here silently gives the blocks a second React and breaks every hook.
-import { createElement, renderToStaticMarkup } from '../../renderer/src/ssr'
-import { catalog } from '../../renderer/src/blocks/index'
-import { validateBundle } from '../../renderer/src/validate-bundle'
-import type { Site, Theme, Page } from '../../renderer/src/schema'
-import { jsonLd, metaFor, sitemap, robots, llmsTxt, type Org } from './seo'
-import { fontsHref } from '../../renderer/src/fonts'
+//
+// By package name, not by relative path. `../../renderer/src/…` meant the farm could not be
+// deployed without the sibling checkout at exactly that path, and that it built against whatever
+// catalog happened to be on disk — so rebuilding a two-year-old bundle silently used today's
+// blocks. The dependency is declared in package.json and can therefore be pinned per build.
+import { createElement, renderToStaticMarkup } from '@blackdash/renderer/ssr'
+import { catalog } from '@blackdash/renderer/blocks'
+import { validateBundle } from '@blackdash/renderer/validate-bundle'
+import type { Site, Theme, Page } from '@blackdash/renderer/schema'
+import { jsonLd, metaFor, sitemap, sitemapManifest, robots, llmsTxt, type Org } from './seo'
+import { fontsHref } from '@blackdash/renderer/fonts'
 
-const here = dirname(fileURLToPath(import.meta.url))
-const RENDERER = join(here, '..', '..', 'renderer', 'src')
+/** Resolved through the package, so it follows the installed dependency rather than a guess about
+ *  where the checkout sits. */
+const RENDERER = dirname(createRequire(import.meta.url).resolve('@blackdash/renderer/styles.css'))
 
 const FONTS = fontsHref()
 
@@ -60,13 +66,28 @@ for(const e of p){const r=e.getBoundingClientRect();const g=(r.top+r.height/2)/h
 e.style.setProperty('--parallax-y',(-g*parseFloat(e.dataset.parallax)*100).toFixed(2)+'px')}})};
 addEventListener('scroll',on,{passive:true});addEventListener('resize',on,{passive:true});on()}})();`
 
+/** Thrown when the farm is handed a block the validator accepted and the renderer cannot draw.
+ *  Its own class so buildSite can turn it into a build failure and let every other error keep
+ *  its stack. */
+class UnrenderableBlock extends Error {}
+
 function renderPage(page: Page, site: Site, theme: Theme, pageKey: string) {
   const section = (b: Page['blocks'][number], key: number) => {
     const entry = catalog[b.type]
     const style = theme.sectionStyles[b.variant]
-    if (!entry || !style) return null
+    /* The preview returns null here, which is right for a half-typed bundle on a creator's
+     *  machine. The farm must not: validateBundle has already passed at this point, so anything
+     *  unrenderable is a disagreement between the validator and the catalog. Dropping it ships a
+     *  page with a section missing, under exit code 0 and a "✓ built" line — the client discovers
+     *  it, not us. */
+    if (!entry) throw new UnrenderableBlock(`unknown block type "${b.type}" reached the renderer after validation passed`)
+    if (!style) throw new UnrenderableBlock(`variant "${b.variant}" has no sectionStyle, but validation passed`)
     const parsed = entry.schema.safeParse(b.props)
-    if (!parsed.success) return null
+    if (!parsed.success) {
+      throw new UnrenderableBlock(
+        `${b.type} props were accepted by the validator and rejected by the catalog schema: ` +
+        parsed.error.issues.slice(0, 3).map((i) => `${i.path.join('.')} ${i.message}`).join('; '))
+    }
     // Which page this is cannot come from the bundle — chrome is declared once for the whole
     // site — so the renderer supplies it, and Nav marks the matching item `aria-current`.
     const props = { ...(parsed.data as object), currentPage: pageKey }
@@ -84,8 +105,13 @@ function renderPage(page: Page, site: Site, theme: Theme, pageKey: string) {
 
 export function buildSite(site: Site, theme: Theme, org: Org, outDir: string,
   opts: { allowUnverified?: boolean; bundleDir?: string } = {}) {
-  const { ok, issues, unverified } = validateBundle(site, theme, org)
-  if (!ok) return { ok: false as const, issues, written: [] as string[] }
+  /* Render what the validator returns, not what the caller passed. Those differ whenever a
+     stored bundle carries a deprecated prop shape: the migration is applied to the validator's
+     parsed copy, and rendering the original instead is what published a footerless page. */
+  const { ok, issues, unverified, site: migratedSite, theme: migratedTheme } = validateBundle(site, theme, org)
+  if (!ok || !migratedSite || !migratedTheme) return { ok: false as const, issues, written: [] as string[] }
+  site = migratedSite
+  theme = migratedTheme
 
   /** The generator is allowed to compose plausible copy so a page arrives whole rather than
    *  as a skeleton — but the human review pass is what makes that safe, and a gate nobody
@@ -109,12 +135,24 @@ export function buildSite(site: Site, theme: Theme, org: Org, outDir: string,
   const written: string[] = []
   mkdirSync(outDir, { recursive: true })
 
+  /* A renderer disagreement is a platform bug, not a content problem, so it stops the build and
+     says so rather than producing a page with a hole in it. */
+  const renderOrFail = (page: Page, key: string) => {
+    try { return { html: renderPage(page, site, theme, key) } }
+    catch (e) {
+      if (!(e instanceof UnrenderableBlock)) throw e
+      return { issue: { where: `pages.${key}`, message: `${e.message}. This is a validator/catalog mismatch — a platform bug, not a content problem`, severity: 'error' as const } }
+    }
+  }
+
   for (const [key, page] of Object.entries(site.pages)) {
     const meta = metaFor(site, key, org)
     const ld = jsonLd(site, key, org)
-    const body = renderPage(page, site, theme, key)
+    const rendered = renderOrFail(page, key)
+    if (rendered.issue) return { ok: false as const, issues: [...issues, rendered.issue], written }
+    const body = rendered.html
     const html = `<!doctype html>
-<html lang="en">
+<html lang="${escapeHtml(org.lang ?? 'en')}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -139,8 +177,15 @@ ${ld.map((node) => `<script type="application/ld+json">${escapeJsonLd(node)}</sc
     written.push(path)
   }
 
+  /* The previous build's manifest, so an unchanged page keeps the date it last actually changed
+     rather than claiming it changed again today. Missing on a first build, which is correct. */
+  const manifestPath = join(outDir, 'sitemap-lastmod.json')
+  let previous: Record<string, string> | undefined
+  try { previous = JSON.parse(readFileSync(manifestPath, 'utf8')) } catch { previous = undefined }
+
   for (const [name, content] of [
-    ['sitemap.xml', sitemap(site, org)],
+    ['sitemap.xml', sitemap(site, org, previous)],
+    ['sitemap-lastmod.json', JSON.stringify(sitemapManifest(site, previous), null, 2)],
     ['robots.txt', robots(org)],
     ['llms.txt', llmsTxt(site, org)],
   ] as const) {

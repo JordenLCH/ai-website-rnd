@@ -21,9 +21,17 @@ mkdir -p "$OUT"
 echo "→ validating"
 ( cd "$ROOT" && npm run --silent validate -- "$SITE" "$THEME" )
 
-CATALOG_VERSION="$(node -e "process.stdout.write(require('fs').readFileSync('$ROOT/../mcp/src/source.ts','utf8').match(/CATALOG_VERSION = '([^']+)'/)[1])")"
-
-cp "$SITE" "$STAGE/site.json"
+# Stamp the catalog the bundle was generated against. The bundle is the stored artifact and the
+# catalog moves underneath it, so a rebuild months from now can say whether the two still agree.
+# Derived from the catalog's shape, never typed by hand — see renderer/src/catalog-version.ts.
+CATALOG_VERSION="$(cd "$ROOT" && node --import tsx -e \
+  "import('./src/catalog-version.ts').then(m=>process.stdout.write(m.CATALOG_VERSION))")"
+node -e '
+  const fs = require("fs")
+  const site = JSON.parse(fs.readFileSync(process.argv[1], "utf8"))
+  site.catalogVersion = process.argv[3]
+  fs.writeFileSync(process.argv[2], JSON.stringify(site, null, 2) + "\n")
+' "$SITE" "$STAGE/site.json" "$CATALOG_VERSION"
 cp "$THEME" "$STAGE/theme.json"
 [ -n "$ASSETS" ] && cp -R "$ASSETS" "$STAGE/assets"
 

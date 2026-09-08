@@ -38,5 +38,16 @@
     "vite.config.ts",
     "tsconfig.json",
     "index.html"
-  ]
+  ],
+  "exports": {
+    "./ssr": "./src/ssr.ts",
+    "./blocks": "./src/blocks/index.ts",
+    "./validate-bundle": "./src/validate-bundle.ts",
+    "./schema": "./src/schema.ts",
+    "./fonts": "./src/fonts.ts",
+    "./tokens": "./src/tokens.ts",
+    "./catalog-version": "./src/catalog-version.ts",
+    "./styles.css": "./src/styles.css",
+    "./package.json": "./package.json"
+  }
 }

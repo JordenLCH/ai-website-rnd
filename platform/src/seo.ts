@@ -4,7 +4,7 @@
  *  That is the payoff for keeping content structured: an FAQ block *is* an FAQPage, a
  *  Locations block *is* a LocalBusiness, and a fleet-wide schema improvement is a change
  *  to this file rather than an edit to forty sites. */
-import type { Site, Page } from '../../renderer/src/schema'
+import type { Site, Page } from '@blackdash/renderer/schema'
 
 /** Organisation facts, collected at intake — not inferable from marketing copy.
  *  These carry the E-E-A-T signals: who this is, since when, verifiable elsewhere,
@@ -12,6 +12,10 @@ import type { Site, Page } from '../../renderer/src/schema'
 export type Org = {
   name: string
   url: string
+  /** BCP-47 tag for the document's `lang`. Defaults to "en"; a Malaysian client publishing in
+   *  Malay is "ms-MY", and a wrong `lang` mis-pronounces the page in every screen reader and
+   *  mis-files it for every crawler. It belongs to the client, not to the pipeline. */
+  lang?: string
   legalName?: string          // registered entity, often differs from the trading name
   logo?: string
   description?: string
@@ -250,13 +254,55 @@ export function jsonLd(rawSite: Site, pageKey: string, org: Org): object[] {
   return [{ '@context': 'https://schema.org', '@graph': graph }]
 }
 
-export function sitemap(site: Site, org: Org): string {
+/** Five characters, because a `loc` is built from org.url and page keys — both content. */
+function escapeXml(v: string): string {
+  return v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&apos;')
+}
+
+/** A page's content fingerprint. `lastmod` has to move when the page moves and stay put when it
+ *  does not, so it is derived from the page's own tree rather than from the clock. */
+function contentHash(value: unknown): string {
+  const json = JSON.stringify(value) ?? ''
+  let h1 = 0x811c9dc5, h2 = 0x01000193
+  for (let i = 0; i < json.length; i++) {
+    const c = json.charCodeAt(i)
+    h1 = Math.imul(h1 ^ c, 0x01000193) >>> 0
+    h2 = Math.imul(h2 + c, 0x85ebca6b) >>> 0
+  }
+  return (h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0'))
+}
+
+/** `lastmod` per page, from a content hash rather than the build clock.
+ *
+ *  Every URL previously carried the build date, so a weekly rebuild told every crawler the whole
+ *  site changed weekly. That is not a neutral inaccuracy — it is a false freshness signal from a
+ *  pipeline whose entire pitch is signal quality, and a crawler that learns the dates are noise
+ *  stops using them.
+ *
+ *  `previous` is the last build's manifest (hash -> date). A page whose hash is unchanged keeps
+ *  the date it last actually changed; a new or edited page takes today. With no manifest —
+ *  a first build — every page is new, which is true. */
+export function sitemap(site: Site, org: Org, previous?: Record<string, string>): string {
   const today = new Date().toISOString().slice(0, 10)
   const urls = Object.keys(site.pages).map((k) => {
-    const loc = new URL(k === 'home' ? '/' : `/${k}/`, org.url).href
-    return `  <url><loc>${loc}</loc><lastmod>${today}</lastmod><priority>${k === 'home' ? '1.0' : '0.7'}</priority></url>`
+    const loc = escapeXml(new URL(k === 'home' ? '/' : `/${k}/`, org.url).href)
+    const lastmod = previous?.[`${k}:${contentHash(site.pages[k])}`] ?? today
+    return `  <url><loc>${loc}</loc><lastmod>${lastmod}</lastmod><priority>${k === 'home' ? '1.0' : '0.7'}</priority></url>`
   })
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`
+}
+
+/** What the next build needs in order to leave an unchanged page's `lastmod` alone. Written
+ *  beside the sitemap; absent on a first build, which is handled. */
+export function sitemapManifest(site: Site, previous?: Record<string, string>): Record<string, string> {
+  const today = new Date().toISOString().slice(0, 10)
+  const out: Record<string, string> = {}
+  for (const k of Object.keys(site.pages)) {
+    const key = `${k}:${contentHash(site.pages[k])}`
+    out[key] = previous?.[key] ?? today
+  }
+  return out
 }
 
 export function robots(org: Org): string {

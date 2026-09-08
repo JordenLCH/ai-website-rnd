@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { CATALOG_VERSION, listBlocks, getBlocks, readThemes } from './source.ts'
 import { siblings, divergence } from './fleet.ts'
+import { REQUIRED_TOKENS, OPTIONAL_TOKENS, DERIVED_TOKENS } from '../../renderer/src/tokens.ts'
 
 const json = (data: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] })
 
@@ -44,17 +45,26 @@ export function createServer() {
   inputSchema: { includeExamples: z.boolean().optional() },
   }, async ({ includeExamples }) => {
   const themes = readThemes()
-  const any = Object.values(themes)[0] as any
+  /* Declared, not sampled. This used to read `Object.keys(Object.values(themes)[0].tokens)` — the
+     key list of whichever theme the filesystem listed first — so editing one client's theme
+     silently changed the contract every creator generates against. */
   return json({
     catalogVersion: CATALOG_VERSION,
-    tokens: Object.keys(any?.tokens ?? {}),
+    tokens: {
+      required: REQUIRED_TOKENS,
+      optional: OPTIONAL_TOKENS,
+      derived: DERIVED_TOKENS,
+      note: 'required: set all of them, the stylesheet has no fallback. optional: a considered ' +
+        'default exists. derived: recomputed per section by the tone system — never set these in ' +
+        'theme.tokens, use sectionStyles[slug].vars for a one-section override.',
+    },
     tones: {
       default: 'page background',
       surface: 'raised/card colour, a quiet change of register',
       inverse: 'dark on light themes, light on dark ones',
       accent: 'brand colour as the field; text flips to --color-on-accent',
     },
-    slugs: Object.keys(any?.sectionStyles ?? {}),
+    slugs: [...new Set(Object.values(themes).flatMap((t) => Object.keys((t as any)?.sectionStyles ?? {})))].sort(),
     perSectionOverride: 'sectionStyles[slug].vars overrides tokens for that section only',
     examples: includeExamples ? themes : Object.keys(themes),
   })

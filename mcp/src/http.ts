@@ -4,6 +4,7 @@
  *  hit the same endpoint through a tunnel or a load balancer without sharing session state.
  *  The catalog is read-only, so there is nothing a request could corrupt for anyone else. */
 import { createServer as createHttp, type IncomingMessage, type ServerResponse } from 'node:http'
+import { timingSafeEqual } from 'node:crypto'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import { createServer } from './mcp.ts'
 import { CATALOG_VERSION } from './source.ts'
@@ -14,10 +15,52 @@ const PORT = Number(process.env.PORT ?? 8787)
  *  rather than protecting integrity — set CATALOG_TOKEN to require it. */
 const TOKEN = process.env.CATALOG_TOKEN
 
+/** Which browser origins may talk to this endpoint. Empty by default, which is the right default:
+ *  the MCP clients that use this server are not browsers and send no Origin at all.
+ *
+ *  `Access-Control-Allow-Origin: *` was doing real work for tunnels, but on the local form — which
+ *  is how every creator runs it — it also let any page the creator happened to have open reach
+ *  127.0.0.1:8787. Combined with a DNS rebind that is a read of the whole catalog from a site the
+ *  creator merely visited. Set CATALOG_ORIGINS to a comma-separated list to allow browsers back in. */
+const ALLOWED_ORIGINS = new Set(
+  (process.env.CATALOG_ORIGINS ?? '').split(',').map((o) => o.trim()).filter(Boolean))
+
+/** Constant-time bearer check. `!==` leaks the length of the shared prefix through timing; the
+ *  token is low-value, but a comparison that is correct costs one function. */
+function tokenOk(header: string | undefined): boolean {
+  if (!TOKEN) return true
+  const expected = Buffer.from(`Bearer ${TOKEN}`)
+  const got = Buffer.from(header ?? '')
+  if (got.length !== expected.length) return false
+  return timingSafeEqual(got, expected)
+}
+
+/** Requests per window, per client address. A read-only catalog is cheap to serve but not free —
+ *  each request builds an McpServer — and an unmetered public endpoint is someone else's budget. */
+const RATE_LIMIT = Number(process.env.CATALOG_RATE_LIMIT ?? 120)
+const RATE_WINDOW_MS = 60_000
+const hits = new Map<string, { n: number; until: number }>()
+function rateLimited(key: string): boolean {
+  const now = Date.now()
+  const e = hits.get(key)
+  if (!e || now > e.until) { hits.set(key, { n: 1, until: now + RATE_WINDOW_MS }); return false }
+  e.n++
+  if (hits.size > 10_000) for (const [k, v] of hits) if (now > v.until) hits.delete(k)
+  return e.n > RATE_LIMIT
+}
+
 function readBody(req: IncomingMessage): Promise<unknown> {
   return new Promise((resolve, reject) => {
     let raw = ''
-    req.on('data', (c) => { raw += c; if (raw.length > 4_000_000) reject(new Error('body too large')) })
+    req.on('data', (c) => {
+      raw += c
+      if (raw.length > 4_000_000) {
+        /* Rejecting the promise leaves the sender streaming into a request nobody is reading —
+           the socket stayed open and the bytes kept arriving. Destroy it, then reject. */
+        req.destroy()
+        reject(new Error('body too large'))
+      }
+    })
     req.on('end', () => { try { resolve(raw ? JSON.parse(raw) : undefined) } catch (e) { reject(e) } })
     req.on('error', reject)
   })
@@ -29,11 +72,30 @@ const send = (res: ServerResponse, code: number, body: unknown) => {
 }
 
 createHttp(async (req, res) => {
-  // Tunnels and browser clients both preflight; allow them explicitly.
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Headers', 'content-type, authorization, mcp-session-id, mcp-protocol-version')
-  res.setHeader('Access-Control-Expose-Headers', 'mcp-session-id')
-  if (req.method === 'OPTIONS') { res.writeHead(204); return res.end() }
+  /* A browser Origin is echoed back only if it is on the allowlist. A request with no Origin —
+     every real MCP client — is unaffected: CORS is a browser mechanism, so withholding the header
+     costs a non-browser nothing. */
+  const origin = req.headers.origin
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Vary', 'Origin')
+    res.setHeader('Access-Control-Allow-Headers', 'content-type, authorization, mcp-session-id, mcp-protocol-version')
+    res.setHeader('Access-Control-Expose-Headers', 'mcp-session-id')
+  }
+  if (req.method === 'OPTIONS') { res.writeHead(origin && !ALLOWED_ORIGINS.has(origin) ? 403 : 204); return res.end() }
+
+  /* Rebinding survives an Origin check when the attacker's page is same-origin with the rebound
+     host, so the Host header is checked too: this server is only ever addressed as localhost or
+     through a tunnel whose hostname the operator sets. */
+  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+    return send(res, 403, { error: 'origin not allowed — set CATALOG_ORIGINS to permit browser clients' })
+  }
+
+  const who = req.socket.remoteAddress ?? 'unknown'
+  if (rateLimited(who)) {
+    res.setHeader('Retry-After', String(Math.ceil(RATE_WINDOW_MS / 1000)))
+    return send(res, 429, { error: `rate limit — ${RATE_LIMIT} requests/minute` })
+  }
 
   const url = new URL(req.url ?? '/', `http://${req.headers.host}`)
 
@@ -43,7 +105,7 @@ createHttp(async (req, res) => {
 
   if (url.pathname !== '/mcp') return send(res, 404, { error: 'not found — POST /mcp' })
 
-  if (TOKEN && req.headers.authorization !== `Bearer ${TOKEN}`) {
+  if (!tokenOk(req.headers.authorization)) {
     return send(res, 401, { error: 'unauthorized' })
   }
 
@@ -59,4 +121,8 @@ createHttp(async (req, res) => {
 }).listen(PORT, () => {
   console.error(`blackdash-catalog ${CATALOG_VERSION} on http://localhost:${PORT}/mcp`)
   console.error(TOKEN ? 'auth: bearer token required' : 'auth: none (set CATALOG_TOKEN to require one)')
+  console.error(ALLOWED_ORIGINS.size
+    ? `cors: ${[...ALLOWED_ORIGINS].join(', ')}`
+    : 'cors: no browser origins allowed (set CATALOG_ORIGINS if a browser client needs access)')
+  console.error(`rate limit: ${RATE_LIMIT} req/min per address`)
 })
