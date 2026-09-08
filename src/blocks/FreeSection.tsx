@@ -82,6 +82,23 @@ export const entry: CatalogEntry<P> = {
     const displays = nodes.filter((n: any) => n.size === 'display' && n.el !== 'Stat').length
     if (displays > 1) out.push(`${displays} display-size headings in one section — at most 1 (Stat is exempt)`)
 
+    /* `span` is a grid statement. On a child of a Stack or Row it does not merely do nothing:
+       a Stack is an implicit single-column grid, so one `span: 8` inside it creates eight
+       implicit columns and lays the whole stack out sideways. The section renders, validates
+       and looks like a layout bug in the stylesheet — this is the check that names it. */
+    const strayIn = (parent: any, inGrid: boolean): string[] => {
+      const bad: string[] = []
+      for (const c of (parent.children ?? []) as any[]) {
+        if (!inGrid && typeof c.span === 'number') bad.push(`${c.el} inside ${parent.el}`)
+        bad.push(...strayIn(c, c.el === 'Grid'))
+      }
+      return bad
+    }
+    const stray = props.children.flatMap((c: any) => strayIn(c, c.el === 'Grid'))
+    if (stray.length) {
+      out.push(`"span" set on a child of a Stack or Row (${[...new Set(stray)].join(', ')}) — span only means anything inside a Grid or at the top level of the section. In a Stack it creates implicit columns and lays the stack out sideways; drop it, or make the parent a Grid`)
+    }
+
     const motions = nodes.filter((n: any) => n.motion).length
     if (motions > 8) out.push(`${motions} animated nodes in one section — cap is 8, it reads as noise`)
 
