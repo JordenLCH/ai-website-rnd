@@ -315,7 +315,9 @@ Public Sans · Space Grotesk
 
 There is no error and no validator message — the page just renders in the system font and looks
 unstyled for reasons nobody can see. So the tile must use the **same family string** you will put in
-`--font-display` and `--font-body`. A tile drawn in Georgia while the prose promises Fraunces is a
+`--font-display` and `--font-body`. `npm run screens` loads all fourteen for you, in fragments and
+full documents alike — do not add your own font link, and do not assume a family renders just because
+you named it correctly. A tile drawn in Georgia while the prose promises Fraunces is a
 different design being approved under the wrong name, and the substitution surfaces two stages later
 as "the theme looks nothing like the tile".
 
