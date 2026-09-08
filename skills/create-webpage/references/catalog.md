@@ -9,7 +9,7 @@ The **variant is an opaque slug** — the theme decides what it looks like. Neve
 appearance (`hero/dark-overlay`); name it after its editorial role (`hero/home`).
 
 ## Contents
-1. Chrome — Nav, Footer, Breadcrumb
+1. Chrome — Nav, Footer
 2. Lead — Hero, Promo
 3. Content — Features, MediaText, RichText, Steps, Timeline
 4. Evidence — Stats, Testimonials, LogoWall, SpecTable
@@ -68,14 +68,6 @@ number. `social` takes text labels, not icons — the catalog ships no icon set.
 
 Older bundles wrote `links` as `[string]`. They still validate and render exactly as before; the
 migration carries each string to `{label}` and leaves `page` unset for a human to fill in.
-
-**Breadcrumb** — layouts `inline`, `boxed`
-`{ items: [{label, page?}] (2–5) }` — last item omits `page`.
-
-Prefer `Hero.breadcrumb` instead. A trail placed above the hero pushes the headline down the page
-in exchange for two words of orientation, which is a bad trade on a five-page marketing site. Use
-this standalone block only for deep content hierarchies (docs, a large product tree) where the trail
-is genuinely load-bearing.
 
 ## 2. Lead
 

@@ -1134,20 +1134,10 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 }
 
 /* ---------- Breadcrumb ---------- */
-.crumbs { padding-block: calc(var(--pad-y) * .18); }
-.crumbs__items { list-style: none; display: flex; gap: .5rem; flex-wrap: wrap; margin: 0 auto; padding: 0;
-  max-width: var(--maxw); font-family: var(--font-eyebrow); font-size: .8rem; text-transform: var(--eyebrow-transform);
-  letter-spacing: var(--eyebrow-tracking); color: var(--muted); }
-.crumbs__items li { display: flex; gap: .5rem; }
 /* No underline at rest. A breadcrumb is a nav landmark, not a link inside running prose: the
    row's position and separators already say these are links, and five underlined fragments read
    as clutter above a heading. WCAG 1.4.1 wants a non-colour cue for links *embedded in text* —
    this is not that, and the cue returns on hover and focus. */
-.crumbs__items a { color: var(--muted); cursor: pointer; text-decoration: none; }
-.crumbs__items a:hover, .crumbs__items a:focus-visible { color: var(--ink); text-decoration: underline; text-underline-offset: .2em; }
-.crumbs__items i { font-style: normal; opacity: .5; }
-.crumbs[data-layout="boxed"] .crumbs__items { background: var(--card); border: var(--border) solid var(--line);
-  border-radius: var(--radius); padding: .5rem .8rem; }
 
 /* ================= FreeSection: primitives + motion ================= */
 /* scale tokens the primitives resolve against */
@@ -1428,7 +1418,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
    states are one of the clearest tells between a site somebody built and a page somebody
    generated: real controls answer the pointer and the keyboard. */
 
-:where(.btn, .p-link, .nav__items a, .crumbs__items a, .hero__crumbs a,
+:where(.btn, .p-link, .nav__items a, .hero__crumbs a,
        .faq__item summary, .p-card, .cat, .footer__col a, .loc a) {
   transition: box-shadow var(--motion-state) var(--motion-ease),
               color var(--motion-state) var(--motion-ease),

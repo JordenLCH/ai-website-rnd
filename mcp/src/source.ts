@@ -18,7 +18,6 @@ export { CATALOG_VERSION } from '../../renderer/src/catalog-version.ts'
 const SUMMARY: Record<string, string> = {
   Nav: 'Site header: brand, links, one action. Belongs in site.chrome.',
   Footer: 'Site footer: brand, link columns, legal note. Belongs in site.chrome.',
-  Breadcrumb: 'Trail back to the parent page. Subpages only.',
   Hero: 'Page opener. Eyebrow, title, body, up to two actions, optional photo.',
   Promo: 'Thin announcement band for one message.',
   Features: 'Two to six capabilities or product families, optionally with images.',

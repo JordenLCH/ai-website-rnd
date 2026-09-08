@@ -41,7 +41,7 @@ const ENUMISH = /^[a-z0-9]+(?:[-_][a-z0-9]+)*$/
  *  title, and no amount of authoring makes it reach a prose floor. Flagging them taught
  *  creators to pad the one block that must not be padded. */
 const SPARSE_TYPES = new Set([
-  'Hero', 'CTA', 'Breadcrumb', 'Nav', 'Footer', 'LogoWall', 'Promo', 'Stats', 'Locations',
+  'Hero', 'CTA', 'Nav', 'Footer', 'LogoWall', 'Promo', 'Stats', 'Locations',
 ])
 const SPARSE_ROLES = new Set(['hero', 'cta', 'quote', 'nav', 'footer'])
 

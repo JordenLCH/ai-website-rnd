@@ -72,7 +72,7 @@ const blocks = (page: Page) => page.blocks
 const first = (page: Page, type: string) => page.blocks.find((b) => b.type === type)
 
 /** Every block that carries a section heading, so headings can be summarised without markup. */
-const NON_CLAIM_TYPES = new Set(['Notice', 'Breadcrumb'])
+const NON_CLAIM_TYPES = new Set(['Notice'])
 
 function outline(page: Page): string[] {
   const out: string[] = []
