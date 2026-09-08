@@ -809,7 +809,10 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .cta[data-layout="hard-panel"] > * { max-width: none; }
 .cta[data-layout="hard-panel"] .cta__action { text-align: right; }
 .cta[data-layout="hard-panel"] .cta__note { font-family: var(--font-eyebrow); font-size: .72rem; text-transform: uppercase;
-  letter-spacing: .14em; color: var(--muted); margin: 1rem 0 0; }
+  /* NOT --muted: this note sits on the accent field, and --muted is the grey computed for an
+     ordinary ground. Same specificity as the on-accent rule above and declared later, so it won
+     silently and painted slate on orange at 1.20:1. State the on-accent colour here too. */
+  letter-spacing: .14em; color: color-mix(in oklab, var(--color-on-accent) 88%, transparent); margin: 1rem 0 0; }
 .cta[data-layout="soft-band"] { text-align: center; --align-inline: auto; }
 .cta[data-layout="soft-band"] .cta__copy { display: grid; justify-items: center; gap: 1rem; }
 .cta[data-layout="soft-band"] .cta__action { margin-top: 2.2rem; }
@@ -1319,6 +1322,12 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .p-badge--quiet { background: var(--surface-2, var(--card)); color: var(--muted); }
 .p-badge--outline { border: var(--border) solid var(--line); color: var(--ink); }
 
+/* A link in a nav-role section is a primary control, not prose: at the sizes free composition
+   picks it measured 21px tall, under WCAG 2.2's 24px floor. Scoped to nav so inline links inside
+   a paragraph — which 2.5.8 exempts as text — keep their natural box. */
+.free[data-role="nav"] .p-link,
+.free[data-role="footer"] .p-link { display: inline-flex; align-items: center; min-height: 24px; }
+
 .p-marker { display: inline-block; font-family: var(--font-numeral); font-size: var(--marker-size, .72rem);
   font-weight: 600; letter-spacing: .12em; color: var(--accent-fg, var(--color-accent)); }
 
@@ -1379,7 +1388,11 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .hero__crumbs { font-family: var(--font-eyebrow); font-size: .78rem; color: var(--muted);
   text-transform: var(--eyebrow-transform); letter-spacing: var(--eyebrow-tracking);
   margin-bottom: .9rem; display: flex; gap: .45rem; flex-wrap: wrap; }
-.hero__crumbs a { color: var(--muted); cursor: pointer; }
+.hero__crumbs a { color: var(--muted); cursor: pointer;
+  /* A crumb is a real target, not decoration: at .78rem the anchor box came out 15px tall, under
+     WCAG 2.2's 24px floor. Grow the box, not the type — the row keeps its size because the
+     surrounding line-height already reserves most of it. */
+  display: inline-flex; align-items: center; min-height: 24px; }
 .hero__crumbs a:hover { color: var(--ink); }
 .hero__crumbs em { font-style: normal; color: var(--ink); }
 .hero__crumbs i { font-style: normal; opacity: .45; margin-left: .45rem; }

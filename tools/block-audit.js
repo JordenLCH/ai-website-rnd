@@ -42,9 +42,20 @@
       if (cs.display !== 'grid') continue;
       const cols = cs.gridTemplateColumns.split(' ').filter(Boolean).length;
       const kids = [...g.children].filter(c => c.getBoundingClientRect().height > 0);
-      if (cols > 1 && kids.length > cols) {
-        const rem = kids.length % cols;
-        if (rem === 1 && cols >= 3) orphan = `${kids.length} items in ${cols} cols — 1 alone on the last row`;
+      // Count the columns each child actually occupies. Counting children instead reported the
+      // mosaic's 5-item case as an orphan when its last tile spans the full row and leaves no
+      // dead space at all — a finding that is real only if the tail row is short.
+      const span = (c) => {
+        // `grid-column: span 2` resolves to grid-column-START "span 2" with END "auto", so
+        // reading only the end property reports every spanning tile as one column wide.
+        const cc = getComputedStyle(c);
+        const m = /span\s+(\d+)/.exec(cc.gridColumnStart || '') || /span\s+(\d+)/.exec(cc.gridColumnEnd || '');
+        return m ? Number(m[1]) : 1;
+      };
+      const used = kids.reduce((n, c) => n + span(c), 0);
+      if (cols > 1 && used > cols) {
+        const rem = used % cols;
+        if (rem === 1 && cols >= 3) orphan = `${kids.length} items filling ${used} of ${cols} cols — 1 column alone on the last row`;
       }
     }
 
