@@ -5,6 +5,14 @@
  *  Locations block *is* a LocalBusiness, and a fleet-wide schema improvement is a change
  *  to this file rather than an edit to forty sites. */
 import type { Site, Page } from '@blackdash/renderer/schema'
+/* schema.org types, so a malformed node is a compile error rather than markup a crawler
+ * quietly discards. The graph is assembled as Thing[] and returned as a single Graph, which
+ * already carries its own @context. */
+import type {
+  Thing, Graph, OrganizationLeaf, PostalAddress, WebPage, FAQPage, Question,
+  Product, PropertyValue, Review, HowTo, HowToStep, BreadcrumbList, ListItem,
+  EducationalOccupationalCredential, Person, QuantitativeValue,
+} from 'schema-dts'
 
 /** Organisation facts, collected at intake — not inferable from marketing copy.
  *  These carry the E-E-A-T signals: who this is, since when, verifiable elsewhere,
@@ -127,13 +135,15 @@ export function metaFor(site: Site, pageKey: string, org: Org) {
 
 /** JSON-LD graph. Block type is the signal — this is why choosing the semantically
  *  correct block matters more at generation time than any copy tweak. */
-export function jsonLd(rawSite: Site, pageKey: string, org: Org): object[] {
+export function jsonLd(rawSite: Site, pageKey: string, org: Org): [Graph] {
   const site = verified(rawSite)
   const page = site.pages[pageKey]
   const url = new URL(pageKey === 'home' ? '/' : `/${pageKey}/`, org.url).href
-  const graph: object[] = []
+  const graph: Thing[] = []
 
-  const organization: Record<string, unknown> = {
+  /* OrganizationLeaf, not Organization: the latter is a union of every organisation subtype, so
+   * assigning a property to it does not typecheck. The leaf is the concrete interface. */
+  const organization: OrganizationLeaf = {
     '@type': 'Organization', '@id': `${org.url}#org`, name: org.name, url: org.url,
     ...(org.legalName ? { legalName: org.legalName } : {}),
     ...(org.description ? { description: org.description } : {}),
@@ -144,34 +154,44 @@ export function jsonLd(rawSite: Site, pageKey: string, org: Org): object[] {
     ...(org.vatId ? { vatID: org.vatId } : {}),
     ...(org.phone ? { telephone: org.phone } : {}),
     ...(org.email ? { email: org.email } : {}),
-    ...(org.numberOfEmployees ? { numberOfEmployees: org.numberOfEmployees } : {}),
+    /* schema.org types this as QuantitativeValue, not Text. It was emitted as a bare string,
+     * which a consumer reading the vocabulary discards — caught by the schema types, not by any
+     * validator we had. */
+    ...(org.numberOfEmployees
+      ? { numberOfEmployees: { '@type': 'QuantitativeValue', value: org.numberOfEmployees } as QuantitativeValue }
+      : {}),
     // sameAs is the strongest cheap trust signal: it lets a crawler corroborate the
     // entity somewhere it does not control.
     ...(org.sameAs?.length ? { sameAs: org.sameAs } : {}),
     ...(org.areaServed?.length ? { areaServed: org.areaServed } : {}),
     ...(org.certifications?.length
-      ? { hasCredential: org.certifications.map((c) => ({ '@type': 'EducationalOccupationalCredential', name: c })) }
+      ? { hasCredential: org.certifications.map((c): EducationalOccupationalCredential => ({ '@type': 'EducationalOccupationalCredential', name: c })) }
       : {}),
     ...(org.awards?.length ? { award: org.awards } : {}),
     ...(org.people?.length
-      ? { employee: org.people.map((p) => ({
+      ? { employee: org.people.map((p): Person => ({
           // Attorney/Physician/etc. are Person subtypes; using one is what makes a
           // credentialled individual legible as a practitioner rather than as staff.
-          '@type': p.personType ?? 'Person', name: p.name, jobTitle: p.role,
+          // personType arrives from org.json, so the literal is only known at run time —
+          // the cast is the one place that is true, and everything else here is checked.
+          '@type': (p.personType ?? 'Person') as 'Person', name: p.name, jobTitle: p.role,
           ...(p.credential ? { hasCredential: { '@type': 'EducationalOccupationalCredential', name: p.credential } } : {}),
           ...(p.sameAs ? { sameAs: p.sameAs } : {}),
         })) }
       : {}),
   }
 
+  let registeredAddress: PostalAddress | undefined
   if (org.address) {
-    organization.address = {
+    const postal: PostalAddress = {
       '@type': 'PostalAddress',
       streetAddress: org.address.street, addressLocality: org.address.locality,
       ...(org.address.region ? { addressRegion: org.address.region } : {}),
       ...(org.address.postalCode ? { postalCode: org.address.postalCode } : {}),
       addressCountry: org.address.country,
     }
+    registeredAddress = postal
+    organization.address = postal
   }
 
   const locations = first(page, 'Locations')
@@ -179,30 +199,38 @@ export function jsonLd(rawSite: Site, pageKey: string, org: Org): object[] {
     const items = (locations.props as any).items as Array<{ name: string; address: string; note?: string }>
     // GEO: a physical address turns the Organization into a LocalBusiness, which is what
     // "near me" style queries and map surfaces actually read.
-    organization['@type'] = org.businessType
+    /* A node may legitimately hold several types at once, and this one must: Organization for the
+     * entity, LocalBusiness so a "near me" query and map surfaces resolve it, plus the client's own
+     * businessType. schema.org models that fine; these generated types pin @type to one literal
+     * and LocalBusiness is a union of ~480 leaves, so the array cannot be expressed in the type.
+     * The cast is confined to this one assignment — every property above and below is still
+     * checked against Organization. */
+    ;(organization as { '@type': string | string[] })['@type'] = org.businessType
       ? ['Organization', 'LocalBusiness', org.businessType]
       : ['Organization', 'LocalBusiness']
     // Addresses on the page supplement the registered one from intake rather than replacing it.
-    const fromPage = items.map((l) => ({
+    const fromPage = items.map((l): PostalAddress => ({
       '@type': 'PostalAddress', name: l.name, streetAddress: l.address.replace(/\n/g, ', '),
     }))
-    organization.address = organization.address ? [organization.address, ...fromPage] : fromPage
+    organization.address = registeredAddress ? [registeredAddress, ...fromPage] : fromPage
   }
   graph.push(organization)
 
-  graph.push({ '@type': 'WebPage', '@id': url, url, name: page.title, isPartOf: { '@id': `${org.url}#org` } })
+  const webPage: WebPage = { '@type': 'WebPage', '@id': url, url, name: page.title, isPartOf: { '@id': `${org.url}#org` } }
+  graph.push(webPage)
 
   // FAQPage no longer earns a rich result — deprecated Search-wide 2026-05-07. Kept because the
   // markup is still correct, costs nothing, and non-Google consumers still read it. Do not promise
   // a SERP change from it.
   const faq = first(page, 'FAQ')
   if (faq) {
-    graph.push({
+    const faqPage: FAQPage = {
       '@type': 'FAQPage',
-      mainEntity: ((faq.props as any).items as Array<{ q: string; a: string }>).map((i) => ({
+      mainEntity: ((faq.props as any).items as Array<{ q: string; a: string }>).map((i): Question => ({
         '@type': 'Question', name: i.q, acceptedAnswer: { '@type': 'Answer', text: i.a },
       })),
-    })
+    }
+    graph.push(faqPage)
   }
 
   const spec = first(page, 'SpecTable')
@@ -211,12 +239,13 @@ export function jsonLd(rawSite: Site, pageKey: string, org: Org): object[] {
     const name = text((spec?.props as any)?.eyebrow) || text((catalogGrid?.props as any)?.title) || page.title
     const props = spec
       ? ((spec.props as any).groups as Array<{ rows: Array<{ k: string; v: string }> }>)
-          .flatMap((g) => g.rows).map((r) => ({ '@type': 'PropertyValue', name: r.k, value: r.v }))
+          .flatMap((g) => g.rows).map((r): PropertyValue => ({ '@type': 'PropertyValue', name: r.k, value: r.v }))
       : []
-    graph.push({
+    const product: Product = {
       '@type': 'Product', name, brand: { '@id': `${org.url}#org` },
       ...(props.length ? { additionalProperty: props } : {}),
-    })
+    }
+    graph.push(product)
   }
 
   // Self-serving Review markup has not produced stars since 2019, and Google's 2026-07-24 fake-review
@@ -224,31 +253,34 @@ export function jsonLd(rawSite: Site, pageKey: string, org: Org): object[] {
   const quotes = first(page, 'Testimonials')
   if (quotes) {
     graph.push(...((quotes.props as any).items as Array<{ quote: string; author: string; role?: string }>)
-      .map((q) => ({ '@type': 'Review', reviewBody: q.quote, author: { '@type': 'Person', name: q.author },
-                     itemReviewed: { '@id': `${org.url}#org` } })))
+      .map((q): Review => ({ '@type': 'Review', reviewBody: q.quote,
+                             author: { '@type': 'Person', name: q.author } as Person,
+                             itemReviewed: { '@id': `${org.url}#org` } })))
   }
 
   // HowTo rich results were retired in September 2023. Same reasoning as FAQPage above: emitted for
   // correctness and non-Google consumers, not for Search.
   const steps = first(page, 'Steps')
   if (steps) {
-    graph.push({
+    const howTo: HowTo = {
       '@type': 'HowTo', name: text((steps.props as any).title),
-      step: ((steps.props as any).items as Array<{ title: string; body: string }>).map((s, i) => ({
+      step: ((steps.props as any).items as Array<{ title: string; body: string }>).map((s, i): HowToStep => ({
         '@type': 'HowToStep', position: i + 1, name: s.title, text: s.body,
       })),
-    })
+    }
+    graph.push(howTo)
   }
 
   const crumbs = (first(page, 'Hero')?.props as any)?.breadcrumb as Array<{ label: string; page?: string }> | undefined
   if (crumbs?.length) {
-    graph.push({
+    const trail: BreadcrumbList = {
       '@type': 'BreadcrumbList',
-      itemListElement: crumbs.map((c, i) => ({
+      itemListElement: crumbs.map((c, i): ListItem => ({
         '@type': 'ListItem', position: i + 1, name: c.label,
         ...(c.page ? { item: new URL(c.page === 'home' ? '/' : `/${c.page}/`, org.url).href } : {}),
       })),
-    })
+    }
+    graph.push(trail)
   }
 
   return [{ '@context': 'https://schema.org', '@graph': graph }]

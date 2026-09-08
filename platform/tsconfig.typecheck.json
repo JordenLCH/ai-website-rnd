@@ -1,0 +1,11 @@
+{
+  /* Typechecking config, separate from tsconfig.json because that one also includes
+     ../renderer/src so the build can resolve the catalog, and the renderer carries
+     pre-existing errors (import.meta.glob, a zod lazy inference) that have nothing to do
+     with this package. Scoped to platform's own sources so `npm run typecheck` fails only
+     for platform's own mistakes — chiefly a malformed JSON-LD node, which is the reason
+     schema-dts is here. */
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "types": ["node"], "skipLibCheck": true },
+  "include": ["src"]
+}
