@@ -1,6 +1,5 @@
 import { catalog } from './blocks'
 import type { Page, Site, Theme } from './schema'
-import { SiteSchema, ThemeSchema } from './schema'
 import { validateBundle, type Density, type Issue } from './validate-bundle'
 
 export type { Issue, Density }
@@ -11,13 +10,11 @@ export type { Issue, Density }
 export function validate(rawSite: unknown, rawTheme: unknown):
   { site?: Site; theme?: Theme; issues: Issue[]; density: Density[]; unverified: string[] } {
   const report = validateBundle(rawSite, rawTheme)
-  const s = SiteSchema.safeParse(rawSite)
-  const t = ThemeSchema.safeParse(rawTheme)
-  return {
-    site: s.success ? s.data : undefined,
-    theme: t.success ? t.data : undefined,
-    ...report,
-  }
+  /* validateBundle already parsed the bundle *and* forwarded any deprecated prop shape to the
+     current one, so its `site`/`theme` are what should be drawn. Re-parsing the raw input here
+     threw the migration away and handed Section props it would refuse — which is how the preview
+     showed a bundle as valid and rendered it with the section missing. */
+  return { site: report.site, theme: report.theme, ...report }
 }
 
 function Section({ block, theme, pageKey }: {

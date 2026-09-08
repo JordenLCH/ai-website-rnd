@@ -9,15 +9,24 @@ const themeFiles = import.meta.glob('@content/*/theme.json', { eager: true }) as
 const keyOf = (p: string) => p.split('/').slice(-2)[0]
 const sites: Record<string, unknown> = Object.fromEntries(
   Object.entries(siteFiles).map(([p, m]) => [keyOf(p), m.default]))
+/* Keyed by folder, not by `theme.name`. Two clients are free to call their theme "Editorial"
+   and the second one silently replaced the first in this map — the dropdown lost an entry and
+   whichever site depended on it was previewed against someone else's tokens. The name is a label;
+   the folder is the identity. */
 const themes: Record<string, unknown> = Object.fromEntries(
-  Object.entries(themeFiles).map(([p, m]) => [(m.default as { name?: string }).name ?? keyOf(p), m.default]))
+  Object.entries(themeFiles).map(([p, m]) => [keyOf(p), m.default]))
+const themeLabel = (k: string) => {
+  const n = (themes[k] as { name?: string } | undefined)?.name
+  return n && n !== k ? `${k} — ${n}` : k
+}
 
 export default function App() {
   const keys = Object.keys(sites)
-  const [siteKey, setSiteKey] = useState(keys[0])
-  const [themeKey, setThemeKey] = useState(
-    (themeFiles[`${Object.keys(siteFiles).find((p) => keyOf(p) === keys[0])!.replace('site.json', 'theme.json')}`]
-      ?.default as { name?: string })?.name ?? Object.keys(themes)[0])
+  /* An empty content directory is a legitimate state — a fresh checkout, or a creator who has
+     not made their first client yet. `keys[0]!` threw on it, so the preview met them with a
+     blank screen and a stack trace instead of a message. */
+  const [siteKey, setSiteKey] = useState(keys[0] ?? '')
+  const [themeKey, setThemeKey] = useState(keys[0] ?? '')
   const [pageKey, setPageKey] = useState('home')
   /** Provenance and density are review affordances, on by default: the point of marking
    *  invented content is that a human sees it before it ships, and a toggle that defaults
@@ -38,16 +47,15 @@ export default function App() {
           <select value={siteKey} onChange={(e) => {
             const k = e.target.value
             setSiteKey(k); setPageKey('home')
-            const t = (themeFiles[Object.keys(siteFiles).find((p) => keyOf(p) === k)!.replace('site.json', 'theme.json')]
-              ?.default as { name?: string })?.name
-            if (t && themes[t]) setThemeKey(t)
+            // A site's own theme shares its folder key, so switching site follows it.
+            if (themes[k]) setThemeKey(k)
           }}>
             {keys.map((k) => <option key={k}>{k}</option>)}
           </select>
         </span>
         <span className="ctl">theme
           <select value={themeKey} onChange={(e) => setThemeKey(e.target.value)}>
-            {Object.keys(themes).map((k) => <option key={k}>{k}</option>)}
+            {Object.keys(themes).map((k) => <option key={k} value={k}>{themeLabel(k)}</option>)}
           </select>
         </span>
         <span className="tabs">

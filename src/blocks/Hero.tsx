@@ -11,8 +11,13 @@ const Props = z.object({
   actions: z.array(z.object({ label: z.string(), kind: z.enum(['primary', 'ghost']), page: z.string().optional() })).max(2).default([]),
   image: z.string().optional(),
   imageAlt: z.string().optional(),
-  /** What the photo actually is. Overlay layouts need something you can put text on. */
-  imageKind: z.enum(['environment', 'cutout', 'detail']).default('environment'),
+  /** What the photo actually is. Overlay layouts need something you can put text on.
+   *
+   *  No default, deliberately. It defaulted to 'environment', which meant the overlay check below
+   *  could never fire on content that simply omitted the field — and omitting it is the common
+   *  case, because a generator writes what it was asked for. The gate existed and was unreachable
+   *  exactly where it mattered. Absent now means "nobody said", which the check can refuse. */
+  imageKind: z.enum(['environment', 'cutout', 'detail']).optional(),
 })
 type P = z.infer<typeof Props>
 const layouts = ['overlay-fullbleed', 'split-editorial', 'centered-poster', 'stacked-title'] as const
@@ -57,6 +62,8 @@ export const entry: CatalogEntry<P> = {
     const out: string[] = []
     if (OVERLAY_LAYOUTS.includes(layout)) {
       if (!props.image) out.push(`layout "${layout}" needs an image`)
+      else if (!props.imageKind)
+        out.push(`layout "${layout}" puts the headline on top of the photo, so what the photo is has to be stated — set imageKind to "environment" (a scene with room for text), or choose a layout that does not overlay`)
       else if (props.imageKind !== 'environment')
         out.push(`layout "${layout}" overlays text on the photo, but imageKind is "${props.imageKind}" — needs "environment"`)
     }

@@ -52,6 +52,10 @@ export const ChromeSchema = z.object({
 
 export const SiteSchema = z.object({
   client: z.string(),
+  /** The catalog fingerprint this bundle was generated against (see catalog-version.ts).
+   *  Optional, because every bundle stored before it existed predates the field — but written by
+   *  the packager from now on, so a rebuild can say whether the catalog has moved underneath it. */
+  catalogVersion: z.string().optional(),
   chrome: ChromeSchema.optional(),
   pages: z.record(PageSchema),
 })

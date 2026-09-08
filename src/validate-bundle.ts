@@ -4,8 +4,10 @@
  *  "Valid on my machine, broken on deploy" is the failure that erodes trust in a
  *  platform fastest, and the only durable defence is refusing to keep two copies. */
 import { catalog } from './blocks/index'
-import { SiteSchema, ThemeSchema } from './schema'
+import { SiteSchema, ThemeSchema, type Site, type Theme } from './schema'
 import { unservedFamilies } from './fonts'
+import { REQUIRED_TOKENS, KNOWN_TOKENS, DERIVED_SET } from './tokens'
+import { CATALOG_VERSION } from './catalog-version'
 
 export type Issue = { where: string; message: string; severity: 'error' | 'warning' | 'info' }
 
@@ -24,6 +26,12 @@ const STRUCTURAL_KEYS = new Set([
   'alt', 'imageAlt', 'imageKind', 'motion', 'parallax', 'delay', 'href', 'url', 'id', 'slug',
 ])
 const IMAGE_KEYS = new Set(['src', 'image', 'logo', 'photo', 'ogImage'])
+const URL_KEYS = new Set(['href', 'url', 'page'])
+/** What may appear in a link a client's visitors will click. `javascript:` and `data:` are the
+ *  two that execute; everything outside this list is refused rather than sanitised, because a
+ *  bundle arrives as a file from a machine the platform does not control and a scheme nobody
+ *  intended is a bug in the generator, not a preference. */
+const LINK_SCHEMES = ['https:', 'mailto:', 'tel:']
 
 /** An enum slipping past the key filter still should not read as content. Copy is either
  *  multi-word or capitalised; a bare lowercase token like "fade-up" is a value. */
@@ -89,6 +97,20 @@ function imagePaths(props: unknown): string[] {
   const out: string[] = []
   const visit = (v: unknown, key?: string) => {
     if (typeof v === 'string') { if (key && IMAGE_KEYS.has(key)) out.push(v); return }
+    if (Array.isArray(v)) { v.forEach((x) => visit(x, key)); return }
+    if (v && typeof v === 'object') for (const [k, x] of Object.entries(v as Record<string, unknown>)) visit(x, k)
+  }
+  visit(props)
+  return out
+}
+
+/** Every free-form URL in a props tree, with the key it arrived under. `href` and `url` reach an
+ *  anchor verbatim (Footer's social list is the live case); `page` goes through hrefFor(), which
+ *  passes an absolute URL straight through. */
+function urlValues(props: unknown): Array<[string, string]> {
+  const out: Array<[string, string]> = []
+  const visit = (v: unknown, key?: string) => {
+    if (typeof v === 'string') { if (key && URL_KEYS.has(key)) out.push([key, v]); return }
     if (Array.isArray(v)) { v.forEach((x) => visit(x, key)); return }
     if (v && typeof v === 'object') for (const [k, x] of Object.entries(v as Record<string, unknown>)) visit(x, k)
   }
@@ -552,8 +574,17 @@ function chromeIssues(site: { chrome?: { header?: { type: string; props: Record<
   return out
 }
 
+/** `site` and `theme` are the *migrated* bundle — parsed, and with every deprecated prop shape
+ *  forwarded to the current one. Callers must render these, not the objects they passed in.
+ *
+ *  They exist because the migration used to be invisible: this function parses with zod, which
+ *  returns a deep clone, applies `migrate()` to that clone, and logs "migrated in place" — while
+ *  the caller's own object kept the old shape. Preview and build farm both validated and then
+ *  rendered their own copy, so the migration never reached a renderer, and `Section` drops a block
+ *  whose props fail to parse. The visible result was a stored bundle that validated clean and
+ *  published with its footer missing. */
 export function validateBundle(rawSite: unknown, rawTheme: unknown, rawOrg?: unknown):
-  { ok: boolean; issues: Issue[]; density: Density[]; unverified: string[] } {
+  { ok: boolean; issues: Issue[]; density: Density[]; unverified: string[]; site?: Site; theme?: Theme } {
   const issues: Issue[] = []
   const s = SiteSchema.safeParse(rawSite)
   const t = ThemeSchema.safeParse(rawTheme)
@@ -654,6 +685,32 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown, rawOrg?: unk
       }
     }
     if (ASK_TYPES.has(b.type)) for (const l of ctaLabels(b.props)) askWordings.add(l.toLowerCase())
+
+    /* Links and images are free-form strings in every block's schema, so the type system has
+       nothing to say about them. Two exposures: a `javascript:` or `data:` href executes on the
+       client's own domain, and an off-domain image turns every page view into a request to a
+       third party the client never chose. Both are content-shaped, so the shared gate is the
+       only place that can see them — the renderer receives them already trusted. */
+    for (const [key, value] of urlValues(b.props)) {
+      const scheme = /^[a-z][a-z0-9+.-]*:/i.exec(value)?.[0]?.toLowerCase()
+      if (!scheme) continue  // a bare page key or site-relative path — hrefFor() resolves it
+      if (!LINK_SCHEMES.includes(scheme)) {
+        issues.push({
+          where: `${where}.props.${key}`,
+          message: `"${value.slice(0, 60)}" uses the "${scheme}" scheme — a link may only be https:, mailto: or tel:. javascript: and data: execute on the client's own domain`,
+          severity: 'error',
+        })
+      }
+    }
+    for (const src of imagePaths(b.props)) {
+      const prefix = `/img/${site.client}/`
+      if (src.startsWith(prefix) && !src.includes('..')) continue
+      issues.push({
+        where,
+        message: `image "${src.slice(0, 70)}" must be site-relative under "${prefix}" — an off-domain image makes every page view a request to a third party, and the build farm only copies assets it can find under the bundle`,
+        severity: 'error',
+      })
+    }
 
     // Every theme's --overlay is a dark scrim — that is what the token is for, and all six in
     // the repo are dark. The copy on top of it inherits the section's tone, so pairing the
@@ -815,6 +872,55 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown, rawOrg?: unk
     })
   }
 
+  /* Catalog drift. The bundle is the stored artifact and the catalog moves underneath it, so a
+     rebuild of an old bundle is only faithful if someone can see that the two disagree. Recorded
+     at generation, compared here — a mismatch is not an error (migrations exist precisely so an
+     old shape still builds), it is something a human should know before republishing. */
+  if (site.catalogVersion && site.catalogVersion !== CATALOG_VERSION) {
+    issues.push({
+      where: 'site.catalogVersion',
+      message: `bundle was generated against catalog ${site.catalogVersion}; this one is ${CATALOG_VERSION}. It will still build — deprecated shapes are migrated — but check the rebuild before republishing`,
+      severity: 'info',
+    })
+  } else if (!site.catalogVersion) {
+    issues.push({
+      where: 'site',
+      message: `no catalogVersion recorded — add "catalogVersion": "${CATALOG_VERSION}" so a future rebuild can tell whether the catalog moved underneath this bundle`,
+      severity: 'info',
+    })
+  }
+
+  /* The token contract, enforced. `tokens` is a z.record, so zod has nothing to say about which
+     keys are meaningful — a theme could ship `--color-primary` (not a token this stylesheet reads)
+     and validate clean while every button fell back to a browser default. */
+  {
+    const set = new Set(Object.keys(theme.tokens))
+    const missing = REQUIRED_TOKENS.filter((t) => !set.has(t))
+    if (missing.length) {
+      issues.push({
+        where: 'theme.tokens',
+        message: `missing required token(s): ${missing.join(', ')} — the stylesheet reads these with no fallback, so each one is a brand decision replaced by a browser default`,
+        severity: 'error',
+      })
+    }
+    for (const key of set) {
+      if (KNOWN_TOKENS.has(key)) continue
+      if (DERIVED_SET.has(key)) {
+        issues.push({
+          where: `theme.tokens.${key}`,
+          message: `"${key}" is recomputed per section by the tone system — setting it in theme.tokens paints every section the same ground regardless of its tone. Use sectionStyles[slug].vars for a one-section override`,
+          severity: 'warning',
+        })
+        continue
+      }
+      issues.push({
+        where: `theme.tokens.${key}`,
+        message: `"${key}" is not a token this catalog reads — nothing consumes it, so it is silently doing nothing. Check the spelling against theme_contract`,
+        severity: 'warning',
+      })
+    }
+  }
+
   issues.push(...chromeIssues(site))
   issues.push(...jurisdictionIssues(site.chrome?.footer, rawOrg as OrgFacts | undefined))
   issues.push(...structureIssues(placed))
@@ -829,5 +935,5 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown, rawOrg?: unk
     issues.push({ where: 'theme.sectionStyles', message: `${unused.length} slugs defined but unused by this site`, severity: 'warning' })
   }
 
-  return { ok: issues.every((i) => i.severity !== 'error'), issues, density, unverified }
+  return { ok: issues.every((i) => i.severity !== 'error'), issues, density, unverified, site, theme }
 }
