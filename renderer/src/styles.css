@@ -1318,7 +1318,11 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
   font-size: var(--badge-size, .7rem); text-transform: uppercase; letter-spacing: .1em;
   font-weight: 600; padding: .38em .7em; border-radius: var(--radius-badge, var(--radius-tight));
   line-height: 1; white-space: nowrap; }
-.p-badge--accent { background: var(--color-accent); color: var(--on-accent, #fff); }
+.p-badge--accent { background: var(--color-accent);
+  /* --on-accent is derived per tone and is unset outside one, so the old `#fff` fallback painted
+     white on whatever the accent happens to be — 2.10:1 on a gold accent. Fall back to the theme's
+     own --color-on-accent, which every theme sets and which is chosen against that accent. */
+  color: var(--on-accent, var(--color-on-accent, #fff)); }
 .p-badge--quiet { background: var(--surface-2, var(--card)); color: var(--muted); }
 .p-badge--outline { border: var(--border) solid var(--line); color: var(--ink); }
 
