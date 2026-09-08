@@ -39,7 +39,8 @@
     "--btn-weight": "700",
     "--img-filter": "saturate(0.9) contrast(1.06)",
     "--hero-min": "58cqi",
-    "--overlay": "linear-gradient(90deg, rgba(21,22,15,0.92) 0%, rgba(21,22,15,0.55) 55%, rgba(21,22,15,0.15) 100%)"
+    "--overlay": "linear-gradient(90deg, rgba(21,22,15,0.92) 0%, rgba(21,22,15,0.55) 55%, rgba(21,22,15,0.15) 100%)",
+    "--color-accent-ink": "#4C6E28"
   },
   "sectionStyles": {
     "nav/main": {
