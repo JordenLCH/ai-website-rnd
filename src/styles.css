@@ -55,6 +55,13 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
      a dominant image or a pull-quote; the token is what makes that a choice rather than a hack. */
   --grid-cols: 12;
   --breakout: 12cqi;
+  /* Inline auto-margin for measure-capped children. A block with a max-width inside a centred
+     container centres its *text* in a box that still sits flush left — which is how a
+     stacked-centered ContactForm shipped with its 32ch h2 sitting ~110px left of the form under
+     it, while the eyebrow and lede (patched one at a time) lined up. Default 0; a centred layout
+     flips it to auto once and every capped child inherits.
+     Rule: never write `text-align: center` in this file without `--align-inline: auto` beside it. */
+  --align-inline: 0;
   /* Radius as a *pair*. One radius on every surface is the single most mechanical-looking tell
      in generated design — small surfaces (chips, fields, table cells) want less than cards do. */
   --radius-tight: 4px;
@@ -115,6 +122,13 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .prose { margin: 0 0 1.1em; color: var(--muted); max-width: var(--measure-body, var(--measure, 62ch)); }
 .prose:last-child { margin-bottom: 0; }
 
+/* Centring, for every measure-capped primitive above, in one place. It has to sit after them:
+   .lede and .prose set `margin` shorthand, which resets the inline margins at the same
+   specificity, so an earlier or :where()-wrapped rule loses. The second line keeps the
+   `.block > *` behaviour for a primitive used as a section's own direct child. */
+.display, .heading, .lede, .prose { margin-inline: var(--align-inline); }
+.block > :is(.display, .heading, .lede, .prose) { margin-inline: auto; }
+
 .actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 2rem; }
 /* min-height 44px: WCAG 2.2 puts the floor at 24px, Apple HIG asks 44 and Material 48. 24 is the
    legal minimum, not the target — a control sized to the legal minimum is a control designed to
@@ -167,38 +181,111 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .member__bio { margin: .4rem 0 0; font-size: .87rem; line-height: 1.5; color: var(--muted); }
 
 /* ---------- Nav ---------- */
-.nav { padding-block: calc(var(--pad-y) * .22); border-bottom: var(--border) solid var(--line); }
+/* The vertical padding lives on .nav__inner, not .nav, so the utility strip can be a band that
+   runs to the top edge of the header. Left on .nav it inherits .block's much larger padding and
+   leaves a stripe of page colour above the band, which reads as a mistake rather than a header. */
+.nav { --nav-pad: clamp(20px, 4cqi, 56px); padding-block: 0;
+  border-bottom: var(--border) solid var(--line); }
+.nav__inner { padding-block: calc(var(--pad-y) * .22); }
+/* The utility strip: phone, email, a portal login. Quiet by construction — it sits above the
+   main bar and must never compete with it, so it is one step smaller and muted. */
+/* Separated by a change of ground rather than a rule. A hairline between two bands of the same
+   colour is the weakest possible division — it reads as a stray line, not as structure — and it
+   competes with the header's own bottom border directly beneath it. `--card` is the tone system's
+   one-step-off-the-ground surface, so this follows the section into inverse and accent tones
+   instead of being a hardcoded grey that only works on white. */
+/* `.block > *` caps every direct child at --maxw, which would leave this floating as an inset
+   grey rectangle instead of a band. It breaks out by the block's own inline padding and pays it
+   back as its own, so the ul inside still lines up exactly with .nav__inner above it. */
+.nav__utility { max-width: none; margin-inline: calc(-1 * var(--nav-pad)); padding-inline: var(--nav-pad);
+  background: var(--nav-utility-bg, var(--card)); }
+.nav__utility ul { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: clamp(10px, 1.6cqi, 22px);
+  list-style: none; margin: 0 auto; padding-block: calc(var(--pad-y) * .14); max-width: var(--maxw);
+  font-size: .8rem; color: var(--muted); }
+.nav__utility a { color: inherit; text-decoration: none; }
+.nav__utility a:hover { color: var(--ink); }
 /* A single non-wrapping flex row cannot fit a brand, five links and a button at 420px, and
-   nothing here shrank or wrapped — so the only narrow-safe layout was centered-stack, which
-   art-direction.md lists as a slop tell. Wrapping the link rail to its own line keeps each
-   layout's identity at every width. */
+   nothing here shrank or wrapped. Wrapping the link rail to its own line keeps each layout's
+   identity at every width — the stacked-and-centred fallback is a slop tell and is not offered. */
 .nav__inner { display: flex; align-items: center; gap: var(--gap); max-width: var(--maxw);
   margin-inline: auto; flex-wrap: wrap; row-gap: calc(var(--gap) * .45); }
 .nav__inner > * { min-width: 0; }
 .nav__brand { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--display-tracking); font-size: 1.15rem; }
-.nav__brand img { height: 26px; width: auto; }
+/* Logos in this fleet run from 1:1 (aonic, firstmetrology) to 10.9:1 (merryfair's wordmark).
+   A fixed height serves neither: it leaves a square mark tiny and lets a wordmark run 280px
+   wide. Capping both axes lets the ratio pick which one binds — tall marks hit the height cap,
+   wide wordmarks hit the width cap — and object-fit keeps either from distorting. */
+.nav__brand img { max-height: var(--nav-logo-h, 40px); max-width: var(--nav-logo-w, 210px);
+  height: auto; width: auto; object-fit: contain; display: block; }
 .nav__items { display: flex; flex-wrap: wrap; gap: clamp(14px, 2cqi, 30px); list-style: none;
   margin: 0; padding: 0; font-size: .93rem; min-width: 0; }
 .nav__cta { white-space: nowrap; }
 .nav__items a { color: var(--muted); cursor: pointer; text-decoration: none; }
 .nav__items a:hover { color: var(--ink); }
+/* The page you are on. Marked in the markup with aria-current, so the styling and the thing a
+   screen reader announces cannot drift apart — which is what happens when it is a class. */
+.nav__items a[aria-current="page"] { color: var(--ink); }
+.nav__items > .nav__item > a[aria-current="page"] { box-shadow: inset 0 -2px 0 var(--accent-fg, var(--color-accent)); }
+
+/* Submenu. Opens on hover *and* :focus-within, so it is reachable with a keyboard — hover alone
+   is the usual bug here, and it makes the child pages unreachable without a mouse. */
+.nav__item { position: relative; }
+.nav__item--has-menu > a::after { content: ""; display: inline-block; width: .42em; height: .42em;
+  margin-left: .42em; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+  transform: translateY(-.15em) rotate(45deg); }
+.nav__menu { position: absolute; top: calc(100% + .55rem); left: 0; z-index: 40;
+  display: grid; gap: .55rem; min-width: max(11rem, 100%); margin: 0; padding: .85rem 1rem;
+  list-style: none; background: var(--color-bg); border: var(--border) solid var(--line);
+  box-shadow: 0 12px 34px rgb(0 0 0 / .12);
+  opacity: 0; visibility: hidden; transform: translateY(-.3rem); transition: opacity .16s, transform .16s, visibility .16s; }
+.nav__item--has-menu:hover > .nav__menu,
+.nav__item--has-menu:focus-within > .nav__menu { opacity: 1; visibility: visible; transform: none; }
+@media (prefers-reduced-motion: reduce) { .nav__menu { transition: none; } }
+
+/* The menu button. No JavaScript: the build farm ships static HTML, and a nav that needs a
+   script to open is a nav that is shut on any page where the script fails to load. The
+   checkbox holds the state, the label is the control, and both are hidden on wide screens. */
+.nav__burger { display: none; }
 .nav[data-layout="inline-left"] .nav__items { margin-left: calc(var(--gap) * .8); }
 .nav[data-layout="inline-left"] .nav__cta { margin-left: auto; }
-.nav[data-layout="centered-stack"] .nav__inner { flex-direction: column; text-align: center; gap: calc(var(--gap) * .5); }
-.nav[data-layout="centered-stack"] .nav__brand { font-size: 1.4rem; }
 .nav[data-layout="split-rail"] .nav__items { margin-inline: auto; }
 .nav[data-layout="split-rail"] .nav__cta { margin-left: 0; }
 .nav[data-layout="split-rail"] .nav__inner { justify-content: space-between; }
 
-/* Narrow: brand and action hold the top line, the rail drops beneath them. Centered-stack is
-   already a column, so it is left alone. */
+/* Narrow: brand and action hold the top line, the rail drops beneath them. */
 @container (max-width: 620px) {
   .nav[data-layout="inline-left"] .nav__items,
   .nav[data-layout="split-rail"] .nav__items {
     order: 3; flex-basis: 100%; margin-inline: 0; margin-left: 0; justify-content: flex-start;
   }
+  /* The action moves into the menu. In the collapsed bar it is the widest thing there, and it
+     squeezes the brand into a corner for the sake of a button most visitors are not ready to
+     press — the menu is where someone who wants it is already looking. */
   .nav[data-layout="inline-left"] .nav__cta,
-  .nav[data-layout="split-rail"] .nav__cta { margin-left: auto; }
+  .nav[data-layout="split-rail"] .nav__cta { display: none; }
+  .nav__toggle:checked ~ .nav__cta { display: inline-flex; order: 4; flex-basis: 100%;
+    width: fit-content; margin: .35rem 0 .2rem; }
+
+  /* Collapsed. Five links wrapping onto a second line is not a mobile nav — it is a desktop
+     nav that did not fit. The rail is hidden behind the button until the checkbox is checked. */
+  .nav__burger { order: 2; display: grid; gap: 4px; padding: .5rem .35rem; margin-left: auto;
+    cursor: pointer; }
+  .nav__burger span { display: block; width: 21px; height: 2px; background: var(--ink);
+    transition: transform .18s, opacity .18s; }
+  .nav__toggle:checked ~ .nav__burger span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .nav__toggle:checked ~ .nav__burger span:nth-child(2) { opacity: 0; }
+  .nav__toggle:checked ~ .nav__burger span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+  .nav__toggle:focus-visible ~ .nav__burger { outline: var(--focus-width, 2px) solid var(--accent-fg, var(--color-accent)); outline-offset: 3px; }
+  .nav__items { display: none; }
+  .nav__toggle:checked ~ .nav__items { display: flex; flex-direction: column; gap: .85rem;
+    padding-top: .5rem; }
+  /* Absolute positioning inside a collapsed column would overlap the item beneath it; nested
+     here, the submenu is just an indented list that is always open. */
+  .nav__menu { position: static; opacity: 1; visibility: visible; transform: none;
+    background: none; border: 0; box-shadow: none; padding: .55rem 0 0 .9rem;
+    border-left: var(--border) solid var(--line); min-width: 0; }
+  .nav__item--has-menu > a::after { display: none; }
+  @media (prefers-reduced-motion: reduce) { .nav__burger span { transition: none; } }
   .nav__inner { column-gap: calc(var(--gap) * .6); }
 }
 
@@ -233,7 +320,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .hero[data-layout="split-editorial"] .hero__media img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover;
   border-radius: var(--radius-img); box-shadow: var(--elev-2); }
 
-.hero[data-layout="centered-poster"] { text-align: center; display: grid; justify-items: center; }
+.hero[data-layout="centered-poster"] { text-align: center; --align-inline: auto; display: grid; justify-items: center; }
 .hero[data-layout="centered-poster"] .hero__copy { order: -1; max-width: min(46rem, 100%); margin-inline: auto; }
 .hero[data-layout="centered-poster"] .lede { margin-inline: auto; max-width: var(--measure-body, var(--measure, 62ch)); }
 .hero[data-layout="centered-poster"] .actions { justify-content: center; }
@@ -256,7 +343,10 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .mediatext__media img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius-img); box-shadow: var(--elev-2); }
 .mediatext[data-layout="image-right"] .mediatext__media { order: 2; }
 .mediatext[data-layout="image-left"] .mediatext__copy { order: 2; }
-.mediatext[data-layout="overlap-offset"] .mediatext__inner { grid-template-columns: 1.15fr .85fr; align-items: start; }
+/* Centred, not top-aligned. The image here is a 3/4 portrait pulled up out of the section's
+   padding, so it runs far below a copy column that is usually six or seven lines — top-aligning
+   both left a column of copy with an empty half beneath it. */
+.mediatext[data-layout="overlap-offset"] .mediatext__inner { grid-template-columns: 1.15fr .85fr; align-items: center; }
 .mediatext[data-layout="overlap-offset"] .mediatext__media { order: 2; margin-top: calc(var(--gap) * -1.4); }
 .mediatext[data-layout="overlap-offset"] .mediatext__media img { aspect-ratio: 3 / 4; }
 .mediatext .heading + .prose { margin-top: 1.2rem; }
@@ -351,7 +441,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .stats[data-layout="inline-bar"] .stat__value { font-family: var(--font-numeral); font-variant-numeric: tabular-nums; font-size: clamp(1.5rem, 3.2cqi, 2.4rem); font-weight: 500; letter-spacing: -0.02em; }
 .stats[data-layout="inline-bar"] .stat__label { font-family: var(--font-eyebrow); font-size: .7rem; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); margin-top: .4rem; }
 
-.stats[data-layout="airy-columns"] .stats__items { display: grid; grid-template-columns: repeat(var(--stat-cols), minmax(0, 1fr)); gap: var(--gap); text-align: center; }
+.stats[data-layout="airy-columns"] .stats__items { display: grid; grid-template-columns: repeat(var(--stat-cols), minmax(0, 1fr)); gap: var(--gap); text-align: center; --align-inline: auto; }
 .stats[data-layout="airy-columns"] .stat__value { font-family: var(--font-numeral); font-variant-numeric: tabular-nums; font-size: clamp(2.2rem, 4.6cqi, 3.4rem); font-weight: 300; letter-spacing: -0.02em; line-height: 1; }
 .stats[data-layout="airy-columns"] .stat__label { font-size: .92rem; color: var(--muted); margin-top: .9rem; }
 
@@ -501,18 +591,31 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
   .logos[data-layout="hairline-row"] .logos__items[data-count] { grid-template-columns: minmax(0, 1fr); }
   .logos[data-layout="hairline-row"] .logos__items[data-count] li:last-child { grid-column: auto; }
 }
-.logos[data-layout="muted-grid"] .logos__items { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--gap); color: var(--muted); }
-@container (max-width: 800px) { .logos[data-layout="muted-grid"] .logos__items { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@container (max-width: 460px) { .logos[data-layout="muted-grid"] .logos__items { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* A wall of names with no logos in it needs the grid to do the work the logos would have done.
+   Fixed at 5 columns, any count that is not a multiple of 5 stranded an orphan on a second row;
+   ragged cell heights then left each name at a different height, so it read as loose words
+   rather than as a set. auto-fit distributes whatever count arrives, and a centred, padded,
+   equal-height cell gives every member the same presence. */
+.logos[data-layout="muted-grid"] .logos__items { display: grid; gap: calc(var(--gap) * .5);
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); color: var(--muted); }
+.logos[data-layout="muted-grid"] .logos__items li { display: grid; align-content: center; justify-items: center;
+  text-align: center; gap: .25rem; min-height: 6.5rem; padding: 1rem clamp(10px, 1.6cqi, 18px);
+  background: var(--card); border-radius: var(--radius-tight); }
+.logos[data-layout="muted-grid"] .logos__note { margin-top: 0; }
 
 /* ---------- FAQ ---------- */
 .faq__head { margin-bottom: calc(var(--gap) * 1.1); }
-.faq__item { border-top: var(--border) solid var(--line); padding: 1.1rem 0; }
+/* The row's padding belongs to the summary, not to the item. The hover state layer paints the
+   summary's own box, so with the padding one level up the tint came out as a hard-edged band
+   flush against the text and butted into the hairline above. Padding it and pulling it back out
+   with a negative inline margin keeps the question aligned with the rest of the page while the
+   tint gets breathing room and a corner. */
+.faq__item { border-top: var(--border) solid var(--line); }
 .faq__item summary::-webkit-details-marker { display: none; }
-.faq__item summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; gap: var(--gap); align-items: baseline; font-family: var(--font-display); font-size: 1.08rem; letter-spacing: var(--display-tracking); }
+.faq__item summary { list-style: none; cursor: pointer; padding: 1.1rem .8rem; margin-inline: -.8rem; border-radius: var(--radius-tight); display: flex; justify-content: space-between; gap: var(--gap); align-items: baseline; font-family: var(--font-display); font-size: 1.08rem; letter-spacing: var(--display-tracking); }
 .faq__item summary::after { content: "+"; color: var(--accent-fg, var(--color-accent)); font-weight: 500; flex: none; }
 .faq__item[open] summary::after { content: "\2212"; }
-.faq__item p { color: var(--muted); margin: .8rem 0 0; max-width: var(--measure-body, var(--measure, 62ch)); }
+.faq__item p { color: var(--muted); margin: 0 0 1.1rem; max-width: var(--measure-body, var(--measure, 62ch)); }
 .faq[data-layout="accordion-stack"] .faq__items { border-bottom: var(--border) solid var(--line); }
 .faq[data-layout="two-col-list"] .faq__items { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 var(--gap);
   border-bottom: var(--border) solid var(--line); }
@@ -581,10 +684,9 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .form[data-layout="split-form"] .form__inner { display: grid; grid-template-columns: .85fr 1.15fr; gap: calc(var(--gap) * 1.2); align-items: start; }
 .form[data-layout="split-form"] .form__fields { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 var(--gap); }
 .form[data-layout="split-form"] .form__submit { grid-column: 1 / -1; justify-self: start; }
-.form[data-layout="stacked-centered"] .form__inner { max-width: 46rem; text-align: center; }
+.form[data-layout="stacked-centered"] .form__inner { max-width: 46rem; text-align: center; --align-inline: auto; }
 .form[data-layout="stacked-centered"] .form__copy { margin-bottom: calc(var(--gap) * .9); }
-.form[data-layout="stacked-centered"] .lede { margin-inline: auto; }
-.form[data-layout="stacked-centered"] .field { text-align: left; }
+.form[data-layout="stacked-centered"] .field { text-align: left; --align-inline: 0; }
 @container (max-width: 800px) {
   .form[data-layout="split-form"] .form__inner,
   .form[data-layout="split-form"] .form__fields { grid-template-columns: 1fr; }
@@ -613,19 +715,17 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .cta[data-layout="hard-panel"] .cta__action { text-align: right; }
 .cta[data-layout="hard-panel"] .cta__note { font-family: var(--font-eyebrow); font-size: .72rem; text-transform: uppercase;
   letter-spacing: .14em; color: var(--muted); margin: 1rem 0 0; }
-.cta[data-layout="soft-band"] { text-align: center; }
+.cta[data-layout="soft-band"] { text-align: center; --align-inline: auto; }
 .cta[data-layout="soft-band"] .cta__copy { display: grid; justify-items: center; gap: 1rem; }
-.cta[data-layout="soft-band"] .lede { margin-inline: auto; }
 .cta[data-layout="soft-band"] .cta__action { margin-top: 2.2rem; }
 .cta[data-layout="soft-band"] .cta__note { font-size: .88rem; color: var(--muted); margin: 1.2rem 0 0; }
-.cta[data-layout="centered-poster"] { text-align: center; }
+.cta[data-layout="centered-poster"] { text-align: center; --align-inline: auto; }
 .cta[data-layout="centered-poster"] .cta__copy .heading { font-size: clamp(2rem, 5cqi, 3.4rem); }
-.cta[data-layout="centered-poster"] .lede { margin-inline: auto; }
 .cta[data-layout="centered-poster"] .cta__action { margin-top: 2rem; }
 .cta[data-layout="centered-poster"] .cta__note { font-size: .85rem; color: var(--muted); margin-top: 1.2rem; }
 @container (max-width: 760px) {
   .cta[data-layout="hard-panel"] { grid-template-columns: 1fr; }
-  .cta[data-layout="hard-panel"] .cta__action { text-align: left; }
+  .cta[data-layout="hard-panel"] .cta__action { text-align: left; --align-inline: 0; }
 }
 
 /* ---------- Footer ---------- */
@@ -634,18 +734,52 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .foot__brand { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 1.2rem; letter-spacing: var(--display-tracking); }
 .foot__coltitle { font-family: var(--font-eyebrow); font-size: var(--eyebrow-size); text-transform: var(--eyebrow-transform);
   letter-spacing: var(--eyebrow-tracking); color: var(--muted); margin: 0 0 .9rem; font-weight: 500; }
+.foot__tagline { color: var(--muted); font-size: .87rem; line-height: 1.5; margin: .55rem 0 0;
+  max-width: 26ch; font-family: var(--font-body); font-weight: 400; letter-spacing: normal; }
+/* Selector shape matters here: `.site img` sets max-width:100% and outranks a bare
+   `.foot__logo`, so the cap has to be at least as specific — same reason the nav rule is
+   written `.nav__brand img`. Written flat, this silently rendered a wordmark 365px wide. */
+.foot__brand img.foot__logo { max-height: var(--foot-logo-h, 46px); max-width: var(--foot-logo-w, 220px);
+  height: auto; width: auto; object-fit: contain; display: block; }
 .foot__col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; font-size: .93rem; }
+.foot__col a { color: inherit; text-decoration: none; }
+.foot__col a:hover { color: var(--accent-fg, var(--color-accent)); }
+/* A label with no destination renders as a span, so it must not look like the links beside it. */
+.foot__col li > span { color: var(--muted); }
+.foot__contact address { font-style: normal; display: grid; gap: .2rem; color: var(--muted); }
+/* An email address is one unbreakable token, and a footer column at 390px is ~150px wide, so
+   without this it runs straight out of the column and off the page. */
+.foot__col a, .foot__contact address { overflow-wrap: anywhere; }
+/* Social sits at the bottom of the contact column; the gap is what separates the two ideas. */
+.foot__socialitem:first-of-type { margin-top: .5rem; }
 .foot__note { color: var(--muted); font-size: .85rem; }
+/* The statutory row. Separated from the editorial note because it is not editorial — this is
+   where a copyright line and, where the law requires it, a company registration number sit. */
+.foot__bottom { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem var(--gap);
+  border-top: var(--border) solid var(--line); padding-top: 1.2rem; margin-top: var(--gap); }
+.foot__bottom > * { margin: 0; }
+.foot__legal { color: var(--muted); font-size: .8rem; }
+.foot__legallinks { display: flex; flex-wrap: wrap; gap: 1rem; list-style: none; margin: 0; padding: 0;
+  font-size: .8rem; margin-left: auto; }
+.foot__legallinks a { color: var(--muted); text-decoration: none; }
+.foot__legallinks a:hover { color: var(--ink); }
+.foot__legallinks li > span { color: var(--muted); }
 .foot[data-layout="columns"] .foot__inner { display: grid; grid-template-columns: 1fr 2.2fr; gap: var(--gap); }
-.foot[data-layout="columns"] .foot__cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
-.foot[data-layout="columns"] .foot__note { grid-column: 1 / -1; border-top: var(--border) solid var(--line); padding-top: 1.2rem; margin: 0; }
-.foot[data-layout="centered-minimal"] .foot__inner { display: grid; justify-items: center; text-align: center; gap: calc(var(--gap) * .7); }
+/* auto-fit, not repeat(3): contact and social are columns too, so the count is now 1-6 and a
+   fixed three would either leave a hole or squeeze six into three tracks. */
+.foot[data-layout="columns"] .foot__cols { display: grid; gap: var(--gap);
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); }
+.foot[data-layout="columns"] .foot__bottom { grid-column: 1 / -1; }
+.foot[data-layout="centered-minimal"] .foot__inner { display: grid; justify-items: center; text-align: center; --align-inline: auto; gap: calc(var(--gap) * .7); }
 .foot[data-layout="centered-minimal"] .foot__cols { display: flex; gap: var(--gap); flex-wrap: wrap; justify-content: center; }
 .foot[data-layout="centered-minimal"] .foot__coltitle { display: none; }
-.foot[data-layout="centered-minimal"] .foot__col ul { display: flex; gap: 1rem; }
+.foot[data-layout="centered-minimal"] .foot__col ul { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+.foot[data-layout="centered-minimal"] .foot__bottom { flex-direction: column; align-items: center; text-align: center; --align-inline: auto; width: 100%; }
+.foot[data-layout="centered-minimal"] .foot__legallinks { margin-left: 0; justify-content: center; }
+.foot[data-layout="centered-minimal"] .foot__contact address { justify-items: center; }
 @container (max-width: 800px) {
   .foot[data-layout="columns"] .foot__inner { grid-template-columns: 1fr; }
-  .foot[data-layout="columns"] .foot__cols { grid-template-columns: repeat(2, 1fr); }
+  .foot[data-layout="columns"] .foot__cols { grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); }
 }
 
 /* ---------- Pricing ---------- */
@@ -660,7 +794,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .pricing[data-layout="cards-tiers"] .pricing__tiers { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: var(--gap);   --cols-max: 3; --cols-4: 2;}
 .pricing[data-layout="cards-tiers"] .tier { background: var(--raised, var(--card)); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--elev-1); padding: calc(var(--gap) * .8); display: flex; flex-direction: column; }
 .pricing[data-layout="cards-tiers"] .tier[data-featured="true"] { border-color: var(--color-accent); border-width: calc(var(--border) * 2); }
-.pricing[data-layout="cards-tiers"] .tier__cta { margin-top: auto; text-align: center; }
+.pricing[data-layout="cards-tiers"] .tier__cta { margin-top: auto; text-align: center; --align-inline: auto; }
 .pricing[data-layout="table-compare"] .pricing__tiers { display: grid; grid-template-columns: repeat(3, 1fr); border-top: var(--border) solid var(--line); }
 .pricing[data-layout="table-compare"] .tier { padding: calc(var(--gap) * .7); border-right: var(--border) solid var(--line); border-bottom: var(--border) solid var(--line); }
 .pricing[data-layout="table-compare"] .tier:first-child { border-left: var(--border) solid var(--line); }
@@ -673,25 +807,44 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .cat__tag { position: absolute; top: .7rem; left: .7rem; background: var(--btn-bg); color: var(--btn-fg);
   font-family: var(--font-eyebrow); font-size: .68rem; text-transform: uppercase; letter-spacing: .12em;
   padding: .28rem .6rem; border-radius: var(--btn-radius); }
-.cat__name { font-family: var(--font-display); font-size: 1.1rem; margin: 1rem 0 .4rem; letter-spacing: var(--display-tracking); }
+.cat__name { font-family: var(--font-display); font-size: 1.1rem; margin: 0 0 .4rem; letter-spacing: var(--display-tracking); }
 .cat__body { color: var(--muted); font-size: .92rem; margin: 0 0 .5rem; }
-.cat__meta { font-family: var(--font-numeral); font-size: .95rem; margin: auto 0 0; }
+/* Category label above the title. Eyebrow scale and colour, because it names the kind of thing
+   rather than saying anything about this one — at .95rem numeral it out-shouted the body copy
+   it sat under. */
+.cat__meta { font-family: var(--font-eyebrow); font-size: var(--eyebrow-size); text-transform: var(--eyebrow-transform);
+  letter-spacing: var(--eyebrow-tracking); color: var(--muted); margin: 0 0 .3rem; }
 .cat { display: flex; flex-direction: column; }
-.cat__copy { display: flex; flex-direction: column; flex: 1 1 auto; }
+.cat__copy { display: flex; flex-direction: column; flex: 1 1 auto; padding-top: 1rem; }
 .catalog[data-layout="cards-grid"] .catalog__items { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: var(--gap);   --cols-max: 4; --cols-4: 4;}
 .catalog[data-layout="cards-grid"] .cat__media img { aspect-ratio: 4 / 5; }
+/* The state layer paints the element's own box, so a card with no padding and no radius got a
+   hard-edged tint glued to its text with the image's rounded corners fighting the square box.
+   Pad it, round it, and inset the image's radius so the two agree. */
+.catalog[data-layout="cards-grid"] .cat,
+.catalog[data-layout="wide-list"] .cat { padding: .8rem; border-radius: var(--radius-img); }
+/* and pulled back out by the same amount, so the row's outer edges still line up with the
+   section heading. Padding a card without this insets the whole grid and reads as a misaligned
+   row rather than as cards. */
+.catalog[data-layout="cards-grid"] .catalog__items,
+.catalog[data-layout="wide-list"] .catalog__items { margin-inline: -.8rem; }
+.catalog[data-layout="cards-grid"] .cat__media img,
+.catalog[data-layout="wide-list"] .cat__media img { border-radius: calc(var(--radius-img) * .6); }
 .catalog[data-layout="hairline-catalog"] .catalog__items { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
   border-top: var(--border) solid var(--line); border-left: var(--border) solid var(--line);   --cols-max: 3; --cols-4: 2;}
 .catalog[data-layout="hairline-catalog"] .cat { padding: calc(var(--gap) * .7);
   border-right: var(--border) solid var(--line); border-bottom: var(--border) solid var(--line); }
-.catalog[data-layout="hairline-catalog"] .catalog__items[data-count="4"],
+/* 5 items in 5 columns closes the row. 4 was listed here too, which put four cards in a
+   five-column grid — the empty fifth cell still sits under the container's border-top, so the
+   row ended in a hanging rule over nothing. 4 falls through to --cols-4 (2), giving 2x2. */
 .catalog[data-layout="hairline-catalog"] .catalog__items[data-count="5"] { grid-template-columns: repeat(5, 1fr); }
 /* 7 has no comfortable divisor; close the row by widening the last card */
 .catalog[data-layout="hairline-catalog"] .catalog__items[data-count="7"] .cat:last-child { grid-column: span 3; }
 .catalog[data-layout="hairline-catalog"] .cat__media img { aspect-ratio: 1 / 1; }
 .catalog[data-layout="wide-list"] .catalog__items { display: grid; gap: calc(var(--gap) * .6); }
 .catalog[data-layout="wide-list"] .cat { display: grid; grid-template-columns: 12rem 1fr; gap: var(--gap); align-items: center;
-  border-top: var(--border) solid var(--line); padding-top: calc(var(--gap) * .5); }
+  border-top: var(--border) solid var(--line); }
+.catalog[data-layout="wide-list"] .cat__copy { padding-top: 0; }
 .catalog[data-layout="wide-list"] .cat__media img { aspect-ratio: 3 / 2; }
 .catalog[data-layout="wide-list"] .cat__name { margin-top: 0; }
 /* [data-count] again — same trap as Features. The count rules above out-specify a plain
@@ -757,9 +910,20 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 /* An entry carrying a credential and a bio needs a row, not two narrow columns — flex
    space-between gave the heading a column too tight to set a four-word role in. */
 .team[data-layout="minimal-list"]:has(.member__bio) .team__items { grid-template-columns: 1fr; }
-.team[data-layout="minimal-list"] .member:has(.member__bio) {
+/* Keyed off the *list*, not the member. Scoped to `.member:has(.member__bio)` it laid out only
+   the members that happened to have a bio, so a list where one person had none mixed two row
+   shapes: that member stayed on the flex rule and its credential flew to the far right edge
+   while everyone else's sat under their role. The container query above already switches the
+   whole list to one column; the row shape has to switch with it. */
+.team[data-layout="minimal-list"]:has(.member__bio) .member {
   display: grid; grid-template-columns: minmax(0, 14rem) minmax(0, 1fr); gap: .2rem var(--gap);
   align-items: start; padding-block: 1.1rem; }
+/* Explicit columns, because the children are optional. Auto-placement flows them c1, c2, c1, …,
+   so a member with a credential and no bio put the credential in the *bio* column while the
+   member above had it under their role — the same field landing in two different places down
+   one list. Identity stacks left, the bio owns the right. */
+.team[data-layout="minimal-list"]:has(.member__bio) .member > :is(.member__name, .member__role, .member__credential) { grid-column: 1; }
+.team[data-layout="minimal-list"]:has(.member__bio) .member > .member__bio { grid-column: 2; grid-row: 1; margin-top: 0; }
 .team[data-layout="minimal-list"] .member:has(.member__bio) .member__name { grid-column: 1; }
 .team[data-layout="minimal-list"] .member:has(.member__bio) .member__credential { grid-column: 1; }
 .team[data-layout="minimal-list"] .member:has(.member__bio) .member__role { grid-column: 1; }
@@ -780,7 +944,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .promo__body { color: var(--muted); margin: .6rem 0 0; max-width: 52ch; }
 .promo[data-layout="split-strip"] .promo__inner { display: grid; grid-template-columns: auto 1fr auto; gap: var(--gap); align-items: center; }
 .promo[data-layout="split-strip"] .promo__media img { width: 9rem; aspect-ratio: 1 / 1; object-fit: cover; border-radius: var(--radius-img); }
-.promo[data-layout="centered-strip"] .promo__inner { display: grid; justify-items: center; text-align: center; gap: 1rem; }
+.promo[data-layout="centered-strip"] .promo__inner { display: grid; justify-items: center; text-align: center; --align-inline: auto; gap: 1rem; }
 .promo[data-layout="centered-strip"] .promo__media { display: none; }
 .promo[data-layout="centered-strip"] .promo__body { margin-inline: auto; }
 @container (max-width: 800px) { .promo[data-layout="split-strip"] .promo__inner { grid-template-columns: 1fr; } }
@@ -796,6 +960,9 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 .posts[data-layout="list-rows"] .post { display: grid; grid-template-columns: 14rem 1fr; gap: var(--gap);
   border-top: var(--border) solid var(--line); padding: calc(var(--gap) * .5) 0; align-items: start; }
 .posts[data-layout="list-rows"] .post__media img { margin-bottom: 0; aspect-ratio: 4 / 3; }
+/* `image` is optional on a post. Without this, a row with no media put its *copy* in the 14rem
+   media column — the whole entry squeezed into a fifth of the width with nothing beside it. */
+.posts[data-layout="list-rows"] .post:not(:has(.post__media)) { grid-template-columns: minmax(0, 1fr); }
 @container (max-width: 860px) {
   .posts[data-layout="cards-three"] .posts__items { grid-template-columns: 1fr; }
   .posts[data-layout="list-rows"] .post { grid-template-columns: 1fr; }
@@ -807,8 +974,12 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
   max-width: var(--maxw); font-family: var(--font-eyebrow); font-size: .8rem; text-transform: var(--eyebrow-transform);
   letter-spacing: var(--eyebrow-tracking); color: var(--muted); }
 .crumbs__items li { display: flex; gap: .5rem; }
-.crumbs__items a { color: var(--muted); cursor: pointer; }
-.crumbs__items a:hover { color: var(--ink); }
+/* No underline at rest. A breadcrumb is a nav landmark, not a link inside running prose: the
+   row's position and separators already say these are links, and five underlined fragments read
+   as clutter above a heading. WCAG 1.4.1 wants a non-colour cue for links *embedded in text* —
+   this is not that, and the cue returns on hover and focus. */
+.crumbs__items a { color: var(--muted); cursor: pointer; text-decoration: none; }
+.crumbs__items a:hover, .crumbs__items a:focus-visible { color: var(--ink); text-decoration: underline; text-underline-offset: .2em; }
 .crumbs__items i { font-style: normal; opacity: .5; }
 .crumbs[data-layout="boxed"] .crumbs__items { background: var(--card); border: var(--border) solid var(--line);
   border-radius: var(--radius); padding: .5rem .8rem; }
@@ -884,7 +1055,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
 [data-pgap="md"] { gap: var(--sp-md); } [data-pgap="lg"] { gap: var(--sp-lg); } [data-pgap="xl"] { gap: var(--sp-xl); }
 [data-ppad="xs"] { padding: var(--sp-xs); } [data-ppad="sm"] { padding: var(--sp-sm); }
 [data-ppad="md"] { padding: var(--sp-md); } [data-ppad="lg"] { padding: var(--sp-lg); } [data-ppad="xl"] { padding: var(--sp-xl); }
-.p-stack[data-palign="center"], .p-grid[data-palign="center"] { justify-items: center; text-align: center; }
+.p-stack[data-palign="center"], .p-grid[data-palign="center"] { justify-items: center; text-align: center; --align-inline: auto; }
 .p-stack[data-palign="end"] { justify-items: end; text-align: right; }
 .p-row[data-pjustify="center"] { justify-content: center; }
 .p-row[data-pjustify="end"] { justify-content: flex-end; }
@@ -1114,7 +1285,9 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d0d11; c
     box-shadow: inset 0 0 0 999px color-mix(in oklab, currentColor 8%, transparent);
   }
   /* Cards additionally lift, because a card is already a raised surface and the pointer should say so. */
-  :where(.p-card, .cat):hover { box-shadow: var(--elev-2),
+  /* .p-card lifts; .cat does not. A lift reads as "this goes somewhere", and a catalogue card
+     carries no link — the tint alone is enough to say "this is one item". */
+  :where(.p-card):hover { box-shadow: var(--elev-2),
     inset 0 0 0 999px color-mix(in oklab, currentColor 6%, transparent); }
 }
 /* :active is real on touch — it is the press itself, and it ends when the finger lifts. */

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** blackdash-validate <site.json> <theme.json> */
+/** blackdash-validate <site.json> <theme.json> [org.json] */
 import { spawn } from 'node:child_process'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'

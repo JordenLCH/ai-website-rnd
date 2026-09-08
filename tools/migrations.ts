@@ -30,6 +30,27 @@ const cases: Case[] = [
       assert(out.title === 'The workshop', 'kept unrelated props')
     },
   },
+  {
+    block: 'Footer',
+    note: 'columns[].links became {label, page?}',
+    old: {
+      brand: 'Merryfair Chair System',
+      columns: [
+        { title: 'Products', links: ['Wau 2 Series', 'Tune Series'] },
+        { title: 'Company', links: ['About'] },
+      ],
+      note: 'ISO certified manufacturing since 1982',
+    },
+    expect: (out) => {
+      assert(out.columns.length === 2, 'kept both columns')
+      assert(out.columns[0].links.length === 2, 'kept both links in the first column')
+      assert(out.columns[0].links[0].label === 'Wau 2 Series', 'the string became the label')
+      assert(out.columns[0].links.every((l: any) => l.page === undefined),
+        'left page unset — the old shape had no destination to carry forward')
+      assert(out.note === 'ISO certified manufacturing since 1982', 'kept unrelated props')
+      assert(out.brand === 'Merryfair Chair System', 'kept the brand')
+    },
+  },
 ]
 
 let failed = 0

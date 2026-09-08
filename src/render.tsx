@@ -20,24 +20,30 @@ export function validate(rawSite: unknown, rawTheme: unknown):
   }
 }
 
-function Section({ block, theme }: { block: Page['blocks'][number]; theme: Theme }) {
+function Section({ block, theme, pageKey }: {
+  block: Page['blocks'][number]; theme: Theme; pageKey?: string
+}) {
   const entry = catalog[block.type]
   const style = theme.sectionStyles[block.variant]
   if (!entry || !style) return null
   const parsed = entry.schema.safeParse(block.props)
   if (!parsed.success) return null
   const { Component } = entry
+  // Chrome is declared once for the site, so it cannot know which page it is drawn on.
+  // The renderer supplies that, and Nav marks the matching item `aria-current="page"`.
+  const props = pageKey ? { ...(parsed.data as object), currentPage: pageKey } : parsed.data
   return (
     <div className="section" data-tone={style.tone}
       {...(block.unverified ? { 'data-unverified': 'true' } : {})}
       style={style.vars as React.CSSProperties}>
-      <Component props={parsed.data} layout={style.layout} />
+      <Component props={props} layout={style.layout} />
     </div>
   )
 }
 
-export function PageView({ page, chrome, theme, onNavigate }: {
-  page: Page; chrome?: { header?: Page['blocks'][number]; footer?: Page['blocks'][number] }
+export function PageView({ page, pageKey, chrome, theme, onNavigate }: {
+  page: Page; pageKey?: string
+  chrome?: { header?: Page['blocks'][number]; footer?: Page['blocks'][number] }
   theme: Theme; onNavigate?: (p: string) => void
 }) {
   return (
@@ -46,9 +52,9 @@ export function PageView({ page, chrome, theme, onNavigate }: {
         const el = (e.target as HTMLElement).closest('[data-page]')
         if (el && onNavigate) onNavigate(el.getAttribute('data-page')!)
       }}>
-      {chrome?.header && <Section block={chrome.header} theme={theme} />}
+      {chrome?.header && <Section block={chrome.header} theme={theme} pageKey={pageKey} />}
       {page.blocks.map((b, i) => <Section key={i} block={b} theme={theme} />)}
-      {chrome?.footer && <Section block={chrome.footer} theme={theme} />}
+      {chrome?.footer && <Section block={chrome.footer} theme={theme} pageKey={pageKey} />}
     </div>
   )
 }

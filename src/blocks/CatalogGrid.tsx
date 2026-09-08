@@ -31,6 +31,12 @@ function CatalogGrid({ props, layout }: { props: P; layout: string }) {
               {it.tag && <span className="cat__tag">{it.tag}</span>}
             </div>
             <div className="cat__copy">
+              {/* Above the name, not pinned to the card floor. `meta` carries the kind of thing
+                  this is ("Automated CMM", "Task seating") and a catalogue card reads that as an
+                  eyebrow over the title; the bottom slot is where a price, a date or an action
+                  goes. It sat at the bottom because `margin: auto` aligned it across cards of
+                  unequal length — real reasoning, wrong slot. */}
+              {it.meta && <p className="cat__meta">{it.meta}</p>}
               <h3 className="cat__name">{it.name}</h3>
               {it.body && <p className="cat__body">{it.body}</p>}
               {it.points && (
@@ -38,7 +44,6 @@ function CatalogGrid({ props, layout }: { props: P; layout: string }) {
                   {it.points.map((pt) => <li key={pt}>{pt}</li>)}
                 </ul>
               )}
-              {it.meta && <p className="cat__meta">{it.meta}</p>}
             </div>
           </article>
         ))}
