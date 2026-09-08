@@ -33,6 +33,12 @@ export default function App() {
    *  to off is a toggle nobody ever turns on. */
   const [flag, setFlag] = useState(true)
 
+  /* A creator's repo holds one client, so the site and theme pickers are a fleet affordance with
+     nothing to pick between — two dropdowns of one option each, taking the eye first on every
+     load. Collapse to the client's name when there is only one, and keep the pickers for a repo
+     that does have a fleet. */
+  const single = keys.length <= 1
+
   const result = useMemo(() => validate(sites[siteKey], themes[themeKey]), [siteKey, themeKey])
   const errors = result.issues.filter((i) => i.severity === 'error').length
   const warnings = result.issues.filter((i) => i.severity === 'warning').length
@@ -43,21 +49,29 @@ export default function App() {
     <div className="app">
       <div className="app__bar">
         <strong>preview</strong>
-        <span className="ctl">site
-          <select value={siteKey} onChange={(e) => {
-            const k = e.target.value
-            setSiteKey(k); setPageKey('home')
-            // A site's own theme shares its folder key, so switching site follows it.
-            if (themes[k]) setThemeKey(k)
-          }}>
-            {keys.map((k) => <option key={k}>{k}</option>)}
-          </select>
-        </span>
-        <span className="ctl">theme
-          <select value={themeKey} onChange={(e) => setThemeKey(e.target.value)}>
-            {Object.keys(themes).map((k) => <option key={k} value={k}>{themeLabel(k)}</option>)}
-          </select>
-        </span>
+        {single ? (
+          <span className="ctl"><b>{siteKey || 'no content'}</b>{
+            /* The theme's own name still earns its place: it is the one label that says which art
+               direction is on screen, and it changes under you when the theme is re-written. */
+            siteKey && themes[siteKey] ? <span style={{ opacity: .6 }}>&nbsp;· {themeLabel(siteKey).replace(`${siteKey} — `, '')}</span> : null
+          }</span>
+        ) : (<>
+          <span className="ctl">site
+            <select value={siteKey} onChange={(e) => {
+              const k = e.target.value
+              setSiteKey(k); setPageKey('home')
+              // A site's own theme shares its folder key, so switching site follows it.
+              if (themes[k]) setThemeKey(k)
+            }}>
+              {keys.map((k) => <option key={k}>{k}</option>)}
+            </select>
+          </span>
+          <span className="ctl">theme
+            <select value={themeKey} onChange={(e) => setThemeKey(e.target.value)}>
+              {Object.keys(themes).map((k) => <option key={k} value={k}>{themeLabel(k)}</option>)}
+            </select>
+          </span>
+        </>)}
         <span className="tabs">
           {pages.map((p) => (
             <button key={p} className="tab" aria-selected={p === active} onClick={() => setPageKey(p)}>
