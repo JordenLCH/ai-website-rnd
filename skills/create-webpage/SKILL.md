@@ -204,8 +204,53 @@ Use the number exactly as SSM issued it — the 12-digit form with the old `1234
 brackets, if the client gave both. `validate` fails the bundle when the footer is missing either
 half, so collect `registration` and `legalName` at intake or the site cannot ship.
 
-Also ask what you cannot infer: who buys from them, what the site must make happen, and any page
-that must exist for a non-obvious reason.
+#### Ask with this list, verbatim
+
+Do not compose your own intake questions. Emit this, filling in what the documents already answer so
+the human only sees what is genuinely missing. Left to invent the wording, one model produces a tidy
+form and another produces headings like "Platform details" with asset questions filed under them —
+same skill, different model, and the difference lands on the client.
+
+Say plainly which items block the build, because they are not equally urgent and a flat list of
+twelve questions reads as though they are.
+
+```
+ANSWERED FROM YOUR DOCUMENTS — correct me if any of this is wrong
+  <field>: <value>            ← list every one you filled, so it can be checked
+  ...
+
+BLOCKS THE BUILD — I cannot produce a shippable site without these
+  1. Registration number      (Malaysia: s.30(2), the footer gate fails without it)
+  2. Legal name, exactly as registered
+  3. Phone and email
+
+SHAPES THE SITE — I will ask again before writing copy if these change
+  4. Who buys from them       (the buyer decides whether pages split by product or by audience)
+  5. What the site must make happen
+                              (a quote request and a spec download are different sites)
+  6. Any page that must exist for a reason I would not guess
+
+STRENGTHENS THE SITE — omit any of these and the site still ships
+  7. sameAs profiles          (LinkedIn, Google Business — the highest-value field here and
+                               the most skipped: it is how a crawler corroborates the entity
+                               somewhere the client does not control)
+  8. Certifications, named exactly   ("ISO 9001", not "ISO standards")
+  9. Employee count, awards, area served
+ 10. Named people with credentials
+```
+
+Three rules for running this list:
+
+- **A vague answer is a missing answer.** "ISO standards" is not a certification; ask which one.
+  Writing `ISO 9001` because it is the common one is inventing a credential.
+- **Never fill a blocker to keep moving.** A wrong registration number is a legal problem, not a
+  formatting one. Stop and ask, or ship with the field absent and say so.
+- **Assets and branding are not intake questions.** Photos, logo and guidelines arrive at stage 8,
+  after the layout exists and you know which images it actually needs. Asking for them now gets you
+  a folder of whatever the client had to hand.
+
+Nothing about hosting, SEO or refresh belongs in intake either. Those are derived server-side after
+upload and need nothing from the creator — see "After you hand off".
 
 ### 2. Content inventory — count what exists before designing for it
 Before any structure or any look, write down what copy you actually have, where it came from, and
