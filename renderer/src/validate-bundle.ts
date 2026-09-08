@@ -525,8 +525,40 @@ function jurisdictionIssues(
  *  weakness repeated everywhere — which is why these are checked separately from a block's own
  *  `check`, whose findings are errors. None of these should stop a build; all of them should be
  *  fixed before a client sees the site. */
-function chromeIssues(site: { chrome?: { header?: { type: string; props: Record<string, unknown> }; footer?: { type: string; props: Record<string, unknown> } } }): Issue[] {
+function chromeIssues(
+  site: {
+    chrome?: { header?: { type: string; props: Record<string, unknown> }; footer?: { type: string; props: Record<string, unknown> } }
+    pages?: Record<string, { blocks?: Array<{ type?: string }> }>
+  },
+): Issue[] {
   const out: Issue[] = []
+
+  /* A site with no chrome at all validated clean: every check below reads `site.chrome?.x` and
+   * simply found nothing to complain about, so a bundle with no navigation and no footer came
+   * back "✓ valid". `chrome` is optional in the schema only so bundles predating it keep
+   * validating — those carry Nav and Footer inside each page's blocks, so look there before
+   * reporting, or this fires on exactly the bundles the optionality exists to protect.
+   *
+   * The footer is the harder failure of the two. It is the only element on every page, which is
+   * where a jurisdiction's registration line has to live — jurisdictionIssues receives
+   * `site.chrome?.footer` and silently checks nothing when there is no footer to check. */
+  const inPages = (type: string) =>
+    Object.values(site.pages ?? {}).some((pg) => (pg.blocks ?? []).some((b) => b?.type === type))
+  if (!site.chrome?.header && !inPages('Nav')) {
+    out.push({
+      severity: 'error',
+      where: 'site.chrome.header',
+      message: 'no Nav anywhere — every page renders without navigation, so nothing but the home page is reachable. Put a Nav block in "chrome.header"',
+    })
+  }
+  if (!site.chrome?.footer && !inPages('Footer')) {
+    out.push({
+      severity: 'error',
+      where: 'site.chrome.footer',
+      message: 'no Footer anywhere — this is also where contact details and the statutory legal line live, and the jurisdiction checks cannot run without it. Put a Footer block in "chrome.footer"',
+    })
+  }
+
   const footer = site.chrome?.footer
   if (footer?.type === 'Footer') {
     const p = footer.props as {
