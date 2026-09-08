@@ -305,6 +305,20 @@ them are going in the bin.
 >
 > Recommend **A**: they sell on specification, and the catalogue register signals that before a word is read.
 
+**Only these families are served. A theme naming any other renders as system-ui, silently:**
+
+```
+Archivo · Archivo Narrow · Barlow Condensed · Chivo · DM Mono · Familjen Grotesk
+Fraunces · IBM Plex Mono · IBM Plex Sans · Inter · JetBrains Mono · Karla
+Public Sans · Space Grotesk
+```
+
+There is no error and no validator message — the page just renders in the system font and looks
+unstyled for reasons nobody can see. So the tile must use the **same family string** you will put in
+`--font-display` and `--font-body`. A tile drawn in Georgia while the prose promises Fraunces is a
+different design being approved under the wrong name, and the substitution surfaces two stages later
+as "the theme looks nothing like the tile".
+
 Name the typeface decision *against its alternatives*. "Inter" is not a bad font; **Inter unchosen is
 the tell** — it signals nobody made a typography decision. The same is now true of monospace for
 small labels and numerals: it reads as structured and technical, which is exactly why every generator
@@ -356,7 +370,7 @@ most reliable way to avoid a site that is technically distinct from our fleet an
 indistinguishable from its own market. State the list explicitly; it is also what you show the human
 when they ask why the page does not look like the competitor they had in mind.
 
-**Then sample the home-page architecture the way stage 4 samples art direction.** Write three orderings
+**Then sample the home-page architecture the way stage 3 samples art direction.** Write three orderings
 with self-assessed probabilities, discard the likeliest, and pick from the tail. Without this every
 site opens `hero → stats → catalogue`, because that is the mode.
 
@@ -376,9 +390,31 @@ the density gate rewards.
 Give each role a rough word budget drawn from the stage-2 inventory. A role with no source and no
 budget should not be in the sitemap.
 
+**The output is a page list, not only a home-page ordering.** Sampling the home page is step one of
+two; a run that shows three orderings of the same page and calls it a sitemap has not proposed an
+architecture, and the human cannot add or remove a page they were never shown. Show, for every
+option: the pages, and for each page its ordered roles.
+
+```
+B — Buyer-led · 3 pages
+   Home           hero · range · proof · terms · CTA
+   Chairs         hero · catalogue grid · spec · comparison
+   Buying from us hero · warranty · customisation · delivery
+```
+
 A wrong sitemap caught here costs one message. Caught after copy exists it costs a rewrite.
 ▸ **The checkpoint for stages 2, 3 and 4 together.** One screen: the gap list, the style tiles,
 the sampled sitemaps. Then ask for the theme pick and the sitemap pick in one `AskUserQuestion`.
+
+**Discarded means not offered.** The likeliest candidate comes off the list — it is not presented as
+an option annotated "the category default, avoid". Offering something while advising against it puts
+the mode back on the table and invites the human to choose it, which is the outcome the sampling
+exists to prevent. Name what you discarded and why, below the options, so the reasoning is visible
+and unpickable.
+
+**Say where the catalog came from** — the MCP with its `catalogVersion`, or the offline
+`references/catalog.md`. One line. A bundle built against a stale catalog fails at build rather than
+at validation, and without this line nobody can tell which happened.
 
 ### 5. First pages — home plus the densest page, then stop
 Write the home page fully, **and the one page in the sitemap that carries the most structured
