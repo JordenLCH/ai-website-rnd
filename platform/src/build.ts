@@ -40,6 +40,12 @@ function escapeHtml(v: unknown): string {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 }
 
+/** Every Carousel is emitted with `init="false"` so that the preview's React effect and this
+ *  script are the only two things that ever start one — a Swiper that self-starts on connect
+ *  reads its attributes before React has finished setting them. DOMContentLoaded fires after
+ *  the deferred bundle has run, so the custom element is defined by the time this looks. */
+const CAROUSEL_JS = `addEventListener('DOMContentLoaded',function(){document.querySelectorAll('swiper-container[init="false"]').forEach(function(e){e.initialize&&e.initialize()})})`
+
 /** JSON-LD sits in a <script>, so it is not HTML-escaped — the browser reads it as JSON, and
  *  `&lt;` inside it would corrupt the data. The parser ends the block at the first literal
  *  `</script` regardless of JSON string quoting, so that sequence is what has to be broken, and
@@ -145,9 +151,22 @@ export function buildSite(site: Site, theme: Theme, org: Org, outDir: string,
     }
   }
 
+  /* Swiper is loaded per page, and only where a Carousel actually appears — a law firm's
+     contact page should not pay 180KB for a slider on the home page. Matching the serialised
+     node rather than walking the tree keeps this indifferent to how deeply the primitive is
+     nested; `"el":"Carousel"` cannot occur in copy, because `el` is a structural key. */
+  const usesCarousel = (page: Page) => JSON.stringify(page).includes('"el":"Carousel"')
+  let anyCarousel = false
+  // Chrome is drawn on every page, so a Carousel in the header or footer makes every page need it.
+  const chromeUsesCarousel = site.chrome
+    ? JSON.stringify(site.chrome).includes('"el":"Carousel"')
+    : false
+
   for (const [key, page] of Object.entries(site.pages)) {
     const meta = metaFor(site, key, org)
     const ld = jsonLd(site, key, org)
+    const carousel = usesCarousel(page) || (chromeUsesCarousel ?? false)
+    anyCarousel ||= carousel
     const rendered = renderOrFail(page, key)
     if (rendered.issue) return { ok: false as const, issues: [...issues, rendered.issue], written }
     const body = rendered.html
@@ -169,7 +188,7 @@ ${meta.ogImage ? `<meta property="og:image" content="${escapeHtml(meta.ogImage)}
 <style>*{box-sizing:border-box}body{margin:0}${css}</style>
 ${ld.map((node) => `<script type="application/ld+json">${escapeJsonLd(node)}</script>`).join('\n')}
 </head>
-<body>${body}<script>${MOTION_JS}</script></body>
+<body>${body}<script>${MOTION_JS}</script>${carousel ? `\n<script src="/js/swiper.js" defer></script>\n<script>${CAROUSEL_JS}</script>` : ''}</body>
 </html>`
     const path = key === 'home' ? join(outDir, 'index.html') : join(outDir, key, 'index.html')
     mkdirSync(dirname(path), { recursive: true })
@@ -191,6 +210,20 @@ ${ld.map((node) => `<script type="application/ld+json">${escapeJsonLd(node)}</sc
   ] as const) {
     writeFileSync(join(outDir, name), content)
     written.push(join(outDir, name))
+  }
+
+  /* The Swiper element bundle, copied out of the renderer's install rather than linked from a
+     CDN. A published client site that depends on a third party staying up for its slider to
+     work is a support ticket waiting to happen, and it leaks the visitor's IP to that CDN. */
+  if (anyCarousel) {
+    const swiper = join(RENDERER, '..', 'node_modules', 'swiper', 'swiper-element-bundle.min.js')
+    if (existsSync(swiper)) {
+      mkdirSync(join(outDir, 'js'), { recursive: true })
+      cpSync(swiper, join(outDir, 'js', 'swiper.js'))
+      written.push(join(outDir, 'js', 'swiper.js'))
+    } else {
+      issues.push({ where: 'build', message: 'a page uses a Carousel but swiper-element-bundle.min.js was not found in the renderer install — the slider will render as a static stack of slides', severity: 'warning' })
+    }
   }
 
   // The creator's own assets, under /img/<client>/ — the path convention every bundle's props use.

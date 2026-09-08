@@ -235,3 +235,182 @@ Sequenced by "what stops a real client being harmed", not by effort.
 
 Items 1–2 are a single afternoon and remove the exploitable surface. Item 3 is the one that decides
 whether the rest stays fixed.
+
+---
+
+# 2026-09-08 — changes to make to the generation flow
+
+From one end-to-end run: `website_info/wungadv/` (Wung & Co Advocates) built as **100% FreeSection**,
+plus a Swiper carousel and parallax, taken through preview, static build and packaging.
+
+This section is written as **edits to make**, keyed to the nine workflow stages in
+[`skills/create-webpage/SKILL.md`](../skills/create-webpage/SKILL.md). Each item says where it goes,
+what to add, and what it cost when it was missing. Renderer-side fixes already applied are marked
+**[done]** — they are listed because the skill text still needs to change alongside them.
+
+Ordered by how much rework each one prevents.
+
+---
+
+## A. Stage 5–6 (compose) — three JSON rules that must be in the skill body
+
+These three cost the most rework in this run, and none of them is discoverable from the catalog.
+They belong in SKILL.md itself, not a reference file, because they are what the generator gets wrong
+while writing its first section.
+
+### A1. `span` is a grid statement and nowhere else
+
+> **Add to §5, before the first block is written:**
+> - Every **direct child of a section grid** needs an explicit `span`. Without one it occupies
+>   **1 of 12 columns** — the section renders as a narrow left-hand strip.
+> - **Never put `span` on a child of a `Stack` or `Row`.** A Stack is an implicit single-column grid;
+>   one `span: 8` inside it creates eight implicit columns and lays the whole stack out sideways.
+
+Cost when missing: the hero rendered as a horizontal row of fragments and every section was ~8% wide.
+Both validated cleanly and looked like stylesheet bugs. Two full review rounds.
+
+**[done]** `FreeSection.check` now rejects the second case, naming the offending parent.
+
+### A2. `align` flips axis between `Row` and `Grid`
+
+| container | `align: "center"` resolves to | effect |
+|---|---|---|
+| `Row` (flex) | `align-items` | centres **vertically** |
+| `Grid` | `justify-items` + `text-align` | centres **horizontally** |
+
+> **Add to §5:** `align` on a `Grid` centres **copy**, not the row. If you want a two-column split
+> vertically centred, there is currently **no way to express it** — omit `align` and accept top
+> alignment.
+
+Cost when missing: 18 sections silently centred all their body copy when Rows were changed to Grids.
+It reads as a deliberate design choice, so a human reviewer will not flag it.
+
+**Worth fixing properly in the catalog rather than documenting**: make `align` on a Grid mean
+`align-items` (its natural meaning) and route horizontal centring through `justify`. That is a
+breaking change for existing freeform bundles, so it needs a `deprecated` entry + migration.
+
+### A3. Nothing may depend on preview-only JavaScript
+
+> **Add as a house rule (`references/house-rules.md`) and repeat in §7:**
+> The preview app and the build farm are **two renderers**. The preview attaches click handlers and
+> mounts React; the farm emits `renderToStaticMarkup` plus two inline scripts and nothing else.
+> Any affordance that works only because the preview shell is present is broken in production.
+
+This is the single highest-value invariant from the run. Two separate defects came from it:
+
+- `Text` with `page` rendered `<p data-page="...">` and relied on the preview's click delegate. In
+  published output **the entire nav and every footer link was inert**, unfocusable, and invisible to
+  a crawler — while `Button` resolved its href correctly the whole time. **[done]** — linked `Text`
+  now renders an anchor; the home page went from 6 to 10 anchors.
+- `swiper/react` would have animated in preview and shipped dead. Used `swiper-element` instead.
+
+## B. Stage 7 (Design QA) — the checks that would have caught all of the above
+
+§7 currently asks the generator to look at the preview. Every defect in section A survives that.
+
+> **Replace the §7 checklist with one that runs against the built output:**
+>
+> 1. `cd platform && npm run build -- <bundle> <out>` — QA the **built** site, not the preview.
+> 2. **Count anchors per page.** `grep -c '<a ' out/index.html`. A page with fewer links than its
+>    nav has items means something rendered as text instead of a link.
+> 3. **List every internal href** and confirm each resolves to a real page key.
+> 4. **Grep the emitted JSON-LD types.** `grep -o '"@type":"[A-Za-z]*"'`. If a page has an address,
+>    a spec table or a review and no corresponding type, the derivation did not fire.
+> 5. **Check both widths on the built page**, and force reveals before judging
+>    (`document.querySelectorAll('[data-motion]').forEach(e => e.dataset.inview = 'true')`) — a
+>    screenshot mid-animation looks exactly like a broken grid. I misread staggered cards as a layout
+>    bug until measuring: all four shared the same `y`.
+
+## C. Stage 3 (Sitemap) — the divergence check is broken for freeform
+
+`fleet_siblings` scores **layout-map overlap**, and every freeform slot's layout is the literal
+string `"free"`. The new theme came back **1.0, "too similar"** against five sites it resembles in no
+way at all.
+
+> **Add to §3:** if the site is freeform, `fleet_siblings` cannot tell you anything. Compare tone
+> rhythm, grid recipes and primitive mix by hand instead, and say in the handoff that the automated
+> check did not apply.
+
+**Platform fix needed** before the catalog is thinned: re-base `fleet_siblings` on something
+freeform-visible — the ordered tone sequence, section roles, grid column counts, primitive
+histogram. As it stands, a freeform-first pipeline has **no working anti-sameness guard**.
+
+## D. Stage 4 (Style tile) — the levers that carry identity are the ones nobody sets
+
+Measured across the five pre-existing themes:
+
+| | Finding |
+|---|---|
+| Optional tokens | **0 of 43 set** in any theme — `--scale-ratio`, `--density`, `--sp-*`, `--measure`, `--grid-cols`, `--breakout`, `--motion-*` all fell to one stylesheet default |
+| `direction` | **recorded by none**, though the schema has the field and the validator asks at `info` |
+| `sectionStyles` | **39–41 dead slots per theme**, copied wholesale from another client (`aonic` defines 47, uses 6) |
+
+So every site shared a spacing rhythm, a type ratio and a motion feel; only colour and a few sizes
+varied. That is the templated feel, and **it has nothing to do with the block catalog** — thinning
+the catalog would not have touched any of it.
+
+> **Add to §4, as a gate rather than advice:** a style tile is not finished until it sets
+> `--scale-ratio`, a `--sp-*` scale, `--measure`, the `--motion-*` pair, and **per-section
+> `--density` that actually varies**. Uniform density across a site is itself a tell.
+
+**Validator changes to match** (currently all `info`, therefore ignored — 0/5 compliance):
+- no `direction` → **warning**
+- fewer than ~4 optional form tokens set → **warning**
+- `sectionStyles` slots defined but never referenced by the site → **warning**, with the count
+
+## E. Stage 1 (Intake) — pull the publish-blocking facts forward
+
+The build farm refuses a Malaysian bundle without a registration number (s.30(2) Companies Act 2016)
+**and** refuses it if the number is absent from the footer. Correct behaviour. But `compress.sh`
+neither included `org.json` in the zip nor passed it to the validator, so a bundle packaged clean and
+failed on the platform — the slowest possible place to learn it, and undebuggable from the error.
+
+**[done]** `compress.sh` now discovers `org.json` beside `site.json`, ships it, and validates with
+it, so the error fires at package time.
+
+> **Add to §1 as a blocking checklist**, not prose: legal name, registration number, registered
+> address, phone, email, `sameAs` profiles, `businessType`. State plainly that **the site cannot be
+> published without the registration number** and that it must also appear in the footer copy.
+
+## F. Stage 8/9 — voice discipline and honest gaps
+
+- **Occupational vocabulary must come from the brief.** This run labelled a footer address column
+  "CHAMBERS" — real legal English, but *barrister* vocabulary for a firm of advocates and solicitors
+  running an office. The art direction was reaching for a register and invented a term. Same class of
+  error as inventing a statistic, and the existing "never invent facts" rule does not obviously cover
+  it. **Add: never invent professional or sector terminology.**
+- **Say what the catalog could not express.** From this run, for the handoff:
+  - `Text` does not render `\n` — a postal address runs onto one line. `KeyValue` is the workaround.
+  - No section-level `id`, so a footer list of six practice areas can only point at one page.
+  - No `aria-current` in a freeform nav; the catalog `Nav` block gets it from `currentPage`.
+  - No vertical alignment on a `Grid` (see A2).
+
+---
+
+## Catalog / renderer work this run created
+
+Applied, and relevant to the flow because each removes a rule the generator would otherwise have to
+remember:
+
+| Change | Removes the need to |
+|---|---|
+| `List` items accept `{ text, page?, href? }` (additive; string form still valid) | build footer link columns out of stacked `Text` nodes |
+| Linked `Text` renders an anchor | — (it was simply broken) |
+| Controls no longer stretch on either grid axis | hand-place every `Button` and `Badge` |
+| Nested `Grid` spans reset past the mobile breakpoint | write a second mobile layout |
+| `--nav-logo-h` / `--foot-logo-h` scoped to freeform chrome | avoid real logos in a freeform nav |
+| `Carousel` primitive (`swiper-element`, per-page bundle, no CDN) | choose between preview and production |
+
+## Verdict on "thin the catalog and let the agent compose"
+
+The freeform path works and the result reads as a different company. Nothing in the catalog forced a
+templated look.
+
+But the sameness was in section D — unused form tokens and cloned layout maps — and thinning the
+catalog does not touch that. Thinning also disables **two things that key off block type**: the
+divergence check (section C) and the JSON-LD derivation, which collapsed to
+`Organization + PostalAddress + WebPage` with no warning, losing `LocalBusiness` despite
+`businessType: "LegalService"`.
+
+**Sequence: D first (cheapest, largest effect), then C and the `seo.ts` role-based derivation, and
+only then consider thinning the catalog** — by which point the reason to thin it may have gone.
