@@ -492,7 +492,46 @@ Check, in this order:
    600ms ease — either the tokens or the adjective is wrong. This is the check that keeps a
    deliberately chosen direction from decaying into the default one value at a time.
 
-Report the findings as a short list. Some are for you to fix; some are the human's call.
+#### How to actually run checks 1, 3, 7 and 8
+
+`block-audit.js` and `design-qa.js` are **browser snippets, not node scripts** — each is an IIFE that
+measures the live page and returns a report. There is no `npm run` for them because they need a
+rendered DOM. They ship inside the installed package:
+
+```
+node_modules/@blackdash/renderer/tools/design-qa.js     overflow · tiny targets · collisions · contrast
+node_modules/@blackdash/renderer/tools/block-audit.js   the above plus hidden-at-rest and focus rings
+```
+
+Start `npm run dev`, then evaluate the file's contents in the page — your browser tool's
+"evaluate script" call, or paste into the devtools console. Both read `.stage`, so scroll that
+element, not the window, and reset any `zoom` on it to `1` first or the intersection maths is wrong.
+
+**Scroll the whole page in small steps before judging anything.** Reveal animations fire on
+intersection; a page that was jump-scrolled reports sections as hidden that a human would have seen,
+and that false positive has cost more than one debugging session.
+
+#### Report it as a table, not prose
+
+A prose summary of nine checks hides which ones were skipped. One row per check, every check present,
+`n/a` where it does not apply — and a run that cannot do a check says so rather than omitting the row:
+
+```
+#  Check              Result   Detail
+1  Four widths        FAIL     nav wraps into itself at 768
+2  Content extremes   PASS     9-item list, 1-item list, no-image card
+3  Contrast           FAIL     accent on inverse 2.45:1 (needs 4.5)
+4  Slop tells         PASS     radius varies, accent is green not indigo
+5  Images off         PASS
+6  Greyscale/squint   WARN     stats and range compete at the same weight
+7  Targets and focus  FAIL     3 controls at 24px, no focus ring on footer links
+8  Hidden at rest     PASS     24 of 24 sections reveal
+9  Direction audit    WARN     "precise" carried by nothing
+```
+
+Then split the findings: **what you fixed**, and **what is the human's call** — a failing contrast
+ratio is yours, a section competing for attention may be intentional. Never report a check as passing
+because you did not run it.
 
 ### 8. Assets and facts — the human's job
 Work the `unverified` checklist in the preview: every marked section is either confirmed, corrected,
