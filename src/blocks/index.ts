@@ -21,7 +21,6 @@ import { entry as Steps } from './Steps'
 import { entry as Team } from './Team'
 import { entry as Promo } from './Promo'
 import { entry as PostList } from './PostList'
-import { entry as Breadcrumb } from './Breadcrumb'
 import { entry as Notice } from './Notice'
 import { entry as FreeSection } from './FreeSection'
 
@@ -29,5 +28,5 @@ import { entry as FreeSection } from './FreeSection'
 export const catalog: Record<string, CatalogEntry> = {
   Nav, Hero, MediaText, Gallery, SpecTable, Features, Stats, Testimonials,
   LogoWall, FAQ, Timeline, Locations, ContactForm, RichText, CTA, Footer,
-  Pricing, CatalogGrid, Steps, Team, Promo, PostList, Breadcrumb, Notice, FreeSection,
+  Pricing, CatalogGrid, Steps, Team, Promo, PostList, Notice, FreeSection,
 }
