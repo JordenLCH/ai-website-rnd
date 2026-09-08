@@ -121,6 +121,22 @@ trustworthiness:
 Ask for anything missing. Omitting a field is fine; guessing at one is not — wrong registration
 details are a legal problem, not a formatting one.
 
+**Malaysia — the registration number is not optional.** If `address.country` is `MY` (or the legal
+name carries `Sdn Bhd` / `Berhad` / `PLT`), s.30(2) Companies Act 2016 requires the **registered name
+and company registration number on the company's website** — the subsection names websites
+explicitly, alongside letters and invoices, and non-compliance carries up to RM50,000. Put both in
+`chrome.footer`'s `legal.line`, never in a page's blocks: the footer is the only element that appears
+on every page, and a compliance line on the home page is a line missing from the other four.
+
+```jsonc
+"legal": { "line": "Acme Precision Sdn. Bhd. (Registration No. 202001012345 (1234567-X)) · © 2026",
+           "links": [{ "label": "Privacy", "page": "privacy" }] }
+```
+
+Use the number exactly as SSM issued it — the 12-digit form with the old `1234567-X` number in
+brackets, if the client gave both. `validate` fails the bundle when the footer is missing either
+half, so collect `registration` and `legalName` at intake or the site cannot ship.
+
 Also ask what you cannot infer: who buys from them, what the site must make happen, and any page
 that must exist for a non-obvious reason.
 

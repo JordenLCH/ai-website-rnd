@@ -428,7 +428,131 @@ function structureIssues(pages: Map<string, Placed[]>): Issue[] {
   return out
 }
 
-export function validateBundle(rawSite: unknown, rawTheme: unknown):
+/** The identity facts this validator needs. A structural subset of the platform's `Org`,
+ *  redeclared rather than imported so the renderer keeps no dependency on `platform/`. */
+export type OrgFacts = {
+  name?: string
+  legalName?: string
+  registration?: string
+  address?: { country?: string }
+}
+
+/** Every letter and digit, lowercased — so "202001012345 (1234567-X)" in org.json still
+ *  matches "Registration No. 202001012345 (1234567-X)" set with different punctuation,
+ *  spacing or a non-breaking space in the footer copy. */
+const squash = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '')
+
+const MY_COUNTRY = /^(my|mys|malaysia)$/i
+const MY_ENTITY = /\b(sdn\.?\s*bhd|sendirian\s+berhad|berhad|bhd)\b|\(\s*\d{12}\s*\)|\bplt\b/i
+
+/** Is this a Malaysian company? The registered address is the fact; the entity suffix is
+ *  a fallback for a brief that gave the legal name but no address. */
+function isMalaysian(org: OrgFacts): boolean {
+  const country = org.address?.country?.trim()
+  if (country) return MY_COUNTRY.test(country)
+  return MY_ENTITY.test(org.legalName ?? '') || MY_ENTITY.test(org.name ?? '')
+}
+
+/** Section 30(2) Companies Act 2016 requires a Malaysian company to disclose its registered
+ *  name *and* company registration number on its website — the subsection names websites
+ *  explicitly, alongside letters and invoices. Non-compliance is an offence carrying up to
+ *  RM50,000. Because the footer is site chrome it appears on every page, which is what makes
+ *  it the right and only place for this: a compliance line in a page's blocks is a line that
+ *  is missing from four other pages.
+ *
+ *  This is a jurisdiction rule, not a schema rule — it cannot live in Footer's props, because
+ *  the same footer shape is correct for a client outside Malaysia. */
+function jurisdictionIssues(
+  footer: { props: Record<string, unknown> } | undefined,
+  org: OrgFacts | undefined,
+): Issue[] {
+  if (!org || !isMalaysian(org)) return []
+
+  const registered = org.legalName ?? org.name
+  const missing: string[] = []
+  if (!org.registration) missing.push('org.registration')
+  if (!registered) missing.push('org.legalName')
+  if (missing.length) {
+    return [{
+      where: 'org',
+      message: `Malaysian company: ${missing.join(' and ')} ${missing.length > 1 ? 'are' : 'is'} required — s.30(2) Companies Act 2016 obliges the registered name and registration number to appear on the company's website. Ask the client; never guess a registration number`,
+      severity: 'error',
+    }]
+  }
+  if (!footer) {
+    return [{
+      where: 'site.chrome.footer',
+      message: 'Malaysian company: the site has no footer, so the registered name and registration number appear nowhere — s.30(2) Companies Act 2016 requires both on the website',
+      severity: 'error',
+    }]
+  }
+
+  const text = squash(JSON.stringify(footer.props))
+  const absent: string[] = []
+  if (!text.includes(squash(org.registration!))) absent.push(`registration number "${org.registration}"`)
+  if (!text.includes(squash(registered!))) absent.push(`registered name "${registered}"`)
+  if (!absent.length) return []
+  return [{
+    where: 'site.chrome.footer',
+    message: `Malaysian company: footer is missing ${absent.join(' and ')} — s.30(2) Companies Act 2016. Put both in the footer's legal.line, e.g. "${registered} (Registration No. ${org.registration}) · © ${new Date().getFullYear()}"`,
+    severity: 'error',
+  }]
+}
+
+/** Chrome is the only part of a site that appears on every page, so a weakness here is a
+ *  weakness repeated everywhere — which is why these are checked separately from a block's own
+ *  `check`, whose findings are errors. None of these should stop a build; all of them should be
+ *  fixed before a client sees the site. */
+function chromeIssues(site: { chrome?: { header?: { type: string; props: Record<string, unknown> }; footer?: { type: string; props: Record<string, unknown> } } }): Issue[] {
+  const out: Issue[] = []
+  const footer = site.chrome?.footer
+  if (footer?.type === 'Footer') {
+    const p = footer.props as {
+      columns?: Array<{ title: string; links: Array<{ label: string; page?: string } | string> }>
+      contact?: unknown; legal?: { line?: string }
+    }
+    // The catalog rendered these as bare list items for the whole life of the project: words
+    // that look like links, are not focusable, are not announced as links and go nowhere.
+    const inert = (p.columns ?? []).flatMap((c) =>
+      (c.links ?? []).filter((l) => typeof l === 'string' || !l.page)
+        .map((l) => `${c.title} › ${typeof l === 'string' ? l : l.label}`))
+    if (inert.length) {
+      out.push({
+        where: 'site.chrome.footer',
+        message: `${inert.length} footer link(s) have no "page" and render as plain text (${inert.slice(0, 4).join(', ')}${inert.length > 4 ? ', …' : ''}) — give each a page key, a URL, a "mailto:" or a "tel:"`,
+        severity: 'warning',
+      })
+    }
+    if (!p.contact) {
+      out.push({
+        where: 'site.chrome.footer',
+        message: 'no "contact" — a phone, email or address in the footer is what visitors come here for, and the footer is the only place it reaches every page',
+        severity: 'warning',
+      })
+    }
+    if (!p.legal?.line) {
+      out.push({
+        where: 'site.chrome.footer',
+        message: 'no "legal.line" — the copyright line, and in some jurisdictions the registered name and company registration number, belong in this row',
+        severity: 'info',
+      })
+    }
+  }
+  const header = site.chrome?.header
+  if (header?.type === 'Nav') {
+    const p = header.props as { utility?: unknown; action?: unknown }
+    if (!p.utility) {
+      out.push({
+        where: 'site.chrome.header',
+        message: 'no "utility" strip — a phone number or email above the main bar is how contact details reach every page without spending one of the seven nav slots',
+        severity: 'info',
+      })
+    }
+  }
+  return out
+}
+
+export function validateBundle(rawSite: unknown, rawTheme: unknown, rawOrg?: unknown):
   { ok: boolean; issues: Issue[]; density: Density[]; unverified: string[] } {
   const issues: Issue[] = []
   const s = SiteSchema.safeParse(rawSite)
@@ -530,6 +654,19 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown):
       }
     }
     if (ASK_TYPES.has(b.type)) for (const l of ctaLabels(b.props)) askWordings.add(l.toLowerCase())
+
+    // Every theme's --overlay is a dark scrim — that is what the token is for, and all six in
+    // the repo are dark. The copy on top of it inherits the section's tone, so pairing the
+    // layout with a light tone paints dark ink on a darkened photograph. Nothing caught it,
+    // because both halves are individually valid. Every shipped bundle already pairs it with
+    // "inverse"; this makes the pairing a rule rather than a habit.
+    if (style && style.layout === 'overlay-fullbleed' && style.tone !== 'inverse' && style.tone !== 'accent') {
+      issues.push({
+        where,
+        message: `layout "overlay-fullbleed" paints a dark scrim over the image, so its copy needs a light tone — this variant is "${style.tone}". Set the section's tone to "inverse" (or "accent")`,
+        severity: 'error',
+      })
+    }
 
     // A product shot on white, dropped into an inverse-tone section, reads as a hole
     // punched in the page — the section has images and still looks empty. The same
@@ -678,6 +815,8 @@ export function validateBundle(rawSite: unknown, rawTheme: unknown):
     })
   }
 
+  issues.push(...chromeIssues(site))
+  issues.push(...jurisdictionIssues(site.chrome?.footer, rawOrg as OrgFacts | undefined))
   issues.push(...structureIssues(placed))
   issues.push(...slopTells(theme))
   issues.push(...systemIssues(theme))

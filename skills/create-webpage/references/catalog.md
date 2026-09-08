@@ -39,11 +39,35 @@ Putting Nav or Footer inside a page's `blocks` still validates — the schema al
 bundles keep working — but it is wrong: you end up with one copy per page to keep in sync, and a
 header that can drift between pages without anything complaining.
 
-**Nav** — layouts `inline-left`, `centered-stack`, `split-rail`
-`{ brand, logo?, items: [{label, page}] (2–7), action?: {label} }`
+**Nav** — layouts `inline-left`, `split-rail`
+`{ brand, logo?, utility?: [{label, page?}] (1–4), items: [{label, page, children?: [{label, page}] (2–8)}] (2–7), action?: {label, page?} }`
+
+`utility` is the thin strip above the main bar — a phone number, an email, a portal login. Put
+contact details there rather than spending one of the seven `items` slots on them; `page` takes
+`"tel:+60..."` and `"mailto:..."` as well as a page key. `items[].children` is a submenu, so a
+twelve-page site can still show five top-level items. The nav collapses behind a menu button below
+620px and marks the current page `aria-current` — both are automatic, nothing to declare.
 
 **Footer** — layouts `columns`, `centered-minimal`
-`{ brand, columns: [{title, links: [string]}] (1–4), note? }`
+```jsonc
+{ "brand": "...", "logo": "...", "tagline": "one line, what they do",
+  "columns": [{ "title": "Products", "links": [{ "label": "...", "page": "products" }] }],   // 1–4
+  "contact": { "label": "Contact", "address": ["...", "..."], "phone": "...", "email": "..." },
+  "social":  [{ "label": "LinkedIn", "href": "https://..." }],                                // ≤6
+  "legal":   { "line": "Acme Sdn. Bhd. (Registration No. 202001012345) · © 2026",
+               "links": [{ "label": "Privacy", "page": "privacy" }] },                        // ≤4
+  "note": "editorial line — ISO certified since 1982" }
+```
+
+Every `links` entry needs a `page` or it renders as plain text and the validator warns: a page key,
+a full URL, a `mailto:` or a `tel:`. `contact` renders as its own column with real `tel:`/`mailto:`
+anchors — the footer is the only place contact details reach every page, so leaving it out is
+warned about too. `legal` is the bottom row and is kept apart from `note` because it is not
+editorial: copyright, and where the law requires it the registered name and company registration
+number. `social` takes text labels, not icons — the catalog ships no icon set.
+
+Older bundles wrote `links` as `[string]`. They still validate and render exactly as before; the
+migration carries each string to `{label}` and leaves `page` unset for a human to fill in.
 
 **Breadcrumb** — layouts `inline`, `boxed`
 `{ items: [{label, page?}] (2–5) }` — last item omits `page`.

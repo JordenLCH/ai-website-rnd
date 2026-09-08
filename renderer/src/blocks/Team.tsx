@@ -45,6 +45,10 @@ export const entry: CatalogEntry<P> = {
     // photo-grid is a grid of faces; with no names it is a grid of stock photography.
     if (layout === 'photo-grid' && props.items.some((m) => !m.name))
       out.push('layout "photo-grid" needs a name on every member — use "minimal-list" for unnamed roles')
+    // ...and photos. `image` is optional on a member, so a photo-grid with none renders as a
+    // wide-gapped name list — the layout's whole reason for existing is the faces.
+    if (layout === 'photo-grid' && props.items.some((m) => !m.image))
+      out.push('layout "photo-grid" needs an image on every member — use "minimal-list" when there are no photographs')
     return out
   },
 }

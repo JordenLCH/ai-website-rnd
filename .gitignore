@@ -23,3 +23,7 @@ better_AI_demo
 
 # written by setup-mcp.sh, holds a live catalog token
 .mcp.json
+
+# throwaway chrome screenshots from a review session — never committed
+preview-shots/
+docs/images

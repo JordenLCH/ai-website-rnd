@@ -30,7 +30,7 @@
     "blackdash-preview": "./bin/preview.mjs",
     "blackdash-validate": "./bin/validate.mjs"
   },
-  "version": "0.4.0",
+  "version": "0.4.1",
   "files": [
     "src",
     "tools",

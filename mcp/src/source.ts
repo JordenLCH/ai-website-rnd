@@ -12,7 +12,7 @@ export const RENDERER = join(here, '..', '..', 'renderer', 'src')
 
 /** Bumped whenever a block's schema or layout set changes. Bundles record the
  *  version they were generated against so old bundles can still be rebuilt. */
-export const CATALOG_VERSION = '0.4.0'
+export const CATALOG_VERSION = '0.4.1'
 
 /** One line per block: enough for a model to choose, cheap enough to send every session. */
 const SUMMARY: Record<string, string> = {

@@ -1,7 +1,7 @@
 # House rules
 
-Three independent gates run over generated JSON. The first two are ordinary validation; the third is
-the one that actually protects design quality.
+Four independent gates run over generated JSON. The first two are ordinary validation; the third is
+the one that actually protects design quality, and the fourth is the one with a statute behind it.
 
 ## Gate 0 — density and provenance
 
@@ -50,6 +50,35 @@ Schema validity does not mean the section will look right. These rules catch the
 - At most 8 animated nodes per section; beyond that motion reads as noise rather than emphasis.
 - No `Text` node over 420 characters — long prose belongs in a `story` section with a prose layout.
 - A background `overlay` requires `kind: "environment"`.
+
+## Gate 4 — jurisdiction
+
+Rules that come from where the client is registered rather than from the design. They read
+`org.json`, so they only run when it is supplied — pass it to `validate` as the third argument, or
+they are skipped in preview and first fail at publish.
+
+- **A Malaysian company must disclose its registered name and registration number on its website.**
+  s.30(2) Companies Act 2016 lists websites explicitly, next to business letters and invoices;
+  non-compliance is an offence carrying up to RM50,000. The gate fires when `org.address.country` is
+  `MY` (or, with no address, when the legal name carries `Sdn Bhd` / `Berhad` / `PLT`), and it wants
+  both halves inside `chrome.footer` — in `legal.line`, the row that exists for exactly this, and
+  the footer because it is the only element on every page.
+  Missing `org.registration` or `org.legalName` fails too: the fix is to ask the client. A guessed
+  registration number is a legal problem, not a formatting one.
+
+## Chrome — checked separately, because it is on every page
+
+Nav and Footer are declared once in `chrome`, so a weakness in either is a weakness repeated on
+every page. Three warnings, none of them build-stopping:
+
+- **Footer links with no `page`** render as plain text. They look like links, are not focusable, are
+  not announced as links and go nowhere — which is what the whole catalog did until the `links`
+  shape changed from `[string]` to `[{label, page?}]`. Give each one a page key, a URL, a `mailto:`
+  or a `tel:`.
+- **No `contact` in the footer.** A phone, email or address there is what visitors come to a footer
+  for, and it is the only place those reach every page.
+- **No `utility` strip on the Nav.** It is the thin row above the main bar and the way contact
+  details get onto every page without spending one of the seven nav slots.
 
 ## Pitfalls with non-obvious causes
 

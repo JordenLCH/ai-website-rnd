@@ -20,6 +20,32 @@ const RENDERER = join(here, '..', '..', 'renderer', 'src')
 
 const FONTS = fontsHref()
 
+/** Everything below the <body> goes through React, which escapes it. The document head does not:
+ *  it is assembled by string interpolation, and every value in it — title, description, canonical,
+ *  og:image — is derived from `site.json`, which is model-generated, human-edited, and uploaded
+ *  from a machine the platform does not control. A hero title containing `"><script>` broke out of
+ *  an attribute and ran on the client's own domain.
+ *
+ *  Escapes the full five rather than the three that "look" needed: an unescaped `'` is exploitable
+ *  the moment an attribute is single-quoted, which is a one-character edit away in any future line. */
+function escapeHtml(v: unknown): string {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+
+/** JSON-LD sits in a <script>, so it is not HTML-escaped — the browser reads it as JSON, and
+ *  `&lt;` inside it would corrupt the data. The parser ends the block at the first literal
+ *  `</script` regardless of JSON string quoting, so that sequence is what has to be broken, and
+ *  `<!--` because it opens an HTML comment that swallows the rest of the block. Escaping the
+ *  slash and the `!` keeps the JSON byte-identical once parsed. */
+function escapeJsonLd(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/<\/(script)/gi, '<\\/$1')
+    .replace(/<!--/g, '<\\u0021--')
+    .replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029')
+}
+
 /** Reveal + parallax, inlined. Same contract as the preview: data attributes drive it,
  *  and reduced-motion users simply get the finished state. */
 const MOTION_JS = `
@@ -34,15 +60,18 @@ for(const e of p){const r=e.getBoundingClientRect();const g=(r.top+r.height/2)/h
 e.style.setProperty('--parallax-y',(-g*parseFloat(e.dataset.parallax)*100).toFixed(2)+'px')}})};
 addEventListener('scroll',on,{passive:true});addEventListener('resize',on,{passive:true});on()}})();`
 
-function renderPage(page: Page, site: Site, theme: Theme) {
+function renderPage(page: Page, site: Site, theme: Theme, pageKey: string) {
   const section = (b: Page['blocks'][number], key: number) => {
     const entry = catalog[b.type]
     const style = theme.sectionStyles[b.variant]
     if (!entry || !style) return null
     const parsed = entry.schema.safeParse(b.props)
     if (!parsed.success) return null
+    // Which page this is cannot come from the bundle — chrome is declared once for the whole
+    // site — so the renderer supplies it, and Nav marks the matching item `aria-current`.
+    const props = { ...(parsed.data as object), currentPage: pageKey }
     return createElement('div', { key, className: 'section', 'data-tone': style.tone, style: style.vars },
-      createElement(entry.Component as never, { props: parsed.data, layout: style.layout }))
+      createElement(entry.Component as never, { props, layout: style.layout }))
   }
   const children = [
     site.chrome?.header ? section(site.chrome.header, -1) : null,
@@ -55,7 +84,7 @@ function renderPage(page: Page, site: Site, theme: Theme) {
 
 export function buildSite(site: Site, theme: Theme, org: Org, outDir: string,
   opts: { allowUnverified?: boolean; bundleDir?: string } = {}) {
-  const { ok, issues, unverified } = validateBundle(site, theme)
+  const { ok, issues, unverified } = validateBundle(site, theme, org)
   if (!ok) return { ok: false as const, issues, written: [] as string[] }
 
   /** The generator is allowed to compose plausible copy so a page arrives whole rather than
@@ -83,24 +112,24 @@ export function buildSite(site: Site, theme: Theme, org: Org, outDir: string,
   for (const [key, page] of Object.entries(site.pages)) {
     const meta = metaFor(site, key, org)
     const ld = jsonLd(site, key, org)
-    const body = renderPage(page, site, theme)
+    const body = renderPage(page, site, theme, key)
     const html = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${meta.title}</title>
-<meta name="description" content="${meta.description.replace(/"/g, '&quot;')}">
-<link rel="canonical" href="${meta.canonical}">
+<title>${escapeHtml(meta.title)}</title>
+<meta name="description" content="${escapeHtml(meta.description)}">
+<link rel="canonical" href="${escapeHtml(meta.canonical)}">
 <meta property="og:type" content="website">
-<meta property="og:title" content="${meta.title}">
-<meta property="og:description" content="${meta.description.replace(/"/g, '&quot;')}">
-${meta.ogImage ? `<meta property="og:image" content="${meta.ogImage}">` : ''}
+<meta property="og:title" content="${escapeHtml(meta.title)}">
+<meta property="og:description" content="${escapeHtml(meta.description)}">
+${meta.ogImage ? `<meta property="og:image" content="${escapeHtml(meta.ogImage)}">` : ''}
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="${FONTS}">
+<link rel="stylesheet" href="${escapeHtml(FONTS)}">
 <style>*{box-sizing:border-box}body{margin:0}${css}</style>
-<script type="application/ld+json">${JSON.stringify(ld[0])}</script>
+${ld.map((node) => `<script type="application/ld+json">${escapeJsonLd(node)}</script>`).join('\n')}
 </head>
 <body>${body}<script>${MOTION_JS}</script></body>
 </html>`

@@ -86,7 +86,7 @@ export default function App() {
           </div>
         )}
         {result.site && result.theme && active && (
-          <PageView page={result.site.pages[active]} chrome={result.site.chrome} theme={result.theme}
+          <PageView page={result.site.pages[active]} pageKey={active} chrome={result.site.chrome} theme={result.theme}
             onNavigate={(p) => setPageKey(p)} />
         )}
       </div>
