@@ -67,11 +67,11 @@ below produces something small enough to review in seconds, and you stop and wai
 Work that survives a checkpoint is never regenerated.
 
 ```
-1  intake             (human)  documents, org facts, brand colour
-2  content inventory  (you)    what copy actually exists, per page  ▸ human fills gaps
-3  sitemap            (you)    pages + section roles, sampled       ▸ human edits
-4  style tile         (you)    type, colour, spacing on one sheet   ▸ human picks
-5  home page          (you)    real copy in the real theme          ▸ human corrects
+1  intake             (human)  documents, org facts, phone, socials, brand colour
+2  content inventory  (you)    what copy exists and what it breaks — prep, no gate
+3  theme              (you)    4 sampled, 3 shown as style tiles
+4  sitemap            (you)    pages + section roles, sampled       ▸ human decides or revises  (3 + 4)
+5  first pages        (you)    home + the densest page, real copy   ▸ human decides or revises
 6  remaining pages    (you)    applying the corrections
 7  design QA          (you)    breakpoints, states, contrast        ▸ human sees the list
 8  assets & facts     (human)  real photos, verified numbers
@@ -81,14 +81,81 @@ Work that survives a checkpoint is never regenerated.
 Everything after the upload — SEO/AEO/GEO artifacts, hosting, scheduled refresh — happens on the
 platform. See "After you hand off".
 
-**The order is content, then structure, then look — never the reverse.** That is how a studio has
-always run a site build, and the reason is not ceremony: a visual direction chosen before anyone
-knows how much copy each section carries is a guess, and the page then gets bent to fit the guess.
-The failure is measurable — three independent runs of one brief that picked their art direction first
-produced three palettes and *one* page structure, because the structure was fitted to a look that was
-already locked, and the safe structure fits every look. Choosing the look at stage 4, after the
-sitemap exists, means the type scale and density are chosen *for the content that will actually be
-there*.
+**Stages 3 and 4 share one checkpoint.** Show the style tiles and the sitemap together and ask once:
+they are the two halves of the same question — what this site is and what it looks like — and
+splitting them costs a round trip for nothing.
+
+The risk in choosing the look before the structure is real and worth naming: three independent runs
+of one brief that picked art direction first produced three palettes and *one* page structure,
+because the structure was fitted to a look already locked, and the safe structure fits every look.
+**Stage 2 is what defuses it.** Do the content inventory during intake, before either, and the type
+scale and density are chosen against how much copy will actually be there. Sample the sitemap
+independently — not as the arrangement that suits the tile you just drew.
+
+### ▸ is a hard stop, not a suggestion
+
+**At every ▸ you call `AskUserQuestion` and end your turn.** Not "here are three options, I picked
+A, moving on" — that is a generation with a commentary track, and it is the failure this workflow
+exists to prevent. The human is the client's proxy; they are the only one who knows which of two
+defensible choices is the one they will have to live with.
+
+The rule that catches the common self-deception: **if your message contains the words "I picked" or
+"I'll go with", it should have been an `AskUserQuestion` instead.** Recommending is fine and
+expected — deciding is not.
+
+| At a ▸ | Do |
+|---|---|
+| The choice has options to compare — a look, a layout, a page list, a density | Push a screen (see "Showing work visually"), then `AskUserQuestion` with the same A/B/C labels |
+| The choice is a single fact — a number, a name, yes/no | `AskUserQuestion` directly, no screen needed |
+| You genuinely have one option | Still ask — "proceed / change something" — the human may know a constraint you don't |
+
+Three legitimate exceptions, and only these: the human said "don't ask, just build"; you are running
+as a subagent with no human attached; or a prior answer at this same checkpoint already covers the
+question. Say which one applies, once, rather than silently skipping.
+
+**Between ▸ marks, do not stop.** A checkpoint every two paragraphs is as bad as none — it moves the
+work onto the human. The nine stages are the checkpoints; there are no others.
+
+### Showing work visually — never make a human imagine it
+
+A look, a layout, a tone rhythm and a page structure are all things a human judges in two seconds by
+eye and cannot judge at all from prose. **Prose is the wrong medium for stages 3, 4 and 7.** Three
+routes, in order of preference:
+
+1. **The real preview** (`npm run dev`, port 5183) — the only one that is actually the renderer, so
+   what is on screen is what ships. Use it the moment real JSON exists: stage 4's tile, stage 5's
+   home page, stage 7's QA pass. Say which page and which width you are showing.
+2. **`npm run screens`** (port 5190) for choices that exist *before* any JSON does — the art
+   directions, sitemap shapes, anything with options to compare. Write one HTML file into
+   `.preview/screens/` and the server shows the newest. Write a **content fragment** — no `<html>`,
+   no `<head>` — and it gets wrapped in the frame. `.preview/` is gitignored; nothing here ships.
+
+   ```
+   .preview/screens/art-direction.html   one file per screen, never reuse a name
+   ```
+
+   Label the options **A / B / C** plainly on the page. Images resolve from `assets/` at
+   `/img/<client>/<file>` — use the client's real photography when the question is whether a
+   direction suits it.
+3. **A published page** (an Artifact, or whatever your harness offers) when the human is not at the
+   same machine and the choice needs to survive the session.
+
+**The screen shows; the terminal decides.** The page is display-only on purpose — no clicking, no
+selection state, no event file. The human looks at the screen and answers in the terminal, where you
+are already asking with `AskUserQuestion`. A second input channel in the browser would be one more
+thing to build and maintain, and it still could not wake you between turns, so it buys nothing.
+
+Both modes are `preview.mjs` in the starter — node builtins, no plugin, no install. A visual step
+that depends on a plugin the creator has no other reason to have is a visual step that silently does
+not happen.
+
+`AskUserQuestion`'s option previews render **monospace markdown** — no colour, no type, no layout.
+They are fine for a page list. They cannot show an art direction, and a direction shown that way is
+being chosen on its *name*, which is the one thing about it that does not matter.
+
+**Render the tokens, not a description of them.** A style tile written from the real token values —
+even hand-written HTML that never ships — is faithful. A tile written from your idea of what "warm
+editorial" looks like is a different design being approved under the same name.
 
 ### 1. Intake — collect, do not guess
 Take the documents (PDF, brief, deck) and the brand colour, then collect the organisation facts into
@@ -174,9 +241,58 @@ anything, and what it records is not the total — it is the extremes the layout
 This table is the input to stage 7's content-extreme pass — without it that pass invents its own
 extremes and tests the layout against content the client will never have.
 
-▸ Show both tables. Wait for the gaps to be filled or waived.
+Anything missing here is a question for stage 4's checkpoint, not a stop of its own — carry the
+gap list forward and ask once.
 
-### 3. Sitemap — sample the architecture, then roles, still no copy
+### 3. Theme — the look on one sheet, not a fake page
+Now, and not before, choose the visual direction. The first direction a model proposes is the mode of
+its training data, which is why generated sites look alike. Generate four candidates with a
+self-assessed probability for each, discard the likeliest, and present **three**.
+
+Present each in about two lines — the register, the type pairing and its *scale ratio*, the density
+dial, the tone rhythm, one sentence on why it suits this client and this sitemap. **Do not write
+theme JSON yet.** Three full themes is roughly ten times the tokens of three descriptions, and two of
+them are going in the bin.
+
+> **A** Swiss catalogue — Archivo 800, 1.25 scale, tight density, hairlines, zero radius, bone/ink, accent as a marker
+> **B** Warm editorial — Fraunces 300, 1.414 scale, loose density, soft shadows, cream ground
+> **C** Precision lab — condensed caps, 1.2 scale, tight density, white ground, thin rules, blue accent on data only
+>
+> Recommend **A**: they sell on specification, and the catalogue register signals that before a word is read.
+
+Name the typeface decision *against its alternatives*. "Inter" is not a bad font; **Inter unchosen is
+the tell** — it signals nobody made a typography decision. The same is now true of monospace for
+small labels and numerals: it reads as structured and technical, which is exactly why every generator
+reaches for it, and it is on track to be as telling as an indigo gradient. Use it if you can say what
+it does here that a small-caps sans would not.
+
+**Build the tile, not a page:** one preview screen showing the type scale at
+every step, the tone bands, a button, a rule, a caption and a table row. That is a style tile, and it
+is what a studio shows at this point — deliberately *not* a mocked page with lorem in it, because a
+human shown a fake page judges the fake copy and the invented layout instead of the type and colour
+you actually want a decision on.
+
+Iterate on tokens only. Content does not exist yet, so nothing is wasted.
+
+**Write the pick down as three adjectives, and treat them as binding.** A studio names the direction
+before it sets values, because the adjectives are what every later decision gets tested against —
+"precise" and a 28px radius contradict each other, and the contradiction is only visible if the word
+was written down. Avoid *modern*, *clean* and *professional*: they describe every site ever made.
+Make one adjective slightly uncomfortable, and record what you rejected.
+
+```json
+"direction": {
+  "adjectives": ["quiet", "precise", "expensive"],
+  "rejected": ["warm editorial — the register undersells a specification-led buyer"],
+  "why": "they sell on tolerance figures; restraint reads as confidence in the numbers"
+}
+```
+
+Put it at the top level of `theme.json`. It costs nothing, it survives the session, and at stage 7
+it is the thing you audit the tokens against — including for the next agent, who otherwise re-derives
+the direction from the values and gets it wrong.
+
+### 4. Sitemap — sample the architecture, then roles, still no copy
 A **section role** is the job a section does on the page — proof, range, story, spec, process —
 not a block type and not a theme slug. A page is an ordered list of roles:
 
@@ -216,57 +332,10 @@ Give each role a rough word budget drawn from the stage-2 inventory. A role with
 budget should not be in the sitemap.
 
 A wrong sitemap caught here costs one message. Caught after copy exists it costs a rewrite.
-▸ Let the human add, remove and reorder.
+▸ **The checkpoint for stages 2, 3 and 4 together.** One screen: the gap list, the style tiles,
+the sampled sitemaps. Then ask for the theme pick and the sitemap pick in one `AskUserQuestion`.
 
-### 4. Style tile — the look on one sheet, not a fake page
-Now, and not before, choose the visual direction. The first direction a model proposes is the mode of
-its training data, which is why generated sites look alike. Generate four candidates with a
-self-assessed probability for each, discard the likeliest, and present **three**.
-
-Present each in about two lines — the register, the type pairing and its *scale ratio*, the density
-dial, the tone rhythm, one sentence on why it suits this client and this sitemap. **Do not write
-theme JSON yet.** Three full themes is roughly ten times the tokens of three descriptions, and two of
-them are going in the bin.
-
-> **A** Swiss catalogue — Archivo 800, 1.25 scale, tight density, hairlines, zero radius, bone/ink, accent as a marker
-> **B** Warm editorial — Fraunces 300, 1.414 scale, loose density, soft shadows, cream ground
-> **C** Precision lab — condensed caps, 1.2 scale, tight density, white ground, thin rules, blue accent on data only
->
-> Recommend **A**: they sell on specification, and the catalogue register signals that before a word is read.
-
-Name the typeface decision *against its alternatives*. "Inter" is not a bad font; **Inter unchosen is
-the tell** — it signals nobody made a typography decision. The same is now true of monospace for
-small labels and numerals: it reads as structured and technical, which is exactly why every generator
-reaches for it, and it is on track to be as telling as an indigo gradient. Use it if you can say what
-it does here that a small-caps sans would not.
-
-▸ Wait for the pick. **Then build the tile, not a page:** one preview screen showing the type scale at
-every step, the tone bands, a button, a rule, a caption and a table row. That is a style tile, and it
-is what a studio shows at this point — deliberately *not* a mocked page with lorem in it, because a
-human shown a fake page judges the fake copy and the invented layout instead of the type and colour
-you actually want a decision on.
-
-Iterate on tokens only. Content does not exist yet, so nothing is wasted.
-
-**Write the pick down as three adjectives, and treat them as binding.** A studio names the direction
-before it sets values, because the adjectives are what every later decision gets tested against —
-"precise" and a 28px radius contradict each other, and the contradiction is only visible if the word
-was written down. Avoid *modern*, *clean* and *professional*: they describe every site ever made.
-Make one adjective slightly uncomfortable, and record what you rejected.
-
-```json
-"direction": {
-  "adjectives": ["quiet", "precise", "expensive"],
-  "rejected": ["warm editorial — the register undersells a specification-led buyer"],
-  "why": "they sell on tolerance figures; restraint reads as confidence in the numbers"
-}
-```
-
-Put it at the top level of `theme.json`. It costs nothing, it survives the session, and at stage 7
-it is the thing you audit the tokens against — including for the next agent, who otherwise re-derives
-the direction from the values and gets it wrong.
-
-### 5. Home page — plus the densest page, then stop
+### 5. First pages — home plus the densest page, then stop
 Write the home page fully, **and the one page in the sitemap that carries the most structured
 content** — the spec table, the price comparison, the nine-item catalogue, the form. Then stop.
 
