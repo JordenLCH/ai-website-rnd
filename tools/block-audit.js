@@ -21,12 +21,26 @@
     const layout = blk.dataset ? blk.dataset.layout : '';
     const sr = sec.getBoundingClientRect();
 
+    // A carousel parks its off-screen slides to the right and clips them, and its container box
+    // spans every slide at once. So the parked slides read as overflow, and the container overlaps
+    // each slide it holds — neither is visible to anyone. Same class of measurement error as the
+    // multi-column case below: getBoundingClientRect describes boxes the browser never paints.
+    const inClippedTrack = (e) => {
+      for (let n = e; n && n !== document.documentElement; n = n.parentElement) {
+        const tag = (n.tagName || '').toLowerCase();
+        if (tag.startsWith('swiper-')) return true;
+        const cs = getComputedStyle(n);
+        if (/hidden|clip|auto|scroll/.test(cs.overflowX) && n.scrollWidth > n.clientWidth + 1) return true;
+      }
+      return false;
+    };
+
     // how far the rightmost *text* reaches inside the content column
     let right = 0, left = 1e9, over = 0;
     for (const el of blk.querySelectorAll('*')) {
       const r = el.getBoundingClientRect();
       if (r.width < 1 || r.height < 1) continue;
-      if (r.right > sr.right + 1.5) over = Math.max(over, Math.round(r.right - sr.right));
+      if (r.right > sr.right + 1.5 && !inClippedTrack(el)) over = Math.max(over, Math.round(r.right - sr.right));
       const t = (el.children.length === 0 && el.innerText) ? el.innerText.trim() : '';
       const isImg = el.tagName === 'IMG';
       if (t || isImg) { right = Math.max(right, r.right); left = Math.min(left, r.left); }
@@ -100,7 +114,7 @@
       return false;
     };
     const leaves = [...blk.querySelectorAll('*')]
-      .filter(e => e.children.length === 0 && e.innerText && e.innerText.trim() && !inColumns(e));
+      .filter(e => e.children.length === 0 && e.innerText && e.innerText.trim() && !inColumns(e) && !inClippedTrack(e));
     for (let i = 0; i < leaves.length && !collide; i++) {
       const a = leaves[i].getBoundingClientRect();
       if (a.width < 2 || a.height < 2) continue;
