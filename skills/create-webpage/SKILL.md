@@ -327,11 +327,30 @@ small labels and numerals: it reads as structured and technical, which is exactl
 reaches for it, and it is on track to be as telling as an indigo gradient. Use it if you can say what
 it does here that a small-caps sans would not.
 
-**Build the tile, not a page:** one preview screen showing the type scale at
-every step, the tone bands, a button, a rule, a caption and a table row. That is a style tile, and it
-is what a studio shows at this point — deliberately *not* a mocked page with lorem in it, because a
-human shown a fake page judges the fake copy and the invented layout instead of the type and colour
-you actually want a decision on.
+**Build the tile, not a page.** A style tile is what a studio shows at this point — deliberately
+*not* a mocked page with lorem in it, because a human shown a fake page judges the fake copy and the
+invented layout instead of the type and colour you actually want a decision on.
+
+**All six elements, in every tile. A tile missing one is not a shorter tile, it is a tile that cannot
+answer the question it was drawn for:**
+
+```
+1  type scale      every step you will actually use — display, heading, lede, body, eyebrow
+2  tone bands      all four: default · surface · inverse · accent, each labelled, each
+                   showing its own text colour on its own ground
+3  a button        the real --btn-radius, --btn-pad and --btn-weight, not a browser default
+4  a rule          the real --border and --color-line, at the weight the theme uses
+5  a caption       smallest text, in --color-muted, on the default ground
+6  a table row     a label and a value, because specification content is where type breaks
+```
+
+**The tone bands are the ones that get dropped, and they are the ones that matter most.** Which
+sections go inverse or accent carries more brand identity than the colour values do, so three tiles
+without tone bands read as three fonts on one background — and the human, correctly, says they all
+look the same. If you draw only one element, draw those.
+
+Use the client's real words for the sample strings — a product name, a real figure. Not lorem, and
+not "The quick brown fox": the tile has to survive the words it will actually hold.
 
 Iterate on tokens only. Content does not exist yet, so nothing is wasted.
 
