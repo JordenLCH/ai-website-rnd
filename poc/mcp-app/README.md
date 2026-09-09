@@ -43,8 +43,16 @@ transport `mcp/src/http.ts` already uses; the real validator answers over MCP an
 broken bundle with an issue naming the break; the real catalog renders; and a click inside the
 app calls the server again and re-renders a different page.
 
-Not proved: rendering inside **claude.ai specifically** — that needs a public URL, a connector,
-and a human to add it. Everything up to that point is verified here.
+Also proved, by hand on 2026-09-09: it renders in **claude.ai** itself. Quick tunnel in front of
+`:8788`, added as a custom connector with **Authentication: None** and the key on `authorization`,
+asked for a preview in an ordinary chat — the app came up inline with its validation bar, page tabs
+and the site in its own theme.
+
+Run it with a key whenever it is reachable from anywhere but loopback:
+
+```bash
+POC_TOKEN=$(cat .poc-token) npm run serve      # boot line says whether auth is on
+```
 
 ## What building it taught us
 

@@ -172,8 +172,15 @@ the real catalog and a real MCP Apps host. Ten checks pass: the app tool adverti
 validator answers over MCP and rejects a broken bundle with an issue naming the break, the real
 catalog renders, and a click inside the app calls the server again and re-renders another page.
 
-Not covered: rendering inside claude.ai specifically. That needs a public URL, a connector, and a
-person to add it — everything up to that point is verified.
+**Then confirmed in claude.ai itself, 2026-09-09.** The server behind a Cloudflare quick tunnel,
+added as a custom connector with a shared key, rendering the app inline in a real conversation:
+validation bar, page tabs, Merryfair in its own theme, at a narrow viewport. Nothing about this
+design rests on an assumption any more.
+
+The connector was configured with **Authentication: None** plus the key on `authorization`. Worth
+knowing for later: choosing OAuth in that dialog makes Claude refuse to let you set an
+`Authorization` request header — OAuth owns it — so a shared-key server offered alongside OAuth
+would have to answer on `x-api-key` or `x-auth-token` instead.
 
 Four things it changed:
 

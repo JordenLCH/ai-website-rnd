@@ -8,7 +8,7 @@
  *  The page render below is a deliberate copy of platform/src/build.ts for the POC only.
  *  Production must call into that module, not duplicate it — two renderers is the exact
  *  drift this repo is organised to prevent. */
-import { createServer as createHttp } from 'node:http'
+import { createServer as createHttp, type IncomingMessage } from 'node:http'
 import { timingSafeEqual } from 'node:crypto'
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
@@ -44,12 +44,25 @@ const ORIGINS = new Set((process.env.POC_ORIGINS ?? 'http://localhost:8080,http:
  *  and puts it on every request. Unset means open, which is fine on loopback and never behind a
  *  tunnel — hence the warning at boot rather than a silent default. */
 const TOKEN = process.env.POC_TOKEN
-function tokenOk(header: string | undefined): boolean {
+
+/** Constant-time: `!==` leaks the shared prefix length through timing, and a correct
+ *  comparison costs one function. */
+function same(got: string | undefined, expected: string): boolean {
+  const a = Buffer.from(got ?? ''), b = Buffer.from(expected)
+  return a.length === b.length && timingSafeEqual(a, b)
+}
+
+/** Accepts the key on `authorization` (as `Bearer <token>`) or on `x-api-key` / `x-auth-token`
+ *  (bare). The alternatives are not decoration: when a Claude connector is configured for OAuth
+ *  it owns the Authorization header and refuses to let you set one, so a shared-key server has
+ *  to answer on a name OAuth does not claim. Both are pre-approved connector header names. */
+function tokenOk(req: IncomingMessage): boolean {
   if (!TOKEN) return true
-  const expected = Buffer.from(`Bearer ${TOKEN}`)
-  const got = Buffer.from(header ?? '')
-  if (got.length !== expected.length) return false
-  return timingSafeEqual(got, expected)
+  const h = req.headers
+  const bare = (v: string | string[] | undefined) => Array.isArray(v) ? v[0] : v
+  return same(bare(h.authorization), `Bearer ${TOKEN}`)
+    || same(bare(h['x-api-key']), TOKEN)
+    || same(bare(h['x-auth-token']), TOKEN)
 }
 
 function renderPage(page: Page, site: Site, theme: Theme, pageKey: string): string {
@@ -141,7 +154,7 @@ if (process.argv[1]?.endsWith('server.ts')) {
     const origin = req.headers.origin
     if (origin && ORIGINS.has(origin)) {
       res.setHeader('Access-Control-Allow-Origin', origin)
-      res.setHeader('Access-Control-Allow-Headers', 'content-type, mcp-session-id, mcp-protocol-version, authorization, accept')
+      res.setHeader('Access-Control-Allow-Headers', 'content-type, mcp-session-id, mcp-protocol-version, authorization, x-api-key, x-auth-token, accept')
       res.setHeader('Access-Control-Expose-Headers', 'mcp-session-id')
     }
     if (req.method === 'OPTIONS') { res.writeHead(204).end(); return }
@@ -149,7 +162,7 @@ if (process.argv[1]?.endsWith('server.ts')) {
     /* The moment this is behind a tunnel it is on the public internet, and it serves the whole
        fleet. Same constant-time check as mcp/src/http.ts: `!==` leaks the shared prefix length
        through timing, and a correct comparison costs one function. */
-    if (!tokenOk(req.headers.authorization)) { res.writeHead(401).end(); return }
+    if (!tokenOk(req)) { res.writeHead(401).end(); return }
     /* Bounded, the way mcp/src/http.ts already bounds it. An unbounded `for await` over a
        request body is a one-line memory exhaustion for anyone who can reach the port, and
        the README tells people to put this behind a tunnel. Destroy the socket rather than
