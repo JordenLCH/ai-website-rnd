@@ -1,0 +1,3 @@
+[submodule "renderer"]
+	path = renderer
+	url = https://github.com/JordenLCH/website-renderer.git
