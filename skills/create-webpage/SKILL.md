@@ -40,6 +40,8 @@ documentation for people and not a source to generate from.
 Then call `catalog_get` for just the blocks you intend to use — pulling all of them wastes the
 context you need for composition. Say in your handoff which `catalogVersion` you built against —
 there is no field for it in `site.json`, so it belongs in your written summary, not in the JSON.
+(`bundle_publish` stamps it on the stored bundle, so hosting always knows; the summary is for the
+human.)
 
 ### Two ways to run this, and how to tell which you are in
 
@@ -52,13 +54,13 @@ not apply to you.
 |---|---|---|
 | Validate | `npm run validate -- <client>` | `bundle_validate` — pass the bundle, same module |
 | Preview | `npm run dev`, port 5183 | `site_preview` — renders in the conversation |
-| Package | `./package.sh <client>` | export the JSON and the asset archive from the chat |
+| Publish | `./package.sh <client>`, then upload the zip | `bundle_publish` — sends the JSON and returns a link for the pictures |
 
 Both validators are the same module the build farm imports, so a bundle that passes on either path
 cannot fail at upload for schema reasons. Neither is a friendlier second opinion, and if you ever
 find yourself wanting one, that is the bug.
 
-Validate before previewing: it costs a second and catches what a screenshot never will. Package the
+Validate before previewing: it costs a second and catches what a screenshot never will. Publish the
 SOURCE bundle, never a build — shipping HTML freezes the site, and it can then never be re-themed or
 receive a fleet-wide patch.
 
@@ -117,7 +119,7 @@ Work that survives a checkpoint is never regenerated.
 6  remaining pages    (you)    applying the corrections
 7  design QA          (you)    breakpoints, states, contrast        ▸ human sees the list
 8  assets & facts     (human)  real photos, verified numbers
-9  hand off           (you)    validate, package, upload
+9  hand off           (you)    validate, publish, hand over the upload link
 ```
 
 Everything after the upload — SEO/AEO/GEO artifacts, hosting, scheduled refresh — happens on the
@@ -608,12 +610,32 @@ Check images for **third-party branding** — a competitor's logo on a worker's 
 is a real problem no validator will catch.
 
 ### 9. Hand off
-Validate, preview one last time, package, upload. See below for what the platform does next.
+Validate, preview one last time, then publish. See below for what the platform does next.
+
+**On the chat path this is `bundle_publish`,** with the site's own domain, the bundle, and
+`org.json` — which is required, because the entity graph is built from it alone and a site without
+one is refused here rather than at upload. What comes back is a **link the human opens in a
+browser** to add the photographs.
+
+The pictures deliberately do not go through the conversation. Base64 in a transcript is several
+times the size of the file and is re-sent on every later turn, so one site's photography would cost
+more than the site. Say this plainly when you hand over the link — it is not an apology for a
+missing feature, it is why the flow works for someone with no development machine at all.
+
+What the link does: it lists exactly the pictures the site refers to, matches dropped files by name,
+and refuses to publish while any are missing. So the names in your props are the names the human
+will be asked for — a `src` of `/img/acme/hero-workshop.webp` asks for `hero-workshop.webp`.
+Name images for what they show, never `image-1.webp`, or the person matching them up has no way to
+know which is which.
+
+`bundle_status` reports what is still missing; `bundle_discard` withdraws a draft, which is how a
+mistyped domain is fixed. Once the site is live it can only be changed by publishing again — a
+published site cannot be discarded from a chat.
 
 ## After you hand off
 
-The bundle you upload is source, not a built site. The platform stores it (Payload CMS), renders it
-with the catalog version you pinned, and deploys the result. Three consequences worth understanding,
+The bundle you publish is source, not a built site. The hosting server stores it, renders it with
+the same build farm the preview used, and deploys the result. Three consequences worth understanding,
 because they change what you should and should not put in the content:
 
 **Structured data is derived, never authored.** JSON-LD, meta tags, Open Graph, sitemaps, `llms.txt`

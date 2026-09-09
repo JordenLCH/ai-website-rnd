@@ -11,6 +11,8 @@ import { validateBundle } from '@blackdash/renderer/validate-bundle'
    its own way is a second renderer, and a second renderer is how "it looked right in the preview"
    becomes "it published wrong". */
 import { renderPage } from '@blackdash/platform/build'
+import { referencedAssets, assetFileName } from '@blackdash/platform/assets'
+import { target, putDraft, getDraft, deleteDraft } from './publish.ts'
 
 /** The MCP Apps mime type. Declared here rather than pulled from `@modelcontextprotocol/ext-apps`
  *  because that package peers on zod 4 while this server and the renderer are on zod 3, and two
@@ -172,6 +174,89 @@ export function createServer() {
       content: [{ type: 'text' as const, text: JSON.stringify(payload) }],
       _meta: { blackdash: payload },
     }
+  })
+
+  /* Publishing. `package.sh` for someone who cannot run a shell — and the point at which the
+     conversation stops being the record and the hosting server becomes it.
+
+     The write path lives on the hosting side; these three tools are its remote control. They are
+     a set on purpose: a create with no way to inspect or withdraw it leaves a creator who mistyped
+     a domain with a draft they can neither see nor remove, and no admin login to fix it with. */
+  const noTarget = () => json({
+    ok: false,
+    error: 'publishing is not configured on this catalog server — set SITE_HOSTING_URL and ' +
+      'SITE_HOSTING_KEY. Until then the bundle is only in this conversation: nothing has been stored.',
+  })
+
+  server.registerTool('bundle_publish', {
+  title: 'Publish a bundle to hosting',
+  description:
+    'Hand a finished bundle to the hosting server, which stores it and returns a link for uploading ' +
+    'the photographs. Validation runs first and a bundle with errors is refused — this is the last ' +
+    'step, not a way to check. Publishing the same domain again replaces the JSON and keeps the ' +
+    'pictures already uploaded. The images themselves never travel through the conversation.',
+  inputSchema: {
+    domain: z.string().describe('the site\'s own domain, e.g. merryfair.com — this is its identity in hosting'),
+    site: z.any(), theme: z.any(),
+    org: z.any().describe('required to publish: the entity graph is derived from this file alone'),
+  },
+  }, async ({ domain, site, theme, org }) => {
+    const t = target()
+    if (!t) return noTarget()
+    if (!org) return json({
+      ok: false,
+      error: 'org.json is required to publish. It holds what marketing copy never states and a model ' +
+        'must not invent — legal name, registration number, address, phone, sameAs profiles — and the ' +
+        'Organization/LocalBusiness graph, the highest-value thing this pipeline emits, is built from it alone.',
+    })
+    const v = validateBundle(site, theme, org)
+    const errors = v.issues.filter((i) => i.severity === 'error')
+    if (!v.ok || !v.site || !v.theme) return json({ ok: false, error: 'the bundle is not valid', errors })
+    try {
+      /* The validator's migrated copy is what gets stored, so a bundle written against an older
+         catalog is upgraded once here rather than re-migrated on every rebuild for years. */
+      /* A referenced path outside the `/img/<client>/…` convention has no name to be uploaded
+         under, so it is dropped here rather than sent as something the creator can never satisfy —
+         the validator is what reports it as a broken reference. */
+      const expected = referencedAssets(v.site).map(assetFileName).filter((n): n is string => n !== null)
+      const draft = await putDraft(t, {
+        domain, site: v.site, theme: v.theme, org, expected, catalogVersion: CATALOG_VERSION,
+      })
+      return json({
+        ok: true, catalogVersion: CATALOG_VERSION, ...draft,
+        warnings: v.issues.filter((i) => i.severity === 'warning'),
+        next: draft.missing.length
+          ? `open ${draft.uploadUrl} in a browser and add ${draft.missing.length} picture(s); the site builds once none are missing`
+          : `open ${draft.uploadUrl} to publish — every picture it needs is already uploaded`,
+      })
+    } catch (e) {
+      return json({ ok: false, error: (e as Error).message, referenced: referencedAssets(v.site) })
+    }
+  })
+
+  server.registerTool('bundle_status', {
+  title: 'Check a published bundle',
+  description: 'What hosting currently holds for a domain: whether it is a draft or live, and which photographs it is still waiting for.',
+  inputSchema: { domain: z.string() },
+  }, async ({ domain }) => {
+    const t = target()
+    if (!t) return noTarget()
+    try { return json({ ok: true, ...await getDraft(t, domain) }) }
+    catch (e) { return json({ ok: false, error: (e as Error).message }) }
+  })
+
+  server.registerTool('bundle_discard', {
+  title: 'Discard a draft',
+  description:
+    'Delete a draft and every picture uploaded against it. Use this for a domain typed wrong, ' +
+    'not to take a live site down — a published site is removed in hosting, deliberately, because ' +
+    'a chat message should not be able to unpublish someone\'s website.',
+  inputSchema: { domain: z.string() },
+  }, async ({ domain }) => {
+    const t = target()
+    if (!t) return noTarget()
+    try { return json({ ok: true, ...await deleteDraft(t, domain) }) }
+    catch (e) { return json({ ok: false, error: (e as Error).message }) }
   })
 
   server.registerResource('site-preview', PREVIEW_URI, {

@@ -164,27 +164,47 @@ page and the platform are built around today's shape.
 
 ## What is done, and what is left
 
-Done and proven: the MCP App preview rendering the real catalog inside claude.ai from a custom
-connector with a shared key (`poc/mcp-app/`, `npm run prove`); the auth answer; the between-pages
-variation checks in the validator.
+The whole loop now runs end to end, and is proved on every change by `cd mcp && npm run prove`:
+compose in a conversation → `bundle_validate` → `site_preview` → `bundle_publish` → open the link
+in a browser and drop the photographs in → the site builds, with its entity graph, sitemap and
+`llms.txt`, and deploys.
 
-Also done: all four checks ported from the earlier round, and Cloudflare Pages deploy
-(`npm run build -- <bundle> <out> --deploy=<domain>` — opt-in, skips without credentials).
+Done:
 
-Also done: `bundle_validate` and `site_preview` on the real catalog server, the preview UI drawing
-pages through the build farm's own `renderPage` (exported, never copied), and the skill rewritten
-for a creator with no filesystem — it now stops when the catalog is unreachable instead of falling
-back to a stale copy, and takes image paths from the archive the person actually uploaded.
+- **The preview**, as an MCP App drawing the real catalog inside claude.ai from a custom connector
+  with a shared key. The throwaway that proved it is retired — see
+  [`docs/2026-09-09-mcp-app-poc-retired.md`](docs/2026-09-09-mcp-app-poc-retired.md).
+- **Validation over MCP** (`bundle_validate`), the same module the build farm imports.
+- **Publishing** (`bundle_publish`, `bundle_status`, `bundle_discard`) — the JSON goes over the
+  wire, the pictures do not.
+- **The upload page**, in `site-hosting` at `/upload/<code>`. It lists exactly the pictures the site
+  refers to, matches dropped files by name, and will not publish while any are missing. It has its
+  own root layout so it does not need the CMS database to be up — the one screen where someone is
+  finishing a site must not fail because the admin is down.
+- **The intake and the build**, also in `site-hosting`: `/api/bundle`, and a build that shells out
+  to this repo's build farm rather than re-rendering anything of its own.
+- The between-pages variation checks, the four checks ported from the earlier round, and Cloudflare
+  Pages deploy (opt-in, skips without credentials).
+- The skill rewritten for a creator with no filesystem: it stops when the catalog is unreachable
+  rather than falling back to a stale copy, and it now ends at `bundle_publish`.
+- `org.json` is required to publish, and `site-starter/validate.sh` fails without it instead of
+  printing "not checked" and exiting 0.
 
 Left:
 
-- **the upload page** — lives in `site-hosting`, not here; check what it already does before
-  planning around it
-- an always-on deploy, with the auth question answered
-- **the packager does not write `org.json`**, so no bundle in `content/` has one and the build farm
-  cannot run on any of them. The build now says so clearly instead of dying on ENOENT, but the fix
-  belongs in the packager (`renderer/tools/compress.sh`, `site-starter/package.sh`)
-- **committed fixtures.** `content/` is gitignored, so a fresh clone has no bundles at all: the test
-  suites, the smoke test and `fleet_siblings` all have nothing to run against, and the divergence
-  check passes vacuously. Two or three bundles with `org.json` — one good, one deliberately failing
-  the variation checks — should be committed separately from the client fleet
+- **The two repos are joined by a path.** `site-hosting` finds the build farm at `PLATFORM_DIR`,
+  defaulting to a sibling directory. A stale checkout there builds sites against an old catalog
+  with nothing to say so. The renderer solved this by becoming its own repo consumed as a
+  submodule; the platform should go the same way. Until then the seam is real and undefended.
+- **An always-on deploy.** Everything above is proven against a local hosting server and a
+  tunnelled catalog server. Neither is running unattended yet.
+- **Committed fixtures.** `content/` is gitignored, so a fresh clone has no bundles at all: the test
+  suites, the smoke test and `fleet_siblings` have nothing to run against, and the divergence check
+  passes vacuously. Two or three bundles with `org.json` — one good, one deliberately failing the
+  variation checks — should be committed separately from the client fleet.
+- **Token cost of the preview.** `site_preview` returns the rendered page in `content`, which is
+  billed into the conversation on every page switch. `_meta` carries the same payload already and
+  the app reads it first, so moving it is one line here and none on the app side — worth doing once
+  `_meta` forwarding is confirmed in claude.ai.
+- **Facts as data, not as copy** — the open decision above, partly answered by `collections` /
+  `pageTemplates` / `$from` landing in the renderer.

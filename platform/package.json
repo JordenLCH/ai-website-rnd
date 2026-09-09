@@ -4,7 +4,8 @@
   "private": true,
   "exports": {
     "./build": "./src/build.ts",
-    "./seo": "./src/seo.ts"
+    "./seo": "./src/seo.ts",
+    "./assets": "./src/assets.ts"
   },
   "type": "module",
   "scripts": {

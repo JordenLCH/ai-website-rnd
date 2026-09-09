@@ -12,7 +12,7 @@ If you are here to **test the flow**, jump to "Test task" at the bottom.
 | Path | What it is |
 |---|---|
 | `renderer/` | **git submodule** → [`website-renderer`](https://github.com/JordenLCH/website-renderer). `@blackdash/renderer`: block catalog, validator, preview server. Preview and checking only — no fleet, no SEO, no MCP |
-| `mcp/` | read-only catalog MCP server (HTTP + bearer, plus a stdio entry point) |
+| `mcp/` | the catalog MCP server (HTTP + bearer, plus a stdio entry point). Read-only, except for the three `bundle_*` tools that hand a finished bundle to hosting — the store stays on the far side |
 | `platform/` | the server side — build farm and SEO/AEO/GEO derivation. Runs after upload |
 | `content/` | the fleet — one folder per client, gitignored. This repo's work product, not catalog code |
 | `skills/create-webpage/` | the distributable skill creators use, and **the source copy** — `./skills/install.sh [../site-starter]` pushes it to `~/.claude/skills/` and a starter checkout. Three copies exist and they drift: the starter's still told creators to fall back to a stale catalog after this one stopped |
@@ -85,7 +85,29 @@ cd platform && npm run build -- <bundle-dir> <out-dir>   # HTML + JSON-LD + site
 cd mcp && npm run smoke                    # validates every bundle, proves the gates fire
 cd mcp && ./tunnel.sh                      # start the catalog server (HTTP :8787, bearer auth)
 cd mcp && npm start                        # stdio form, if you need it standalone
+cd mcp && npm run prove                    # 20 headless checks, including the publish path
+
+# publishing: set these on the catalog server and `bundle_publish` appears
+#   SITE_HOSTING_URL=http://127.0.0.1:3000  SITE_HOSTING_KEY=<site-hosting's BUNDLE_KEY>
+# without them the tool says so rather than pretending to store anything
 ```
+
+## Publishing, and where the other half lives
+
+A creator on the chat path ends at `bundle_publish`. That sends the validated JSON to
+**`site-hosting`**, which stores it, serves the browser page where the photographs are added
+(`/upload/<code>`), and then builds the site by invoking *this* repo's build farm as a child
+process. Nothing is rendered twice: hosting hosts, the farm renders.
+
+The pictures never travel through the conversation — base64 in a transcript is several times the
+file size and is re-sent every turn, so one site's photography would cost more than the site. The
+chat carries paths; the browser carries bytes. `platform/src/assets.ts` is the single answer to
+"which pictures does this site need", read from the props the build will actually resolve and sent
+to hosting rather than recomputed there.
+
+**The seam to watch:** `site-hosting` finds the farm by path (`PLATFORM_DIR`, default
+`../ai-website/platform`). A stale checkout there builds against an old catalog silently. The
+renderer solved exactly this by becoming its own repo; the platform has not yet.
 
 The preview app has three dropdowns — `site`, `theme`, and page tabs — plus a status readout that
 turns red and lists issues when a bundle is invalid.
