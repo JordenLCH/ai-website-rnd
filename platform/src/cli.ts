@@ -15,7 +15,24 @@ if (!bundleDir || !outDir) {
   process.exit(2)
 }
 
-const read = (f: string) => JSON.parse(readFileSync(join(bundleDir, f), 'utf8'))
+/** A missing file used to arrive as a bare ENOENT, which says which path was not found and
+ *  nothing about why the build wanted it. org.json is the one people actually hit: it holds the
+ *  facts no marketing copy states and no model may invent, and the entity graph — the highest-value
+ *  thing this pipeline emits — is derived entirely from it. */
+const read = (f: string) => {
+  try {
+    return JSON.parse(readFileSync(join(bundleDir, f), 'utf8'))
+  } catch (e) {
+    const why = (e as NodeJS.ErrnoException).code === 'ENOENT'
+      ? f === 'org.json'
+        ? 'every published site needs it: legal name, registration number, address, phone, sameAs profiles. ' +
+          'These are collected at intake and never guessed — the Organization/LocalBusiness graph is built from this file alone'
+        : 'a bundle is site.json, theme.json and org.json'
+      : `it is not valid JSON — ${(e as Error).message}`
+    console.error(`✗ ${join(bundleDir, f)}: ${why}`)
+    process.exit(1)
+  }
+}
 const r = buildSite(read('site.json'), read('theme.json'), read('org.json'), outDir, { allowUnverified, bundleDir })
 
 for (const i of r.issues) console.log(`${i.severity}: ${i.where} — ${i.message}`)
