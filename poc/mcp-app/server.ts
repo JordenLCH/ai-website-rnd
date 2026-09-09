@@ -32,6 +32,13 @@ const SITE_CSS = readFileSync(join(RENDERER, 'styles.css'), 'utf8')
 
 const RESOURCE_URI = 'ui://blackdash/site-preview.html'
 
+/** Which browser origins may talk to this endpoint — an allowlist, never a reflection of
+ *  whatever Origin arrived. Reflecting it lets any page the operator has open read the whole
+ *  fleet off 127.0.0.1, which is the DNS-rebind hole mcp/src/http.ts already refuses to leave
+ *  open. Default covers the ext-apps basic-host only. */
+const ORIGINS = new Set((process.env.POC_ORIGINS ?? 'http://localhost:8080,http://127.0.0.1:8080')
+  .split(',').map((o) => o.trim()).filter(Boolean))
+
 function renderPage(page: Page, site: Site, theme: Theme, pageKey: string): string {
   const section = (b: Page['blocks'][number], key: number) => {
     const entry = catalog[b.type]
@@ -52,6 +59,13 @@ function renderPage(page: Page, site: Site, theme: Theme, pageKey: string): stri
 }
 
 function readBundle(client: string) {
+  /* `client` arrives from a tool call, so it is attacker-controlled the moment this is
+     tunnelled. join(CONTENT, '../../somewhere') escapes the fleet directory happily, and
+     any directory holding a site.json would then be readable. Match against what the
+     fleet actually contains rather than trying to sanitise the string. */
+  if (!readdirSync(CONTENT, { withFileTypes: true }).some((e) => e.isDirectory() && e.name === client)) {
+    throw new Error(`no such client "${client}"`)
+  }
   const dir = join(CONTENT, client)
   const read = (f: string) => JSON.parse(readFileSync(join(dir, f), 'utf8'))
   return {
@@ -112,15 +126,22 @@ if (process.argv[1]?.endsWith('server.ts')) {
        preflight and then send the session header. mcp/src/http.ts allows no origins by
        default, deliberately — so a web host talking to it needs CATALOG_ORIGINS set. */
     const origin = req.headers.origin
-    if (origin) {
+    if (origin && ORIGINS.has(origin)) {
       res.setHeader('Access-Control-Allow-Origin', origin)
       res.setHeader('Access-Control-Allow-Headers', 'content-type, mcp-session-id, mcp-protocol-version, authorization, accept')
       res.setHeader('Access-Control-Expose-Headers', 'mcp-session-id')
     }
     if (req.method === 'OPTIONS') { res.writeHead(204).end(); return }
     if (req.method !== 'POST') { res.writeHead(405).end(); return }
+    /* Bounded, the way mcp/src/http.ts already bounds it. An unbounded `for await` over a
+       request body is a one-line memory exhaustion for anyone who can reach the port, and
+       the README tells people to put this behind a tunnel. Destroy the socket rather than
+       leaving the sender streaming into a request nobody is reading. */
     let raw = ''
-    for await (const c of req) raw += c
+    for await (const c of req) {
+      raw += c
+      if (raw.length > 4_000_000) { req.destroy(); res.writeHead(413).end(); return }
+    }
     /* Stateless per request, exactly as mcp/src/http.ts already is — which is why this
        transport shape needs no change to become the real thing. */
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })

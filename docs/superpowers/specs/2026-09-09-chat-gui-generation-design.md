@@ -179,15 +179,58 @@ Four things it changed:
 
 - **`mcp/` needs no transport change.** It is already `McpServer` + `StreamableHTTPServerTransport`,
   stateless per request, which is exactly what MCP Apps wants.
-- **Auth does not match, and must be decided.** We authenticate with a static bearer
-  (`CATALOG_TOKEN`, `mcp/src/http.ts`). Claude's Add-custom-connector dialog offers an OAuth client
-  ID and secret; there is no field for a static bearer. Either implement OAuth, or drop the token
-  and rely on an unguessable URL plus the existing rate limiter plus an Anthropic-IP allowlist —
-  their docs require the server be reachable from those ranges, so allowlisting is supported.
+- **Auth: resolved, see below.** The static bearer we already have is supported by Claude, through
+  a dialog section the earlier draft did not know about.
 - **CORS becomes a decision.** A host that connects browser-side preflights; `CATALOG_ORIGINS`
   currently allows nothing, deliberately.
 - **The UI must be one self-contained file.** The iframe CSP is deny-by-default. `vite-plugin-singlefile`
   produced 235 KB for the POC's app, so this costs nothing in practice.
+
+## Auth: a shared org key, which is what we already have
+
+The requirement is narrow — only our own people, holding a key we issue, because this drives an
+internal tool and a stranger stumbling in is the thing to prevent. Claude supports exactly that
+shape, and `mcp/src/http.ts`'s existing `CATALOG_TOKEN` bearer needs no redesign.
+
+**`static_headers`.** The Add-custom-connector dialog has a **Request headers** section: an
+organization administrator enters a fixed credential once, Claude stores it write-only and sends it
+on every request. Set Authentication to **None** and put the key in a header — `authorization` and
+`x-api-key` are pre-approved names, so no review is needed. The value is sent **verbatim, with no
+scheme added**, so the entry must read `Bearer <token>`, space included, to match what our
+`tokenOk()` already compares against.
+
+The credential is shared by the organization rather than per user, which is precisely the intended
+model here: everyone doing this work is on our team, and the key marks the tool as ours rather than
+identifying an individual.
+
+Two operational facts that matter more than they look:
+
+- **It is beta, limited to some organizations.** If the Request headers section is not in the dialog,
+  we do not have it, and the fallback below applies. This is the first thing to check — the whole
+  plan for Path B hinges on it and it costs one minute to confirm.
+- **Auth settings cannot be edited after a connector is added.** Rotating the key means removing the
+  connector and re-adding it, and every member reconnecting. So rotation is a scheduled team action,
+  not a quiet ops change, and the key should be treated accordingly.
+
+**Fallback if the beta is unavailable: OAuth.** Claude supports `oauth_cimd` (it identifies itself
+with an Anthropic-hosted Client ID Metadata Document — nothing to register) and `oauth_dcr`. Either
+way we must serve OAuth 2.0 Protected Resource Metadata (RFC 9728) and return
+`401` + `WWW-Authenticate: Bearer resource_metadata="…"`, pointing at an authorization server that
+does S256 PKCE. Standing that up ourselves is disproportionate for an internal tool; front the
+server with an existing identity provider instead and let it issue the tokens. This is real work,
+which is why the beta check comes first.
+
+**Not an option: a token in the URL.** Anthropic's docs call it a security vulnerability and the MCP
+authorization spec prohibits access tokens in the query string — URLs land in logs, proxies and
+history. The earlier draft floated an unguessable URL; withdrawn.
+
+**Defence in depth, whichever path.** Anthropic's egress is `160.79.104.0/21`, so the server can
+refuse everything else. That is not identity — every Claude user's traffic comes from that range —
+but it removes the entire internet as an attack surface and leaves the key doing the work it is
+good at. Keep the existing per-address rate limit.
+
+**Claude Code needs none of this.** It supports `headers.Authorization` in its MCP config directly,
+so Path A works against our current token today. This whole section is about claude.ai web.
 
 ## Scope
 

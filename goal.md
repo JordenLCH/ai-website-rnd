@@ -101,10 +101,12 @@ A hosted drag-drop page. Zip from Path A, folder from Path B, same bundle either
   `site_preview` (an MCP App — the real catalog, rendered in the conversation). The server's
   transport already suits both; no rewrite
 - **The upload page**
-- **An answer on auth.** Claude's custom-connector dialog takes OAuth, not our static bearer token.
-  Either implement OAuth or drop the token and defend with an unguessable URL, the rate limiter and
-  an Anthropic-IP allowlist. Nothing ships until this is decided — a connector cannot be added
-  without it
+- **Confirm the request-header beta.** Claude's Add-custom-connector dialog can take a fixed key as
+  a request header (`static_headers`) — set Authentication to None, enter `Bearer <token>` under
+  Request headers, and our existing `CATALOG_TOKEN` works unchanged, shared across our org. It is
+  beta and limited to some organizations, so check the dialog first: if the section is missing we
+  need OAuth instead, which is real work. Also lock the server to Anthropic's egress range
+  `160.79.104.0/21`. Never put the token in the URL
 - **An always-on catalog MCP.** Today it is `mcp/tunnel.sh` on a laptop. Once the MCP is a hard
   dependency, a 502 means nobody in the company can generate anything. This is a blocking
   prerequisite, not a nice-to-have
