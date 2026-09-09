@@ -27,4 +27,7 @@ better_AI_demo
 # throwaway chrome screenshots from a review session — never committed
 preview-shots/
 docs/images
-renderer/src/content
+
+# the fleet — generated client bundles, one folder per site. Local work product,
+# not platform code, and the source material it derives from is ignored too.
+content/

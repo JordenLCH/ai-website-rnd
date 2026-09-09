@@ -9,7 +9,7 @@
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { validateBundle } from '../src/validate-bundle'
+import { validateBundle } from '@blackdash/renderer/validate-bundle'
 
 const STRUCTURAL = ['--scale-ratio', '--density', '--motion-duration', '--motion-ease',
   '--grid-cols', '--breakout', '--radius-tight', '--elev-1']

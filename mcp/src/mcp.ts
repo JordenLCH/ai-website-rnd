@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { CATALOG_VERSION, listBlocks, getBlocks, readThemes } from './source.ts'
 import { siblings, divergence } from './fleet.ts'
-import { REQUIRED_TOKENS, OPTIONAL_TOKENS, DERIVED_TOKENS } from '../../renderer/src/tokens.ts'
+import { REQUIRED_TOKENS, OPTIONAL_TOKENS, DERIVED_TOKENS } from '@blackdash/renderer/tokens'
 
 const json = (data: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] })
 

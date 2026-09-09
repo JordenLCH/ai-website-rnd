@@ -6,7 +6,8 @@
   "scripts": {
     "build": "node --import tsx src/cli.ts",
     "smoke": "node --import tsx src/smoke.ts",
-    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json"
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
+    "bench": "node --import tsx tools/bench.ts"
   },
   "dependencies": {
     "@blackdash/renderer": "file:../renderer",

@@ -5,8 +5,7 @@
     "dev": "vite",
     "build": "vite build",
     "validate": "node --import tsx tools/validate.ts",
-    "migrations": "node --import tsx tools/migrations.ts",
-    "bench": "node --import tsx tools/bench.ts"
+    "migrations": "node --import tsx tools/migrations.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.3.4",

@@ -5,14 +5,15 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { zodToJsonSchema } from 'zod-to-json-schema'
-import { catalog } from '../../renderer/src/blocks/index.ts'
+import { catalog } from '@blackdash/renderer/blocks'
 
 const here = dirname(fileURLToPath(import.meta.url))
-export const RENDERER = join(here, '..', '..', 'renderer', 'src')
+/** The fleet is this repo's own work product, not part of the catalog package. */
+export const FLEET = join(here, '..', '..', 'content')
 
-/** Derived from the catalog's own shape — see renderer/src/catalog-version.ts. It was a literal
+/** Derived from the catalog's own shape — see the renderer's catalog-version. It was a literal
  *  here, bumped by hand, and it had already fallen behind two schema changes. */
-export { CATALOG_VERSION } from '../../renderer/src/catalog-version.ts'
+export { CATALOG_VERSION } from '@blackdash/renderer/catalog-version'
 
 /** One line per block: enough for a model to choose, cheap enough to send every session. */
 const SUMMARY: Record<string, string> = {
@@ -68,9 +69,9 @@ export function getBlocks(types: string[]) {
   })
 }
 
-/** The fleet, read from the renderer's content directory — one folder per site. */
+/** The fleet, read from this repo's content directory — one folder per site. */
 export function readThemes(): Record<string, any> {
-  const dir = join(RENDERER, 'content')
+  const dir = FLEET
   const out: Record<string, any> = {}
   for (const client of readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory())) {
     const file = join(dir, client.name, 'theme.json')
