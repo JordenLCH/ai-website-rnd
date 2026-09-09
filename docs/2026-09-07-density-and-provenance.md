@@ -30,7 +30,7 @@ Three things caused it:
    elements a professional page is actually built from. A section could only be heading + text + image.
 3. **"Never invent facts" and density were in direct conflict.** The rule stopped the generator
    filling a page, so it shipped empty ones instead. Notably the *brief was not the constraint* —
-   `website_info/merryfair/merryfair.md` contains composition percentages, delivery windows, warranty
+   `website_info/merryfair/info.md` contains composition percentages, delivery windows, warranty
    terms and export figures that the generated site never used.
 
 ## What changed
