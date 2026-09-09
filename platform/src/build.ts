@@ -77,9 +77,13 @@ addEventListener('scroll',on,{passive:true});addEventListener('resize',on,{passi
 /** Thrown when the farm is handed a block the validator accepted and the renderer cannot draw.
  *  Its own class so buildSite can turn it into a build failure and let every other error keep
  *  its stack. */
-class UnrenderableBlock extends Error {}
+export class UnrenderableBlock extends Error {}
 
-function renderPage(page: Page, site: Site, theme: Theme, pageKey: string) {
+/** Exported so the catalog server's in-chat preview draws pages through this exact function.
+ *  A preview that renders a page its own way is a second renderer, and a second renderer is how
+ *  "it looked right in the preview" becomes "it published wrong" — the one failure this pipeline
+ *  is arranged to make impossible. */
+export function renderPage(page: Page, site: Site, theme: Theme, pageKey: string) {
   const section = (b: Page['blocks'][number], key: number) => {
     const entry = catalog[b.type]
     const style = theme.sectionStyles[b.variant]

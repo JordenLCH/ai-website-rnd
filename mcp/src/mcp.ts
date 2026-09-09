@@ -1,8 +1,34 @@
+import { readFileSync, existsSync } from 'node:fs'
+import { join, dirname } from 'node:path'
+import { createRequire } from 'node:module'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { CATALOG_VERSION, listBlocks, getBlocks, readThemes } from './source.ts'
 import { siblings, divergence } from './fleet.ts'
 import { REQUIRED_TOKENS, OPTIONAL_TOKENS, DERIVED_TOKENS } from '@blackdash/renderer/tokens'
+import { validateBundle } from '@blackdash/renderer/validate-bundle'
+/* The build farm's own page renderer. Imported, never reimplemented: a preview that draws pages
+   its own way is a second renderer, and a second renderer is how "it looked right in the preview"
+   becomes "it published wrong". */
+import { renderPage } from '@blackdash/platform/build'
+
+/** The MCP Apps mime type. Declared here rather than pulled from `@modelcontextprotocol/ext-apps`
+ *  because that package peers on zod 4 while this server and the renderer are on zod 3, and two
+ *  zod majors in one install breaks schema identity in ways that surface as unrelated bugs. The
+ *  server side of that package is a two-line wrapper; this is those two lines. */
+const APP_MIME = 'text/html;profile=mcp-app'
+const PREVIEW_URI = 'ui://blackdash/site-preview.html'
+
+const HERE = dirname(new URL(import.meta.url).pathname)
+const APP_HTML = join(HERE, '..', 'app', 'dist', 'app.html')
+
+/** Only the half of the stylesheet a generated site ships with; the preview app's own chrome
+ *  is not part of a client's page. */
+function siteCss(): string {
+  const cssPath = createRequire(import.meta.url).resolve('@blackdash/renderer/styles.css')
+  return readFileSync(cssPath, 'utf8')
+    .split('/* ---------- generated site: token-only from here down ---------- */')[1] ?? ''
+}
 
 const json = (data: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] })
 
@@ -81,6 +107,83 @@ export function createServer() {
   json(candidateTheme
     ? { comparedAgainst: siblings().map((s) => s.name), results: divergence(candidateTheme) }
     : { fleet: siblings() }))
+
+  /* What `npm run validate` did, for someone who cannot run npm. The same module the build farm
+     imports — the point of moving validation to the server is that there is still only one of it,
+     not that there is now a friendlier second one. */
+  server.registerTool('bundle_validate', {
+  title: 'Validate a bundle',
+  description:
+    'Run the authoritative validator over a site.json / theme.json pair (org.json optional but ' +
+    'required for jurisdiction checks). This is the same module the build farm runs on upload, ' +
+    'so a bundle that passes here cannot fail there for schema reasons. Call it after every ' +
+    'material edit, not once at the end.',
+  inputSchema: { site: z.any(), theme: z.any(), org: z.any().optional() },
+  }, async ({ site, theme, org }) => {
+    const { ok, issues, density, unverified } = validateBundle(site, theme, org)
+    return json({
+      catalogVersion: CATALOG_VERSION, ok,
+      errors: issues.filter((i) => i.severity === 'error'),
+      warnings: issues.filter((i) => i.severity === 'warning'),
+      notes: issues.filter((i) => i.severity === 'info'),
+      unverified,
+      sectionsMeasured: density.length,
+    })
+  })
+
+  /* An MCP App: `_meta.ui.resourceUri` is the whole of what makes a tool render a UI. The host
+     fetches that resource and draws it in the conversation, and the app talks back over
+     postMessage — so the creator sees the real catalog without installing anything. */
+  server.registerTool('site_preview', {
+  title: 'Preview a site in the conversation',
+  description:
+    'Render a bundle with the real catalog and show it inline, with its validation verdict and a ' +
+    'tab per page. Pass the bundle you are working on. The heavy render is handed to the app, not ' +
+    'returned as text, so calling this repeatedly is cheap in context.',
+  inputSchema: { site: z.any(), theme: z.any(), org: z.any().optional(), page: z.string().optional() },
+  _meta: { ui: { resourceUri: PREVIEW_URI }, 'ui/resourceUri': PREVIEW_URI },
+  }, async ({ site, theme, org, page }) => {
+    const v = validateBundle(site, theme, org)
+    const errors = v.issues.filter((i) => i.severity === 'error')
+    if (!v.ok || !v.site || !v.theme) {
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify({ ok: false, errors }, null, 2) }],
+        _meta: { blackdash: { ok: false, issues: v.issues, pages: [], page: '', html: '', css: '' } },
+      }
+    }
+    const pages = Object.keys(v.site.pages)
+    const key = page && pages.includes(page) ? page : pages[0]
+    /* Render the validator's migrated copy, never the caller's raw input — drawing the original
+       is what once published a page with its footer missing. */
+    const html = renderPage(v.site.pages[key], v.site, v.theme, key)
+
+    const payload = {
+      client: v.site.client, catalogVersion: CATALOG_VERSION,
+      ok: true, issues: v.issues, pages, page: key,
+      html, css: siteCss(),
+      bundle: { site: v.site, theme: v.theme },
+    }
+    /* The render travels in the text content, which is what every host is known to forward to the
+       app. It is also billed into the conversation, so a page switch costs a page of markup —
+       worth optimising once this is in daily use, by moving the payload to `_meta` and leaving a
+       sentence here. `_meta` is populated already; the app reads it first and falls back to this,
+       so that change is one line on this side and none on the other. */
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(payload) }],
+      _meta: { blackdash: payload },
+    }
+  })
+
+  server.registerResource('site-preview', PREVIEW_URI, {
+  title: 'Site preview app', description: 'The in-conversation preview UI.', mimeType: APP_MIME,
+  }, async (uri) => ({
+    contents: [{
+      uri: uri.href, mimeType: APP_MIME,
+      text: existsSync(APP_HTML)
+        ? readFileSync(APP_HTML, 'utf8')
+        : '<!doctype html><p>Preview app not built — run <code>npm run build:app</code> in mcp/.</p>',
+    }],
+  }))
 
   server.registerResource('catalog-version', 'catalog://version', {
   title: 'Catalog version', description: 'Pin this in the bundle manifest at generation time.',

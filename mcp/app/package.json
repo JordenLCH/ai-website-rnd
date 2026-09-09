@@ -1,0 +1,9 @@
+{
+  "name": "@blackdash/catalog-preview-app",
+  "private": true,
+  "type": "module",
+  "scripts": { "build": "INPUT=app.html vite build" },
+  "//": "Kept as its own package because @modelcontextprotocol/ext-apps peers on zod 4 while the renderer and the catalog server are on zod 3. Two zod majors in one install is a real hazard for schema identity; two node_modules is not.",
+  "dependencies": { "@modelcontextprotocol/ext-apps": "^2.0.0" },
+  "devDependencies": { "vite": "^6.0.7", "vite-plugin-singlefile": "^2.1.0" }
+}
