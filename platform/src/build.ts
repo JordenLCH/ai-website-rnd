@@ -20,6 +20,7 @@ import type { Site, Theme, Page } from '@blackdash/renderer/schema'
 import { jsonLd, metaFor, sitemap, sitemapManifest, robots, llmsTxt, type Org } from './seo'
 import { fontsHref } from '@blackdash/renderer/fonts'
 import { imageFitIssues } from './image-fit'
+import { themeIntegrityIssues } from './theme-integrity'
 
 /** Resolved through the package, so it follows the installed dependency rather than a guess about
  *  where the checkout sits. */
@@ -186,6 +187,9 @@ export function buildSite(site: Site, theme: Theme, org: Org, outDir: string,
     const rendered = renderOrFail(page, key)
     if (rendered.issue) return { ok: false as const, issues: [...issues, rendered.issue], written }
     const body = rendered.html
+    /* Checked on the markup, because a colour hardcoded in a component is invisible to every
+       check that reads the bundle — `site.json` carries no colours at all. */
+    issues.push(...themeIntegrityIssues(body, `pages.${key}`))
     const html = `<!doctype html>
 <html lang="${escapeHtml(org.lang ?? 'en')}">
 <head>
