@@ -31,3 +31,6 @@ docs/images
 # the fleet — generated client bundles, one folder per site. Local work product,
 # not platform code, and the source material it derives from is ignored too.
 content/
+
+# POC shared key, written at run time
+poc/mcp-app/.poc-token
