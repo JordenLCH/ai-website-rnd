@@ -11,10 +11,10 @@ If you are here to **test the flow**, jump to "Test task" at the bottom.
 
 | Path | What it is |
 |---|---|
-| `spike/` | `@blackdash/renderer` — block catalog, validator, preview server. Consumed as a dependency; creators never edit it |
+| `renderer/` | **git submodule** → [`website-renderer`](https://github.com/JordenLCH/website-renderer). `@blackdash/renderer`: block catalog, validator, preview server. Preview and checking only — no fleet, no SEO, no MCP |
 | `mcp/` | read-only catalog MCP server (HTTP + bearer, plus a stdio entry point) |
 | `platform/` | the server side — build farm and SEO/AEO/GEO derivation. Runs after upload |
-| `starter/` | what a creator clones: content JSON and assets only, no catalog |
+| `content/` | the fleet — one folder per client, gitignored. This repo's work product, not catalog code |
 | `skills/create-webpage/` | the distributable skill creators use. Also installed at `~/.claude/skills/` |
 | `website_info/` | five real client briefs with copy, brand colours and local images |
 | `docs/` | research + spike findings, with the reasoning behind every design decision |
@@ -28,6 +28,28 @@ below are the working detail.
 Content lives in `<repo>/content/<client>/` as three files: `site.json`, `theme.json`, `org.json`.
 The renderer discovers them by folder — adding a client is adding a directory, not editing an import.
 
+## The renderer is a submodule
+
+`renderer/` is a checkout of **website-renderer**, the repo that owns the catalog. Both this repo
+and `site-starter` consume that one source; neither owns a copy. It was a one-way subtree mirror
+before, which let the two drift — and they had, by one commit.
+
+```bash
+git clone --recurse-submodules <this repo>     # or, in an existing clone:
+git submodule update --init
+```
+
+`platform` and `mcp` still resolve `file:../renderer`, so nothing about their imports changed.
+Two rules that matter:
+
+- **Work on a branch inside the submodule.** A fresh `git submodule update` leaves it on a detached
+  HEAD, and commits made there are unreachable once you switch away. `cd renderer && git checkout main`.
+- **A block change is two commits.** One in `renderer/`, pushed to `website-renderer`; then one here
+  bumping the gitlink. Until you bump, this repo still builds against the old catalog.
+
+Never import the renderer by relative path — `../../renderer/src/…` is what made it unmovable, and
+`mcp` had four of them. Import by package name, the way `platform` already did.
+
 ## The two artifacts
 
 - **`site.json`** — `{ client, chrome: { header, footer }, pages: { <key>: { title, blocks: [...] } } }`
@@ -37,7 +59,7 @@ The renderer discovers them by folder — adding a client is adding a directory,
   `chrome.header`, then the page's blocks, then `chrome.footer`. Page `blocks` arrays must not
   contain Nav or Footer; repeating them per page means five copies to keep in sync and a header
   that can silently differ between pages. `chrome` is optional in the schema only so older bundles
-  keep validating — every spec in `renderer/src/specs/` now uses it, so copy that shape.
+  keep validating — every bundle in `content/` now uses it, so copy that shape.
 - **`theme.json`** — `{ name, tokens: {39 CSS custom properties}, sectionStyles: { <slug>: {layout, tone, vars?} } }`
 
 The `variant` is an **opaque slug** (`hero/home`, not `hero/dark-overlay`). The theme decides what it
@@ -47,10 +69,12 @@ rhythm and type all change while content stays untouched.
 ## Commands
 
 ```bash
-# creator side — starter/ has no catalog in it
-cd starter && npm run dev                  # preview at :5183, renderer comes from node_modules
-cd starter && npm run validate
-cd starter && ./package.sh <client>        # zips the source bundle for upload
+# preview this repo's fleet — content lives outside the renderer, so point at it
+cd renderer && CONTENT_DIR=../content npm run dev         # :5183
+cd renderer && npm run validate -- ../content/<client>/site.json ../content/<client>/theme.json
+
+# creator side lives in the site-starter repo, which installs the renderer from git
+#   npm run dev / npm run validate / npm run package
 
 # platform side
 cd platform && npm run build -- <bundle-dir> <out-dir>   # HTML + JSON-LD + sitemap + llms.txt
@@ -182,11 +206,13 @@ Goal: exercise the whole flow on a brief nobody has generated yet, and report wh
    four art directions and justify the pick, then compose.
 3. **Check divergence** with `fleet_siblings` before writing content. Layout-map overlap above ~0.7
    against `merryfair`, `merryfair-industrial` or `aonic` means change the layout map, not the palette.
-4. **Write** `renderer/src/specs/<client>.json` and `renderer/src/themes/<client>.json`, then register both
-   in `renderer/src/App.tsx` so they appear in the dropdowns. Put Nav and Footer in `site.chrome`, not
-   in each page's `blocks`.
-5. **Validate** until clean, then **preview** and actually look at all pages at two widths.
-6. **Package** with `compress.sh` and confirm the zip contains source JSON and assets — never `dist/`.
+4. **Write** `content/<client>/site.json` and `content/<client>/theme.json`. There is nothing to
+   register — the preview globs `content/*/`, so a new folder just appears in the dropdown. Put Nav
+   and Footer in `site.chrome`, not in each page's `blocks`.
+5. **Validate** until clean, then **preview** (`CONTENT_DIR=../content`) and actually look at all
+   pages at two widths.
+6. **Package** with `renderer/tools/compress.sh` and confirm the zip contains source JSON and assets
+   — never `dist/`.
 
 **Report back:** whether the site reads as a different company from the three existing ones; anything
 the catalog could not express; any validator message that was wrong, unclear, or missing; and whether

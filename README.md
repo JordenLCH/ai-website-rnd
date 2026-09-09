@@ -10,7 +10,8 @@ and every site inherits it on the next rebuild, because no site contains bespoke
 
 | Path | Role |
 |---|---|
-| `renderer/` | `@blackdash/renderer` — block catalog, validator, preview server. Creator repos install this; the platform renders with it |
+| `renderer/` | submodule → `website-renderer`. `@blackdash/renderer`: block catalog, validator, preview server. Shared with site-starter; preview and checking only |
+| `content/` | the fleet — one folder per client, gitignored |
 | `mcp/` | read-only catalog MCP. Serves what drifts: blocks, schemas, token contract, fleet |
 | `platform/` | build farm — renders a bundle to static HTML and derives every SEO/AEO/GEO artifact |
 | `skills/create-webpage/` | source of the skill shipped inside starter repos |
@@ -22,6 +23,8 @@ The companion repo is **site-starter** — content only, one clone per client.
 ## Run
 
 ```bash
+git submodule update --init                # renderer/ is a submodule
+
 cd mcp && npm run smoke                  # validate every bundle, prove the gates fire
 cd mcp && npm start                      # catalog over stdio
 cd mcp && ./tunnel.sh                    # catalog over HTTP + public tunnel
