@@ -133,13 +133,14 @@ repeated opening band, a repeated tone rhythm, one photograph carrying three pag
 fleet: layout-map divergence, so a new site does not resolve its slugs the way an existing one does.
 
 Ported from the earlier round of this work (`site-hosting`), which found these by measuring rather
-than guessing. Still to port:
+than guessing — all four are in now:
 
-- **the picture-crop check** — read the image header, compare the photograph's real shape to the
-  frame it was put in, refuse anything cropped past about half of itself. Seven of seventeen
-  corrections on four generated pages were picture shape
-- **theme integrity on rendered markup** — a colour that leaked out of a component survives every
-  check that only reads the JSON
+- **the picture-crop check** reads the image header and compares the photograph's real shape to the
+  frame it was put in, refusing anything cropped past about half of itself. It runs in the build
+  farm, not in the validator, because it is the only check that opens a file — and the in-chat
+  preview has no filesystem. Two real defects found in `merryfair-free`
+- **theme integrity** runs on the rendered markup, because a colour hardcoded in a component is
+  invisible to every check that reads the JSON — `site.json` carries no colours at all
 
 And the honest part, which no check replaces: **the layers catch structure and monotony, never
 proportion and never truth.** A bundle that passes everything is a bundle worth looking at, not a
@@ -167,13 +168,17 @@ Done and proven: the MCP App preview rendering the real catalog inside claude.ai
 connector with a shared key (`poc/mcp-app/`, `npm run prove`); the auth answer; the between-pages
 variation checks in the validator.
 
+Also done: all four checks ported from the earlier round, and Cloudflare Pages deploy
+(`npm run build -- <bundle> <out> --deploy=<domain>` — opt-in, skips without credentials).
+
 Left:
 
 - `bundle_validate` and `site_preview` on the real catalog server (`mcp/`) — the transport already
   suits both, no rewrite
 - the preview UI built against the catalog, calling the platform's renderer rather than copying it
 - the upload page
-- the picture-crop and theme-integrity checks
-- Cloudflare Pages deploy, ported rather than re-derived
 - skill changes: image paths, and hard-fail when the catalog is unreachable
 - an always-on deploy, with the auth question answered
+- **`org.json` is missing from every bundle in `content/`**, so `npm run build` cannot run on any of
+  them as they stand. One exists in `site-starter/content/merryfair/`. The packager should be
+  writing it
