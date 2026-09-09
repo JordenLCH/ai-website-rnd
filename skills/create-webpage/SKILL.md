@@ -25,23 +25,47 @@ So: keep the *vocabulary* rigid — the block catalog is fixed, and you never wr
 
 ## Get the catalog from the platform, not from memory
 
-If the `blackdash-catalog` MCP is connected, **call `catalog_list` first, every time**. Blocks ship
-weekly; anything written down in this skill is a snapshot that will eventually be wrong. Then call
-`catalog_get` for just the blocks you intend to use — pulling all of them wastes the context you
-need for composition. Say in your handoff which `catalogVersion` you built against — there is no
-field for it in `site.json`, so it belongs in your written summary, not in the JSON.
+**Call `catalog_list` first, every time. If it fails, stop and say so — do not generate.**
 
-The MCP serves the catalog only — it is read-only, and everything else is a repo script:
+Blocks ship weekly, so anything written down in this skill is a snapshot that will eventually be
+wrong. Generating against a stale catalog does not fail loudly: it produces a bundle you believe is
+valid, that the client approves, and that is rejected at upload after all the work is done. Every
+hour saved by carrying on without the catalog is repaid with interest at the moment of publishing.
 
-```
-npm run validate -- <client>   # same module the build farm runs
-npm run dev                    # preview at :5183, hot-reloads on JSON edits
-./package.sh <client>          # zips the SOURCE bundle for upload
-```
+So when the MCP is unreachable, the correct output is a sentence — "the block catalog is not
+reachable, so I can't generate against it; the server may be down" — and nothing else. Not a bundle
+built from memory, and not one built from this skill's `references/catalog.md`, which is
+documentation for people and not a source to generate from.
 
-Validate before previewing: it costs a second and catches what a screenshot never will. Package with
-`package.sh` rather than zipping a build — shipping HTML freezes the site, and it can then never be
-re-themed or receive a fleet-wide patch.
+Then call `catalog_get` for just the blocks you intend to use — pulling all of them wastes the
+context you need for composition. Say in your handoff which `catalogVersion` you built against —
+there is no field for it in `site.json`, so it belongs in your written summary, not in the JSON.
+
+### Two ways to run this, and how to tell which you are in
+
+**Look at what you have before you plan the work.** If you can run shell commands in a checkout of
+the starter, you are on the local path. If you are in a chat with the connector and no filesystem —
+no repo, no npm — you are on the chat path, and every instruction below that starts with `npm` does
+not apply to you.
+
+| | you can run commands | chat only |
+|---|---|---|
+| Validate | `npm run validate -- <client>` | `bundle_validate` — pass the bundle, same module |
+| Preview | `npm run dev`, port 5183 | `site_preview` — renders in the conversation |
+| Package | `./package.sh <client>` | export the JSON and the asset archive from the chat |
+
+Both validators are the same module the build farm imports, so a bundle that passes on either path
+cannot fail at upload for schema reasons. Neither is a friendlier second opinion, and if you ever
+find yourself wanting one, that is the bug.
+
+Validate before previewing: it costs a second and catches what a screenshot never will. Package the
+SOURCE bundle, never a build — shipping HTML freezes the site, and it can then never be re-themed or
+receive a fleet-wide patch.
+
+**On the chat path, `site_preview` does not show photographs.** The preview has no filesystem, so
+every image comes up blank. Layout, tone and type are truthful; photography is not. Say that when
+you show it, or the person approves a design believing they have seen it finished — and the picture
+is the part they will care most about.
 
 ### Where files go
 
@@ -57,8 +81,26 @@ The preview serves `/img/` out of `assets/`. Put a client's images under their o
 packager zips only that folder, so a flat `assets/` ships every other client's photographs inside
 the bundle.
 
-`references/catalog.md` is the offline fallback for when the MCP is unreachable. Say which one you
-used, so a stale-catalog bug is diagnosable later.
+**On the chat path there is no `assets/` folder, so reference the path the person actually uploaded**
+— whatever the archive calls it, verbatim, including its capitalisation
+(`uploads/OPTIMISED/LOGO/logo.svg`). Do not invent a tidy path and do not rename anything: the upload
+step resolves every reference against the real archive, and a path you improved is a broken image
+nobody sees until the site is live.
+
+You can *see* the photographs the person uploaded, and that is the point — it is the one moment
+anything in this pipeline knows what a picture is actually of. So:
+
+- write `alt` from the image, never from the filename. `08-rd-design.webp` being an open-plan office
+  and not a design studio is invisible to every check and a lie to the person it is read aloud to
+- set `imageKind` from what you can see — `environment` for a scene with depth, `cutout` for a
+  product on a plain ground, `detail` for a close crop. The validator refuses a cutout under
+  `overlay-fullbleed` because text on it is unreadable, and it can only refuse what you declared
+- if the shape is wrong for the frame you had in mind, say so and pick another frame. A portrait
+  photograph in a `wide` frame shows about a third of itself, and the build farm rejects anything
+  cropped past half
+
+`references/catalog.md` is human documentation, not a fallback: if the MCP is unreachable, stop
+rather than generate from it (see above).
 
 ## Workflow — checkpoints, not one long generation
 
@@ -433,8 +475,8 @@ the mode back on the table and invites the human to choose it, which is the outc
 exists to prevent. Name what you discarded and why, below the options, so the reasoning is visible
 and unpickable.
 
-**Say where the catalog came from** — the MCP with its `catalogVersion`, or the offline
-`references/catalog.md`. One line. A bundle built against a stale catalog fails at build rather than
+**Say which `catalogVersion` you built against** — one line, from `catalog_list`. There is no other
+acceptable source: a bundle built against a stale catalog fails at build rather than
 at validation, and without this line nobody can tell which happened.
 
 ### 5. First pages — home plus the densest page, then stop
