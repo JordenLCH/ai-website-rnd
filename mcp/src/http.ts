@@ -25,14 +25,35 @@ const TOKEN = process.env.CATALOG_TOKEN
 const ALLOWED_ORIGINS = new Set(
   (process.env.CATALOG_ORIGINS ?? '').split(',').map((o) => o.trim()).filter(Boolean))
 
-/** Constant-time bearer check. `!==` leaks the length of the shared prefix through timing; the
- *  token is low-value, but a comparison that is correct costs one function. */
-function tokenOk(header: string | undefined): boolean {
+/** Constant-time compare. `!==` leaks the length of the shared prefix through timing; the token is
+ *  low-value, but a comparison that is correct costs one function. */
+function same(got: string, expected: string): boolean {
+  const a = Buffer.from(got), b = Buffer.from(expected)
+  return a.length === b.length && timingSafeEqual(a, b)
+}
+
+/** Headers a credential may arrive in.
+ *
+ *  `Authorization` alone was not enough. A claude.ai custom connector using a fixed org-shared
+ *  credential refuses to let you name the header `Authorization` — it reserves that for its own
+ *  OAuth — so a server that reads only that header cannot be connected from the browser at all,
+ *  which is the one client this whole no-install path exists for.
+ *
+ *  The value is sent verbatim, and people reasonably type the bare token into a box labelled
+ *  "API key", so both `Bearer <token>` and `<token>` are accepted. That is not a weakening: the
+ *  secret is the same string either way, and rejecting the shape rather than the secret would only
+ *  produce an auth failure with nothing in it to debug. */
+const AUTH_HEADERS = ['authorization', 'x-api-key', 'x-auth-token'] as const
+
+function tokenOk(req: IncomingMessage): boolean {
   if (!TOKEN) return true
-  const expected = Buffer.from(`Bearer ${TOKEN}`)
-  const got = Buffer.from(header ?? '')
-  if (got.length !== expected.length) return false
-  return timingSafeEqual(got, expected)
+  for (const name of AUTH_HEADERS) {
+    const raw = req.headers[name]
+    const value = Array.isArray(raw) ? raw[0] : raw
+    if (!value) continue
+    if (same(value, `Bearer ${TOKEN}`) || same(value, TOKEN)) return true
+  }
+  return false
 }
 
 /** Requests per window, per client address. A read-only catalog is cheap to serve but not free —
@@ -79,7 +100,7 @@ createHttp(async (req, res) => {
   if (origin && ALLOWED_ORIGINS.has(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin)
     res.setHeader('Vary', 'Origin')
-    res.setHeader('Access-Control-Allow-Headers', 'content-type, authorization, mcp-session-id, mcp-protocol-version')
+    res.setHeader('Access-Control-Allow-Headers', `content-type, ${AUTH_HEADERS.join(', ')}, mcp-session-id, mcp-protocol-version`)
     res.setHeader('Access-Control-Expose-Headers', 'mcp-session-id')
   }
   if (req.method === 'OPTIONS') { res.writeHead(origin && !ALLOWED_ORIGINS.has(origin) ? 403 : 204); return res.end() }
@@ -105,7 +126,7 @@ createHttp(async (req, res) => {
 
   if (url.pathname !== '/mcp') return send(res, 404, { error: 'not found — POST /mcp' })
 
-  if (!tokenOk(req.headers.authorization)) {
+  if (!tokenOk(req)) {
     return send(res, 401, { error: 'unauthorized' })
   }
 
