@@ -19,6 +19,7 @@ import { validateBundle } from '@blackdash/renderer/validate-bundle'
 import type { Site, Theme, Page } from '@blackdash/renderer/schema'
 import { jsonLd, metaFor, sitemap, sitemapManifest, robots, llmsTxt, type Org } from './seo'
 import { fontsHref } from '@blackdash/renderer/fonts'
+import { imageFitIssues } from './image-fit'
 
 /** Resolved through the package, so it follows the installed dependency rather than a guess about
  *  where the checkout sits. */
@@ -133,6 +134,21 @@ export function buildSite(site: Site, theme: Theme, org: Org, outDir: string,
       written: [] as string[],
     }
   }
+
+  /* The one check that opens the image files, so it can only run here — the validator the
+     preview shares has no filesystem. A frame that eats more than half its photograph renders
+     perfectly and is wrong, and nothing in the bundle says what shape the picture is. */
+  const assetRoot = opts.bundleDir && existsSync(join(opts.bundleDir, 'assets'))
+    ? join(opts.bundleDir, 'assets')
+    : join(RENDERER, '..', 'public', 'img')
+  issues.push(...imageFitIssues(site, (src) => {
+    const rel = src.replace(/^\/img\//, '')
+    const withoutClient = rel.startsWith(`${site.client}/`) ? rel.slice(site.client.length + 1) : rel
+    for (const candidate of [join(assetRoot, withoutClient), join(assetRoot, rel)]) {
+      if (existsSync(candidate)) return candidate
+    }
+    return null
+  }))
 
   const css = readFileSync(join(RENDERER, 'styles.css'), 'utf8')
     // the preview's own chrome never ships
