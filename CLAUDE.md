@@ -15,7 +15,7 @@ If you are here to **test the flow**, jump to "Test task" at the bottom.
 | `mcp/` | read-only catalog MCP server (HTTP + bearer, plus a stdio entry point) |
 | `platform/` | the server side — build farm and SEO/AEO/GEO derivation. Runs after upload |
 | `content/` | the fleet — one folder per client, gitignored. This repo's work product, not catalog code |
-| `skills/create-webpage/` | the distributable skill creators use. Also installed at `~/.claude/skills/` |
+| `skills/create-webpage/` | the distributable skill creators use, and **the source copy** — `./skills/install.sh [../site-starter]` pushes it to `~/.claude/skills/` and a starter checkout. Three copies exist and they drift: the starter's still told creators to fall back to a stale catalog after this one stopped |
 | `website_info/` | five real client briefs with copy, brand colours and local images |
 | `docs/` | research + spike findings, with the reasoning behind every design decision |
 
