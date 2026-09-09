@@ -219,8 +219,14 @@ export function createServer() {
          under, so it is dropped here rather than sent as something the creator can never satisfy —
          the validator is what reports it as a broken reference. */
       const expected = referencedAssets(v.site).map(assetFileName).filter((n): n is string => n !== null)
+      /* Stamp the catalog into the stored bundle itself, exactly as the shell packager does.
+         The manifest records it too, but the manifest is this store's bookkeeping — the bundle has
+         to be self-describing wherever it ends up, because the rebuild that matters is the one
+         someone runs a year from now against a catalog that has moved. Backward drift is refused
+         at build time, and it can only be detected if the bundle says what it was written against. */
+      const stamped = { ...v.site, catalogVersion: CATALOG_VERSION }
       const draft = await putDraft(t, {
-        domain, site: v.site, theme: v.theme, org, expected, catalogVersion: CATALOG_VERSION,
+        domain, site: stamped, theme: v.theme, org, expected, catalogVersion: CATALOG_VERSION,
       })
       return json({
         ok: true, catalogVersion: CATALOG_VERSION, ...draft,
