@@ -14,8 +14,9 @@ If you are here to **test the flow**, jump to "Test task" at the bottom.
 | `renderer/` | **git submodule** → [`website-renderer`](https://github.com/JordenLCH/website-renderer). `@blackdash/renderer`: block catalog, validator, preview server. Preview and checking only — no fleet, no SEO, no MCP |
 | `mcp/` | the catalog MCP server (HTTP + bearer, plus a stdio entry point). Read-only, except for the three `bundle_*` tools that hand a finished bundle to hosting — the store stays on the far side |
 | `platform/` | **git submodule** → [`website-platform`](https://github.com/JordenLCH/website-platform). The server side — build farm and SEO/AEO/GEO derivation. Runs after upload, and `site-hosting` pins the same repo |
-| `content/` | the fleet — one folder per client, gitignored. This repo's work product, not catalog code |
-| `skills/create-webpage/` | the distributable skill creators use, and **the source copy** — `./skills/install.sh [../site-starter]` pushes it to `~/.claude/skills/` and a starter checkout. Three copies exist and they drift: the starter's still told creators to fall back to a stale catalog after this one stopped |
+| `content/` | the fleet — one folder per client, gitignored. **Everything here is served to any catalog-token holder by `fleet_siblings`**, so it holds live client sites only; it starts empty, and earlier bundles are in `dev/fleet-archive/`. Test bundles live in `mcp/fixtures/` |
+| `plugin/` | the `website-create` plugin — the skill and the catalog MCP packaged as one install. Self-contained: it carries its own marketplace entry, so it needs no public storefront. `plugin/skills/` is **generated** — see [`docs/plugin-release-sop.md`](docs/plugin-release-sop.md) before touching it |
+| `skills/` | the distributable skills and **the source copy** — `create-webpage` (the workflow) and `sourcing-stock-photos` (photography when a brief has none, usable on its own). `./skills/install.sh [../site-starter]` syncs every directory holding a `SKILL.md` into `plugin/skills/` and a starter checkout; adding a skill is adding a directory. Copies drift: the starter's still told creators to fall back to a stale catalog after this one stopped |
 | `website_info/` | five real client briefs with copy, brand colours and local images |
 | `docs/` | research + spike findings, with the reasoning behind every design decision |
 
@@ -24,6 +25,11 @@ end-to-end account of the pipeline: the nine workflow stages and why they run co
 look, the four safeguard layers and what each can actually see, what the platform derives after
 upload, and the defects the first full block audit found. This file is the reference; the sections
 below are the working detail.
+
+**Shipping a fix to a creator is [`docs/plugin-release-sop.md`](docs/plugin-release-sop.md)** —
+the version bump is the only signal a user has that their copy is stale, `plugin/skills/` is an
+rsync target that a `--delete` sync will silently overwrite, and claude.ai needs the connector
+configured separately because the plugin's `${CATALOG_TOKEN}` cannot expand on the web.
 
 Content lives in `<repo>/content/<client>/` as three files: `site.json`, `theme.json`, `org.json`.
 The renderer discovers them by folder — adding a client is adding a directory, not editing an import.
@@ -246,7 +252,8 @@ intersection maths, so reset it to `1` before judging motion.
 Goal: exercise the whole flow on a brief nobody has generated yet, and report where it breaks.
 
 **Use `website_info/gmr/` (Guard My Ride) or `website_info/wungadv/` (Wung & Co Advocates).**
-`merryfair` and `aonic` are already built — generating those proves nothing.
+`merryfair` and `aonic` were already built — they are in `dev/fleet-archive/`, so generating those
+proves nothing.
 
 1. **Connect the catalog.** `cd mcp && ./tunnel.sh`, then confirm `catalog_list` returns the block
    count and a `catalogVersion`. If the MCP shows as disconnected, the server is not running — start
@@ -255,7 +262,9 @@ Goal: exercise the whole flow on a brief nobody has generated yet, and report wh
 2. **Invoke the `create-webpage` skill** and follow it. Read the brief, propose a sitemap, sample
    four art directions and justify the pick, then compose.
 3. **Check divergence** with `fleet_siblings` before writing content. Layout-map overlap above ~0.7
-   against `merryfair`, `merryfair-industrial` or `aonic` means change the layout map, not the palette.
+   against a sibling means change the layout map, not the palette. The fleet is empty until a site is
+   written into `content/`, and the tool now answers `checked: false` and says so — that is the check
+   not running, not a pass. Restore a comparison set from `dev/fleet-archive/` if you want one.
 4. **Write** `content/<client>/site.json` and `content/<client>/theme.json`. There is nothing to
    register — the preview globs `content/*/`, so a new folder just appears in the dropdown. Put Nav
    and Footer in `site.chrome`, not in each page's `blocks`.

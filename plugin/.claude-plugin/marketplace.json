@@ -1,0 +1,12 @@
+{
+  "name": "blackdash",
+  "description": "Blackdash site-generation tooling, distributed directly — not a public storefront.",
+  "owner": { "name": "Blackdash", "url": "https://github.com/JordenLCH" },
+  "plugins": [
+    {
+      "name": "website-create",
+      "source": "./",
+      "description": "Website create plugin — the create-webpage skill plus the catalog MCP that serves block schemas, the token contract and the existing fleet."
+    }
+  ]
+}

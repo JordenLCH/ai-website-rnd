@@ -7,7 +7,7 @@ import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
-import { FLEET } from './source.ts'
+import { FIXTURES } from './source.ts'
 
 const URL_ = new URL(process.env.MCP_URL ?? 'http://127.0.0.1:8787/mcp')
 const TOKEN = process.env.CATALOG_TOKEN ?? (existsSync('.catalog-token') ? readFileSync('.catalog-token', 'utf8').trim() : '')
@@ -40,9 +40,9 @@ check('the UI resource carries the MCP Apps mime type', doc.mimeType === 'text/h
 check('the UI is built and self-contained', !!doc.text && doc.text.length > 50_000 && !/<script[^>]+src=/.test(doc.text),
   `${((doc.text?.length ?? 0) / 1024).toFixed(0)} KB`)
 
-const bundle = (f: string) => JSON.parse(readFileSync(join(FLEET, 'merryfair', f), 'utf8'))
+const bundle = (f: string) => JSON.parse(readFileSync(join(FIXTURES, 'merryfair', f), 'utf8'))
 const site = bundle('site.json'), theme = bundle('theme.json')
-const org = existsSync(join(FLEET, 'merryfair', 'org.json')) ? bundle('org.json') : undefined
+const org = existsSync(join(FIXTURES, 'merryfair', 'org.json')) ? bundle('org.json') : undefined
 
 const good = JSON.parse(textOf(await client.callTool({ name: 'bundle_validate', arguments: { site, theme, org } })))
 check('a real bundle validates clean over MCP', good.ok === true, `catalog ${good.catalogVersion}, ${good.warnings.length} warning(s)`)
@@ -66,10 +66,26 @@ check('site_preview renders through the build farm renderer', !!m?.html?.include
 check('the app is handed the bundle, so a page switch needs no server session', !!m?.bundle)
 check('the theme stylesheet travels with the render', (m?.css?.length ?? 0) > 1000)
 
+/* The whole point of the app: the picture goes out of band, and the conversation is billed for a
+   verdict. A regression here is invisible — the preview still works — and costs a page of HTML on
+   every call, re-sent on every turn after it. */
+const billed = textOf(shown as { content?: unknown[] })
+check('the render is not billed into the conversation', billed.length < 8000 && !billed.includes('class="site"'),
+  `${billed.length} B of text beside ${((m?.html?.length ?? 0) / 1024).toFixed(0)} KB of HTML`)
+
 const second = payloadOf(await client.callTool({
   name: 'site_preview', arguments: { site, theme, org, page: m!.pages[1] },
 }) as Parameters<typeof payloadOf>[0])
 check('another page can be asked for', second?.page === m!.pages[1] && second?.html !== m!.html)
+
+/* Hosts differ on how an object argument is carried: the web client sends it as JSON text. Same
+   bundle, different transport — the tools parse it rather than reporting the creator's site as
+   `Expected object, received string`. */
+const asText = payloadOf(await client.callTool({
+  name: 'site_preview',
+  arguments: { site: JSON.stringify(site), theme: JSON.stringify(theme), org: org && JSON.stringify(org) },
+}) as Parameters<typeof payloadOf>[0])
+check('a bundle sent as JSON text previews the same as one sent as objects', asText?.html === m!.html)
 
 /* Publishing. Skipped rather than failed when no hosting server is configured: the catalog server
    is useful, and correct, with the write path switched off — that is why the store lives on the

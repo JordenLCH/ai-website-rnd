@@ -49,6 +49,40 @@ manually update the content".
 - `docs/research/2026-09-07-maintainable-generation.md` §5 already researched the minimum viable
   content editor. Start there rather than re-deriving.
 
+### 4. Server-side asset processing
+**Not from the `goal.md` audit** — found 2026-09-09 while adding stock-photo sourcing to
+`skills/create-webpage/SKILL.md`. Recorded here because the skill now depends on it.
+
+**Goal:** the creator's surface drops a correctly-named image file under `assets/<client>/` and
+stops. Conversion, resizing and format negotiation happen in `platform/` after upload.
+
+**Status:** nothing. `platform/` has no `sharp` and no decode step of any kind. Its only image code,
+`platform/src/image-fit.ts`, parses **headers only** — deliberately: *"Header parsing only: no
+decode, no dependency."* It catches aspect-ratio mismatches and nothing else.
+
+**Why it became urgent:** the skill previously told creators to run `cwebp`. That was wrong — no
+image binary is guaranteed on claude.ai (where sites are actually generated) or on an arbitrary
+Claude Code machine, and a conversion that silently fails leaves a `src` prop pointing at a file
+that was never written. The step has been removed, so bundles can now arrive holding `.jpg`
+originals at whatever dimensions the source had. Nothing downstream fixes that yet.
+
+**Notes when picking this up:**
+- **Nothing requires `.webp` and nothing ever did.** `Img` in `renderer/src/blocks/shared.ts:46` is
+  `z.object({ src: z.string(), alt: z.string() })`; `ASSET_RE` in `platform/src/assets.ts` is
+  `/^\/img\/([^/]+)\/(.+)$/`. Both extension-agnostic. The fleet is all `.webp` only because the
+  humans supplied optimised photographs. Do not add an extension gate to "fix" this — the fix is to
+  convert server-side and rewrite the `src`, or to serve by content negotiation.
+- If `src` gets rewritten during the build, `referencedAssets()` in `platform/src/assets.ts` is the
+  single source of truth for what a bundle expects, and both the MCP announcement and the upload
+  gate call it. Rewriting extensions without going through it will make those two disagree about
+  what "complete" means — which its header comment says is the exact thing it exists to prevent.
+- `image-fit.ts` already resolves `/img/<client>/x` to a path on disk and reads dimensions. A
+  processing step has that plumbing available and should reuse it rather than re-globbing `assets/`.
+- Adding a decode dependency (`sharp`) reverses a deliberate choice. Read the `image-fit.ts` header
+  comment before doing it, and keep the header-only fast path for the fit check.
+- Related: `docs/how-a-site-gets-generated.md` describes what the platform derives after upload —
+  this belongs in that account once it exists.
+
 ---
 
 ## Also noted, not yet actioned

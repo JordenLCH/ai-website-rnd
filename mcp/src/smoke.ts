@@ -1,12 +1,13 @@
 /** Smoke test: run the real validator over the real bundles, then prove the
  *  content-vs-layout gate actually rejects a mismatch. */
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { CATALOG_VERSION, listBlocks, getBlocks, FLEET } from './source.ts'
+import { CATALOG_VERSION, listBlocks, getBlocks, FIXTURES } from './source.ts'
 import { validateBundle } from '@blackdash/renderer/validate-bundle'
 import { divergence } from './fleet.ts'
 
-const read = (p: string) => JSON.parse(readFileSync(join(FLEET, p), 'utf8'))
+const read = (p: string) => JSON.parse(readFileSync(join(FIXTURES, p), 'utf8'))
+const has = (...p: string[]) => p.every((f) => existsSync(join(FIXTURES, f)))
 
 const blocks = listBlocks()
 console.log(`catalog ${CATALOG_VERSION}: ${blocks.length} blocks, ${blocks.reduce((n, b) => n + b.layouts.length, 0)} layouts`)
@@ -15,9 +16,10 @@ for (const [site, theme] of [
   ['merryfair/site.json', 'merryfair/theme.json'],
   ['merryfair/site.json', 'merryfair-free/theme.json'],
   ['merryfair-free/site.json', 'merryfair-free/theme.json'],
-  ['aonic/site.json', 'aonic/theme.json'],
-  ['firstmetrology/site.json', 'firstmetrology/theme.json'],
 ] as const) {
+  /* The fixtures are gitignored client copies, so a fresh clone has none. Say so and move on —
+     a smoke test that dies on a missing fixture reads as a broken catalog. */
+  if (!has(site, theme)) { console.log(`SKIP  ${site} × ${theme}  (no fixture — see mcp/fixtures/README.md)`); continue }
   const r = validateBundle(read(site), read(theme))
   const errs = r.issues.filter((i) => i.severity === 'error')
   console.log(`${r.ok ? 'PASS' : 'FAIL'}  ${site} × ${theme}  (${errs.length} errors, ${r.issues.length - errs.length} warnings)`)
@@ -32,5 +34,9 @@ const r = validateBundle(broken, read('merryfair-free/theme.json'))
 console.log(`\ngate check: ${r.ok ? 'DID NOT CATCH (bad)' : 'caught'} — ${r.issues.find((i) => i.severity === 'error')?.message}`)
 
 console.log('\nschema fetch:', getBlocks(['Hero'])[0].layouts)
-console.log('\ndivergence of merryfair-industrial vs fleet:')
-console.table(divergence(read('merryfair-free/theme.json')))
+if (has('merryfair-free/theme.json')) {
+  const d = divergence(read('merryfair-free/theme.json'))
+  console.log(`\ndivergence of merryfair-free vs fleet (${d.length} sibling(s)):`)
+  if (d.length) console.table(d)
+  else console.log('  content/ is empty — nothing to diverge from, so this check did not run')
+}

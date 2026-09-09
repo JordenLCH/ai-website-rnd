@@ -13,6 +13,11 @@ URL="https://tools.cod3r.men"
 chmod 600 .catalog-token
 TOKEN="$(cat .catalog-token)"
 
+# Where finished bundles go. Without both of these `bundle_publish` refuses and says so —
+# the catalog server is read-only until it knows a hosting target. Kept in an untracked
+# .env.local rather than here because SITE_HOSTING_KEY is site-hosting's live BUNDLE_KEY.
+[ -f .env.local ] && set -a && . ./.env.local && set +a
+
 CATALOG_TOKEN="$TOKEN" PORT="$PORT" npm run --silent http & SERVER=$!
 trap 'kill $SERVER 2>/dev/null || true' EXIT
 

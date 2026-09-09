@@ -30,7 +30,17 @@ docs/images
 
 # the fleet — generated client bundles, one folder per site. Local work product,
 # not platform code, and the source material it derives from is ignored too.
+# Everything in here is served to any token holder by fleet_siblings, so it holds live client
+# sites only — test bundles live in mcp/fixtures/, which is ignored for the same reason.
 content/
+mcp/fixtures/*/
 
 # POC shared key, written at run time
 poc/mcp-app/.poc-token
+create-webpage.zip
+
+# built plugin archives — rebuild with scripts/package-plugin.sh
+dist-plugin/
+
+# local hosting target for the catalog server, holds a live BUNDLE_KEY
+mcp/.env.local

@@ -8,8 +8,15 @@ import { zodToJsonSchema } from 'zod-to-json-schema'
 import { catalog } from '@blackdash/renderer/blocks'
 
 const here = dirname(fileURLToPath(import.meta.url))
-/** The fleet is this repo's own work product, not part of the catalog package. */
+/** The fleet is this repo's own work product, not part of the catalog package.
+ *  Every folder here is served to any token holder as a divergence sibling, so it holds
+ *  live client sites and nothing else — test bundles live in FIXTURES, off the served path. */
 export const FLEET = join(here, '..', '..', 'content')
+
+/** Bundles the tests read. Deliberately outside FLEET: they used to sit in `content/`, which
+ *  meant `fleet_siblings` offered two hand-built theme-swap fixtures to creators as if they
+ *  were real sites to diverge from. Gitignored — they are copies of client work. */
+export const FIXTURES = join(here, '..', 'fixtures')
 
 /** Derived from the catalog's own shape — see the renderer's catalog-version. It was a literal
  *  here, bumped by hand, and it had already fallen behind two schema changes. */

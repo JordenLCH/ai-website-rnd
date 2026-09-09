@@ -34,6 +34,29 @@ function siteCss(): string {
 
 const json = (data: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] })
 
+/** A bundle argument, however the host chose to send it.
+ *
+ *  Some clients — the web one notably — hand an object argument over as a JSON *string*. The
+ *  bundle is fine; only the transport differs. Parsing here rather than rejecting keeps the
+ *  validator's messages about the site, instead of `site.: Expected object, received string`,
+ *  which reads as a defect in the creator's content and sends them editing the wrong thing.
+ *
+ *  This runs in the handlers, not as a zod `preprocess` on the input schema: the SDK hands the
+ *  handler the request's raw arguments, so a schema-level transform is declared, published in the
+ *  JSON Schema, and never applied to the value the tool actually sees. */
+function asJson(label: string, v: unknown): any {
+  if (typeof v !== 'string') return v
+  const text = v.trim()
+  /* Only text that is meant to be a document is parsed; a genuinely stringy value is passed
+     through untouched, so the validator still gets to say what is wrong with it. */
+  if (!text.startsWith('{') && !text.startsWith('[')) return v
+  try {
+    return JSON.parse(text)
+  } catch (e) {
+    throw new Error(`${label} arrived as JSON text, but it does not parse: ${(e as Error).message}`)
+  }
+}
+
 export function createServer() {
   /** Read-only catalog service.
    *
@@ -104,11 +127,24 @@ export function createServer() {
     'Compare a candidate theme against sites already in the fleet. Layout-map overlap is scored, ' +
     'not colour distance, because two themes resolving slugs to the same layouts read as the same ' +
     'template however different their palettes are. Call this before writing content.',
-  inputSchema: { candidateTheme: z.record(z.any()).optional() },
-  }, async ({ candidateTheme }) =>
-  json(candidateTheme
-    ? { comparedAgainst: siblings().map((s) => s.name), results: divergence(candidateTheme) }
-    : { fleet: siblings() }))
+  inputSchema: { candidateTheme: z.any().optional() },
+  }, async ({ candidateTheme: rawTheme }) => {
+    const candidateTheme = asJson('candidateTheme', rawTheme)
+    const fleet = siblings()
+    /* An empty fleet scores every candidate as distinct, which is not a pass — it is the check
+       not running. Say so, or a creator reads silence as approval and ships the first art
+       direction the model proposed, which is the mode of its training data. */
+    if (fleet.length === 0) return json({
+      fleet: [],
+      checked: false,
+      note: 'No sites in the fleet to compare against, so divergence was not measured. This is ' +
+        'not a clean result — treat the art direction as unchecked and lean harder on sampling ' +
+        'several directions and discarding the likeliest.',
+    })
+    return json(candidateTheme
+      ? { checked: true, comparedAgainst: fleet.map((s) => s.name), results: divergence(candidateTheme) }
+      : { checked: true, fleet })
+  })
 
   /* What `npm run validate` did, for someone who cannot run npm. The same module the build farm
      imports — the point of moving validation to the server is that there is still only one of it,
@@ -121,7 +157,8 @@ export function createServer() {
     'so a bundle that passes here cannot fail there for schema reasons. Call it after every ' +
     'material edit, not once at the end.',
   inputSchema: { site: z.any(), theme: z.any(), org: z.any().optional() },
-  }, async ({ site, theme, org }) => {
+  }, async ({ site: rawSite, theme: rawTheme, org: rawOrg }) => {
+    const [site, theme, org] = [asJson('site', rawSite), asJson('theme', rawTheme), asJson('org', rawOrg)]
     const { ok, issues, density, unverified } = validateBundle(site, theme, org)
     return json({
       catalogVersion: CATALOG_VERSION, ok,
@@ -140,11 +177,13 @@ export function createServer() {
   title: 'Preview a site in the conversation',
   description:
     'Render a bundle with the real catalog and show it inline, with its validation verdict and a ' +
-    'tab per page. Pass the bundle you are working on. The heavy render is handed to the app, not ' +
-    'returned as text, so calling this repeatedly is cheap in context.',
+    'tab per page. Pass the bundle you are working on. The markup, the stylesheet and the migrated ' +
+    'bundle are handed to the app out of band; the text you get back is the verdict alone, so ' +
+    'calling this after every edit costs a few hundred bytes rather than a page of HTML.',
   inputSchema: { site: z.any(), theme: z.any(), org: z.any().optional(), page: z.string().optional() },
   _meta: { ui: { resourceUri: PREVIEW_URI }, 'ui/resourceUri': PREVIEW_URI },
-  }, async ({ site, theme, org, page }) => {
+  }, async ({ site: rawSite, theme: rawTheme, org: rawOrg, page }) => {
+    const [site, theme, org] = [asJson('site', rawSite), asJson('theme', rawTheme), asJson('org', rawOrg)]
     const v = validateBundle(site, theme, org)
     const errors = v.issues.filter((i) => i.severity === 'error')
     if (!v.ok || !v.site || !v.theme) {
@@ -165,13 +204,25 @@ export function createServer() {
       html, css: siteCss(),
       bundle: { site: v.site, theme: v.theme },
     }
-    /* The render travels in the text content, which is what every host is known to forward to the
-       app. It is also billed into the conversation, so a page switch costs a page of markup —
-       worth optimising once this is in daily use, by moving the payload to `_meta` and leaving a
-       sentence here. `_meta` is populated already; the app reads it first and falls back to this,
-       so that change is one line on this side and none on the other. */
+    /* The render travels in `_meta`, and only a verdict goes into the text content.
+       The text content is billed into the conversation and re-sent on every subsequent turn, so
+       carrying the markup there cost ~157 KB per call — a page of HTML, the whole stylesheet, and
+       the caller's own bundle echoed back — which is precisely the cost this preview exists to
+       avoid. The app reads `_meta` first, so nothing about the picture changes. A host that
+       forwards neither gets the verdict, which is the half a reader needs in the transcript. */
+    /* Errors and warnings in full — they are the reason to read this at all. Info notes are
+       migration receipts and density hints: worth one line each, not a paragraph each, on a call
+       made after every edit. */
+    const verdict = {
+      ok: true, client: v.site.client, catalogVersion: CATALOG_VERSION,
+      page: key, pages,
+      errors: v.issues.filter((i) => i.severity === 'error'),
+      warnings: v.issues.filter((i) => i.severity === 'warning'),
+      notes: v.issues.filter((i) => i.severity === 'info').map((i) => `${i.where}: ${i.message}`),
+      rendered: `${(html.length / 1024).toFixed(0)} KB of HTML for "${key}", drawn in the preview panel — not repeated here`,
+    }
     return {
-      content: [{ type: 'text' as const, text: JSON.stringify(payload) }],
+      content: [{ type: 'text' as const, text: JSON.stringify(verdict) }],
       _meta: { blackdash: payload },
     }
   })
@@ -200,7 +251,8 @@ export function createServer() {
     site: z.any(), theme: z.any(),
     org: z.any().describe('required to publish: the entity graph is derived from this file alone'),
   },
-  }, async ({ domain, site, theme, org }) => {
+  }, async ({ domain, site: rawSite, theme: rawTheme, org: rawOrg }) => {
+    const [site, theme, org] = [asJson('site', rawSite), asJson('theme', rawTheme), asJson('org', rawOrg)]
     const t = target()
     if (!t) return noTarget()
     if (!org) return json({
