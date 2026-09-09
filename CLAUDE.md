@@ -13,7 +13,7 @@ If you are here to **test the flow**, jump to "Test task" at the bottom.
 |---|---|
 | `renderer/` | **git submodule** → [`website-renderer`](https://github.com/JordenLCH/website-renderer). `@blackdash/renderer`: block catalog, validator, preview server. Preview and checking only — no fleet, no SEO, no MCP |
 | `mcp/` | the catalog MCP server (HTTP + bearer, plus a stdio entry point). Read-only, except for the three `bundle_*` tools that hand a finished bundle to hosting — the store stays on the far side |
-| `platform/` | the server side — build farm and SEO/AEO/GEO derivation. Runs after upload |
+| `platform/` | **git submodule** → [`website-platform`](https://github.com/JordenLCH/website-platform). The server side — build farm and SEO/AEO/GEO derivation. Runs after upload, and `site-hosting` pins the same repo |
 | `content/` | the fleet — one folder per client, gitignored. This repo's work product, not catalog code |
 | `skills/create-webpage/` | the distributable skill creators use, and **the source copy** — `./skills/install.sh [../site-starter]` pushes it to `~/.claude/skills/` and a starter checkout. Three copies exist and they drift: the starter's still told creators to fall back to a stale catalog after this one stopped |
 | `website_info/` | five real client briefs with copy, brand colours and local images |
@@ -28,7 +28,7 @@ below are the working detail.
 Content lives in `<repo>/content/<client>/` as three files: `site.json`, `theme.json`, `org.json`.
 The renderer discovers them by folder — adding a client is adding a directory, not editing an import.
 
-## The renderer is a submodule
+## Two submodules: the renderer and the platform
 
 Full reasoning — what this replaced, why the two consumers use different mechanisms, and the
 defects extraction exposed — is in
@@ -40,10 +40,19 @@ before, which let the two drift — and they had, by one commit.
 
 ```bash
 git clone --recurse-submodules <this repo>     # or, in an existing clone:
-git submodule update --init
+git submodule update --init                    # brings both renderer/ and platform/
 ```
 
 `platform` and `mcp` still resolve `file:../renderer`, so nothing about their imports changed.
+
+**`platform/` is a submodule for the same reason**, added later: it has two consumers that are not
+each other — this repo, where it is developed beside the catalog, and `site-hosting`, which runs it
+on every publish. The second used to reach it by filesystem path (`PLATFORM_DIR`), so a checkout
+nobody had updated built sites against an old catalog with nothing to say so. It keeps
+`file:../renderer`, which means **both are checked out side by side, and the pair moves together** —
+a host repo carrying one without the other, or at mismatched pins, is the situation the
+`file:` path exists to prevent.
+
 Two rules that matter:
 
 - **Work on a branch inside the submodule.** A fresh `git submodule update` leaves it on a detached
@@ -105,9 +114,14 @@ chat carries paths; the browser carries bytes. `platform/src/assets.ts` is the s
 "which pictures does this site need", read from the props the build will actually resolve and sent
 to hosting rather than recomputed there.
 
-**The seam to watch:** `site-hosting` finds the farm by path (`PLATFORM_DIR`, default
-`../ai-website/platform`). A stale checkout there builds against an old catalog silently. The
-renderer solved exactly this by becoming its own repo; the platform has not yet.
+**How the two repos are joined, and what defends the joint.** `site-hosting` carries the same two
+submodules and runs the farm from its own checkout (`PLATFORM_DIR` still overrides, for a
+development farm). That records which farm it expects; it does not guarantee the checkout is
+current. The guarantee is `catalogDrift` in the renderer: every bundle stores the catalog it was
+composed against, and **a farm older than the bundle refuses to build**. That direction is the
+dangerous one — migrations only run forwards, so an out-of-date farm renders a page that parses,
+looks fine, and is the wrong site. Forward drift stays a note, because that is the fleet-patch
+story working.
 
 The preview app has three dropdowns — `site`, `theme`, and page tabs — plus a status readout that
 turns red and lists issues when a bundle is invalid.
