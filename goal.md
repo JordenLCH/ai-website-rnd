@@ -171,14 +171,20 @@ variation checks in the validator.
 Also done: all four checks ported from the earlier round, and Cloudflare Pages deploy
 (`npm run build -- <bundle> <out> --deploy=<domain>` — opt-in, skips without credentials).
 
+Also done: `bundle_validate` and `site_preview` on the real catalog server, the preview UI drawing
+pages through the build farm's own `renderPage` (exported, never copied), and the skill rewritten
+for a creator with no filesystem — it now stops when the catalog is unreachable instead of falling
+back to a stale copy, and takes image paths from the archive the person actually uploaded.
+
 Left:
 
-- `bundle_validate` and `site_preview` on the real catalog server (`mcp/`) — the transport already
-  suits both, no rewrite
-- the preview UI built against the catalog, calling the platform's renderer rather than copying it
-- the upload page
-- skill changes: image paths, and hard-fail when the catalog is unreachable
+- **the upload page** — lives in `site-hosting`, not here; check what it already does before
+  planning around it
 - an always-on deploy, with the auth question answered
-- **`org.json` is missing from every bundle in `content/`**, so `npm run build` cannot run on any of
-  them as they stand. One exists in `site-starter/content/merryfair/`. The packager should be
-  writing it
+- **the packager does not write `org.json`**, so no bundle in `content/` has one and the build farm
+  cannot run on any of them. The build now says so clearly instead of dying on ENOENT, but the fix
+  belongs in the packager (`renderer/tools/compress.sh`, `site-starter/package.sh`)
+- **committed fixtures.** `content/` is gitignored, so a fresh clone has no bundles at all: the test
+  suites, the smoke test and `fleet_siblings` all have nothing to run against, and the divergence
+  check passes vacuously. Two or three bundles with `org.json` — one good, one deliberately failing
+  the variation checks — should be committed separately from the client fleet
