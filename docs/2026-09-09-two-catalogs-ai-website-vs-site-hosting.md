@@ -2,7 +2,12 @@
 
 Written 2026-09-09, before any implementation plan, because the MCP work was about to be planned
 into one repo while a second repo solved an overlapping problem with a different content model.
-The question this answers: **which repo owns the block catalog and the content contract?**
+
+**Corrected after a first draft:** `site-hosting` is the *earlier R&D*, and this repo is the
+successor written after it. It has **no real customers on it**, so migration cost is near zero and
+"which repo wins" was the wrong question. The right one: **what did the earlier round solve better,
+and what must be carried forward before it is forgotten?** Prior work that is not salvaged is not
+neutral — it gets rediscovered later at full price.
 
 ## How this was read, and what that is worth
 
@@ -80,49 +85,108 @@ Whichever way the decision goes, it should be read before more validation work h
   migration machinery for stored bundles, the SEO/AEO derivation, the creator skill, and the proven
   MCP App preview.
 
-## Options
+## Where each one is actually better
 
-**A. One catalog: `ai-website`'s renderer, hosted by `site-hosting`.** `site-hosting` takes
-`@blackdash/renderer` as a dependency; a Payload collection stores the bundle; `build-tenant.ts`
-renders through the shared catalog; the MCP mounts as a Next route handler in the Payload app,
-which answers the deployment and auth prerequisites outright. Slot-editing survives as a
-*constrained view over* a blocks array for tenants who need hand-editing — the tier system already
-exists to express "generated sites are a higher tier".
+Judged per area, not per repo. "Better" means: solves the problem this pipeline actually has.
 
-*Cost:* real migration. Two component libraries must become one, `renderPage.tsx`'s two render
-paths become three before they become one, and the live tenants have to move.
+### `site-hosting` is ahead on checking a generated page
 
-**B. `site-hosting`'s model wins; rebuild the skill against it.** Treat `ai-website` as the
-prototype that answered the research questions — it has, and cheaply. *Cost:* discard the catalog,
-the theme contract, the migrations, five built bundles, and re-prove the MCP App preview against a
-different catalog. The generation quality argument (free composition, tone rhythm) has to be
-re-made inside a slot model, or abandoned.
+`docs/architecture/validation-layers.md` (describing `poc-json-blocks/`) is the most advanced
+thinking in either repo on the question this whole project exists for — *how do you tell that a
+generated page is bad before a client does?* Nine layers, of which two come from a library and
+seven were written there. Four have no equivalent here:
 
-**C. Keep both, deliberately.** Different products for different customers. *Cost:* fleet-wide
-patching — the entire premise of this repo — only ever covers one of the two fleets, and the
-duplicated component libraries drift forever.
+- **Layer 6 — data and tokens.** A spec refers to data rather than restating it:
+  `{"type":"DataTable","props":{"source":"products","columns":[...]}}` and
+  `"Call [phone], or come to [address.short]."` A collection, column or token that does not exist
+  fails the build. Renaming a field breaks the build of every page that used it instead of quietly
+  emptying a column; a typo fails instead of printing `[phome]` onto the page.
+- **Layer 7 — design variation.** Monotony, measured rather than guessed: no three consecutive
+  bands with the same background *and* padding, three distinct paddings, three distinct
+  backgrounds, three distinct picture shapes, exactly one `display` heading. Plus the one check
+  that opens a file — `imagesize.mjs` reads pixel dimensions from the image header (forty lines, no
+  dependency) and **rejects a photograph cropped past about half of itself**. Of seventeen
+  corrections made to four generated pages, **seven were picture shape** — the one judgement the
+  model reliably got wrong, because nothing showed it the consequence.
+- **Layer 8 — site variation.** Every Merryfair page passed 7/7 while three of four opened with the
+  same band, two using the same photograph. Nothing was wrong with any page; the fault existed only
+  *between* them. This repo checks divergence **between sites** (`fleet_siblings`) and nothing
+  **between the pages of one site**. That is a real hole, and it is the failure mode most likely to
+  make a client say "every page looks the same".
+- **Layer 9 — theme integrity, run on rendered markup rather than the spec.** A fixed colour that
+  leaked out of a component — `bg-indigo-500`, an inline `#7BB241` — survives every spec-level
+  check, because specs carry no colours. The rule here is "no raw values in `site.json`", which
+  polices the input and cannot see the output. Their note on *why* `indigo-500` specifically is the
+  tell of a generated site is worth reading on its own.
 
-## Recommendation
+And the doc's best section is **"What no layer can see"**: of the last ten real defects, six were
+found by opening the page and looking at it — line measure, implicit grid columns, whether the
+photograph matches the words beside it, whether a fact is true, whether the argument is any good.
+That honesty is the part to copy, not just the checks.
 
-**A**, on this reasoning: the things `site-hosting` has and this repo lacks are *expensive and
-boring* — auth, tenancy, a database, a CDN, migrations, tests. The things this repo has and
-`site-hosting` lacks are *cheap to move and hard to re-derive* — a catalog, a token contract, a
-skill, and a set of decisions already argued out in `docs/`. Moving a library into a platform is
-ordinary work; rebuilding a platform under a library is not.
+### `site-hosting` is ahead on shipping
 
-The honest counter-argument, which is a product question and not a technical one: if the people
-using `site-hosting` are consultants filling slots rather than agents generating sites, then A
-imports composition machinery that its actual users do not want, and C is the truthful answer.
-**Nobody can settle that from the code** — it depends on who the customer is.
+- **Cloudflare Pages deployment already works.** `scripts/build-tenant.ts` →
+  `uploadToCloudflarePages()`: `wrangler pages deploy` direct-upload per tenant, custom domain
+  attached through the Pages API, skipped cleanly when `CLOUDFLARE_API_TOKEN` /
+  `CLOUDFLARE_ACCOUNT_ID` are absent. The VPS/Caddy path it replaced is still there, commented out.
+- Tenants, domains, tiers, page-type access, auth, migrations, a database.
+- **A test suite that runs.** This repo has none: `mcp`'s `smoke` prints and asserts nothing, and
+  `platform`'s `smoke` script points at a file that does not exist.
 
-## What I could not determine
+### This repo is ahead on the pipeline itself
 
-1. Are these the same product? `site-hosting` serves tenants with tiers and a chatbot;
-   `ai-website` generates a bundle and hands it over. They may be one funnel or two businesses.
-2. Are the live tenants in `site-hosting` real customers? That sets the cost of any migration.
-3. What does `renderPage.tsx` (31 KB, two render paths) actually cost to maintain? If it is already
-   painful, that argues for A sooner.
-4. Does the nine-layer validation scheme subsume this repo's density and divergence checks, or
-   complement them?
+- 24 finished blocks against 12 components; deprecations with `migrate()` so stored bundles survive
+  a catalog change; the 39-token contract with variant-slug indirection; SEO/AEO/GEO derivation
+  from `org.json`; `unverified` gating; the creator skill; and the MCP App preview proven in
+  claude.ai.
+- **Granularity went the other way, and that is worth knowing.** `poc-json-blocks` uses a
+  *primitive* catalogue — six containers, eighteen atoms — and its layer 4 (every element a child of
+  exactly one thing) exists *because* of that: "a primitive catalogue needs it far more than a menu
+  of finished sections did". This repo chose finished sections with `FreeSection` as the escape
+  hatch. Finished sections buy fewer ways to be wrong; primitives buy expressiveness. Both rounds
+  hit the same tension and resolved it differently — this is the one place where the newer answer is
+  not obviously the better one, and the layer-4 problem is the price of the older one.
 
-Answer 1 and 2 and the decision mostly makes itself.
+## Verdict
+
+**Keep this repo's pipeline. Port four things out of the older round before they are lost.**
+
+Ranked by value:
+
+1. **Data references instead of baked facts (their layer 6).** This is the highest-value idea in
+   either repo and it is missing here entirely. `goal.md` wants a cronjob that keeps content fresh —
+   with prices and phone numbers baked into `site.json` as copy, "fresh" means regenerating and
+   re-reviewing a page per fact, forever, with the same fact drifting between two pages of one site.
+   With a reference (`[phone]`, `source: "products"`), a refresh is a data update and the build
+   picks it up. **This changes what the cronjob even is**, so it should be decided before the
+   upload page and the platform are built around the current shape.
+2. **Site-variation checking (their layer 8).** `fleet_siblings` covers between-sites; nothing
+   covers between-pages. Cheapest of the four to add, and it catches the most visible defect.
+3. **The image-crop check (inside their layer 7).** Forty lines reading an image header, catching
+   the error class that accounted for seven of seventeen corrections. This repo has `imageKind` and
+   a layout rule, but nothing that compares a photograph's real proportions to the frame it lands
+   in — and nothing at all for images that only arrive at upload time.
+4. **Theme integrity checked on rendered output (their layer 9).** The principle transfers even
+   though the stack differs: check what the page *shows*, not only what the JSON *says*.
+
+**Take the Cloudflare Pages deploy as-is.** `uploadToCloudflarePages()` is roughly one function plus
+the custom-domain call, it is already the decided direction there (the Caddy path is commented out),
+and it is exactly the "build and deploy" step of `goal.md`'s server side. Do not re-derive it.
+
+**Leave behind:** the fixed-slot `Pages` content model, the dormant Puck code and `puckData` column,
+the Caddy/VPS deploy path, and the stale documents (`README.md` on Puck,
+`preview-and-static-build.md` on Directus).
+
+**Steal the format, not just the content.** `validation-layers.md`'s "What no layer can see" section
+is a better piece of engineering writing than anything in `docs/` here: it states what the system
+cannot do, with counted evidence. Whatever gets ported should keep that section.
+
+## Open question this does not settle
+
+Whether the Payload app should host the MCP endpoint. Its case is strong — auth, a database,
+always-on, and `docs/IMPLEMENTATION-PLAN.md` already specifies *"Payload (API + admin + MCP)"* and
+*"MCP as a thin adapter"* over a shared core. Against it: this repo's MCP is four small files with
+one dependency, and moving it into a Next/Payload app buys a database and a deployment story at the
+cost of coupling the catalog server to a CMS it does not otherwise need. Worth deciding when the
+upload page is designed, since both answers hinge on where uploaded images are stored.
