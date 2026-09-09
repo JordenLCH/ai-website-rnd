@@ -41,7 +41,13 @@ before, which let the two drift — and they had, by one commit.
 ```bash
 git clone --recurse-submodules <this repo>     # or, in an existing clone:
 git submodule update --init                    # brings both renderer/ and platform/
+npm --prefix renderer install && npm --prefix platform install && npm --prefix mcp install
 ```
+
+There is no root package manifest — each of `renderer/`, `platform/` and `mcp/` installs its own,
+and `mcp` resolves the other two by `file:` path, so the submodules must be present before it
+installs. A clone that skipped `--recurse-submodules` fails there first, with a message about a
+missing `../platform` rather than about the step that was actually missed.
 
 `platform` and `mcp` still resolve `file:../renderer`, so nothing about their imports changed.
 
@@ -56,9 +62,13 @@ a host repo carrying one without the other, or at mismatched pins, is the situat
 Two rules that matter:
 
 - **Work on a branch inside the submodule.** A fresh `git submodule update` leaves it on a detached
-  HEAD, and commits made there are unreachable once you switch away. `cd renderer && git checkout main`.
+  HEAD, and commits made there are unreachable once you switch away. `cd renderer && git checkout main`,
+  and the same for `platform`.
 - **A block change is two commits.** One in `renderer/`, pushed to `website-renderer`; then one here
-  bumping the gitlink. Until you bump, this repo still builds against the old catalog.
+  bumping the gitlink. Until you bump, this repo still builds against the old catalog. A change to
+  the build farm is the same shape, and a change that spans both is four — renderer, platform,
+  and a gitlink bump here for each. `site-hosting` pins them separately again, so a farm change
+  only reaches production once its `farm/platform` pin moves too.
 
 Never import the renderer by relative path — `../../renderer/src/…` is what made it unmovable, and
 `mcp` had four of them. Import by package name, the way `platform` already did.

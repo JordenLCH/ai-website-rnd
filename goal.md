@@ -192,10 +192,12 @@ Done:
 
 Left:
 
-- **The two repos are joined by a path.** `site-hosting` finds the build farm at `PLATFORM_DIR`,
-  defaulting to a sibling directory. A stale checkout there builds sites against an old catalog
-  with nothing to say so. The renderer solved this by becoming its own repo consumed as a
-  submodule; the platform should go the same way. Until then the seam is real and undefended.
+- ~~The two repos are joined by a path.~~ **Done.** The build farm is its own repo
+  (`website-platform`), pinned as a submodule in both, beside the renderer it resolves as
+  `file:../renderer`. More importantly the failure it caused is now loud: a bundle records the
+  catalog it was composed against, and **a farm older than the bundle refuses to build**, because
+  migrations only run forwards and an out-of-date farm otherwise renders a page that parses, looks
+  right, and is the wrong site. Every build records which farm made it.
 - **An always-on deploy.** Everything above is proven against a local hosting server and a
   tunnelled catalog server. Neither is running unattended yet.
 - **Committed fixtures.** `content/` is gitignored, so a fresh clone has no bundles at all: the test
