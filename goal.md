@@ -15,98 +15,165 @@ Goal
 - **No install required.** Some of the people doing this don't have a dev machine, or a computer at all beyond a browser. A flow that starts with "clone the repo and install node" excludes them, so it cannot be the only flow.
 
 
-## Two creator paths, one catalog
+## The shape, in one paragraph
 
-Both paths produce the exact same bundle (`site.json`, `theme.json`, `org.json`) and are checked by
-the exact same validator. Neither is a copy of the other — that is what stops "valid here, fails on
-publish".
+**The skill is the prompt and the judgement. The MCP is everything that changes.** A creator opens
+a chat, the skill walks them through it, and every fact that could go stale — the block catalog,
+the prop schemas, the token contract, the fleet, and the verdict on whether a bundle is valid —
+comes from our server at the moment it is asked for. Nothing is installed. What comes out is the
+same bundle a developer would have produced locally, and the platform can rebuild it forever.
 
-| | Path A — site-starter (existing) | Path B — chat GUI (new) |
-|---|---|---|
-| Who | has node + an IDE agent (VS Code, Cursor, Antigravity) | has a browser, nothing else |
-| Catalog | MCP | MCP |
-| Preview | local `npm run dev` | in-chat HTML artifact, real catalog served by MCP |
-| Validate | `npm run validate` | `bundle_validate` over MCP |
-| Deliver | `compress.sh` → zip → upload page | drop the project folder on the upload page |
+Two things follow, and both are settled rather than assumed:
 
-**The catalog MCP is a hard dependency on both paths.** If it is down, generation stops and says so.
-There is no offline catalog fallback: a stale catalog produces a bundle that looks valid in chat and
-is rejected at upload, which is the failure this whole pipeline exists to prevent.
-
-
-## Steps for users — Path A (site-starter, needs node)
-
-1. Clone our boilerplate repo, we set the skill, claude.md / agent.md or whatever relevant so that we can set some limitation & user don't need to manually configure everything, the repo can then open using tools like visual studio code, cursor, antigravity etc
-1. The person add relevant info to text / markdown, add some images to be included, run it, preview it
-1. Manually edit some part / give verbal feedback if things off eg: section 3 of contact page not nice, need tweak, hero image should use a new one created by the graphics designer or from their own existing image gallery
-1. After all done, run a script to package the output then it will be processed in our platform (ADD AEO GEO SEO things), then push to cloudflare pages or something similar
-1. If further edit is required few months later, maybe some product discontinued / spec change, we can edit the source manually or have basic editor like Wordpress page where ppl can manually update the content
+- **Validation moved off the creator's machine.** It is reached over MCP now, not run by node. But
+  it is the *same module* the build farm imports — `renderer/src/validate-bundle.ts`. MCP is a
+  transport, never a second validator. Two validators means "valid in chat, rejected on publish".
+- **The preview moved into the conversation.** Our server serves the real catalog as an
+  [MCP App](https://modelcontextprotocol.io/extensions/apps/overview), so the page is rendered by
+  the same React components the build farm uses, inside the chat, with no local server.
+  Proven end to end — see `poc/mcp-app/`.
 
 
-## Steps for users — Path B (chat GUI, no install)
+## Where this runs
 
-Runs in any chat GUI that supports skills + MCP (Claude Design is the reference host, because its
-project folder already keeps uploaded images organised under `uploads/`).
+| Surface | Skills | MCP | Verdict |
+|---|---|---|---|
+| **Claude chat (claude.ai)** | yes | yes, custom connector | **the generation host** |
+| **Claude Code** | yes | yes | same flow, for whoever has a machine |
+| **Claude Design** | *not documented* | *not documented* | **not a host** — see below |
 
-1. Person uploads the brief (pdf / doc) **and the real images** into the chat project, and types the
-   things a document never states — phone, address, social URLs, registration number
+**Claude Design cannot run this flow.** Its announcement and help centre document uploads, a
+canvas, and exports (`.zip`, PDF, PPTX, standalone HTML, a Claude Code handoff bundle) and mention
+neither Skills nor MCP connectors. Anthropic says integrations are "coming weeks" work.
+
+That does not make it useless — it makes it an **input and asset stage**: organise the client's
+photographs, work up visual direction, then export the archive and carry it into the chat where
+generation happens. If it later supports skills and connectors, it becomes a host too and nothing
+about the bundle changes.
+
+Worth testing other GUIs the same way, for whichever produces the most predictable output. The bar
+is exactly two questions: does it load a skill, and does it connect an MCP server. Everything else
+is preference.
+
+
+## The flow
+
+**Stage 1 — generate, in a chat**
+
+1. Person uploads the brief (pdf / doc) **and the real images**, and types what a document never
+   states: phone, address, social URLs, registration number, founding date. That is `org.json`, and
+   it is the highest-value thing the whole pipeline produces
 1. Person picks the brand colour
-1. Agent calls `catalog_list`. **Down → stop and say so.** No generation on a stale catalog
-1. Agent proposes theme + art direction, and renders a skeleton preview **in the conversation** so the
-   person judges it by looking, not by reading a description
+1. Agent calls `catalog_list`. **Down means stop** — never generate against a stale catalog
+1. Agent proposes theme + art direction, and renders a skeleton preview **in the conversation** so
+   the person judges it by looking rather than by reading a description
 1. Agent proposes the sitemap; `fleet_siblings` checks divergence against sites we already built
 1. Person decides / revises
-1. Agent generates the first 3 pages → `bundle_validate` → preview artifact
+1. First 3 pages → `bundle_validate` → preview
 1. Person decides / revises
-1. Agent generates the remaining pages → `bundle_validate` → preview artifact
-1. Agent writes `site.json`, `theme.json`, `org.json` into the project folder, beside `uploads/`
+1. Remaining pages → `bundle_validate` → preview
+1. Person exports: the JSON bundle plus the asset archive
 
-Image props carry the **real relative path** into that folder
-(`uploads/OPTIMISED/LOGO/FIRST/logo.svg`) — the agent has seen the photo, so `alt` and `imageKind`
-are grounded rather than guessed. The preview cannot load local files, so images come up blank:
-layout and tone are truthful, photography is not. Real images first appear after upload.
+**Stage 2 — upload**
 
-**The preview is an MCP App**, not a second renderer and not a separate web page — our catalog
-server declares a `ui://` resource, and Claude renders it inside the chat. Clicking inside it
-(switch page, re-validate) calls our tools directly. Proven end to end in `poc/mcp-app/`.
+Drag the archive onto a hosted page. It re-runs the same validator server-side (stage 1 ran on a
+machine we do not control), resolves every image path, and reports **missing** and **unused** files
+— the second is what catches the wrong photograph being wired up. Errors print as one
+copy-pasteable block, worded to paste straight back into the chat: the person's debugger is the AI
+that wrote the bundle.
 
-**Claude Design is an input stage, not the host.** It documents no Skills and no MCP connectors,
-so the generation itself happens in an ordinary Claude chat; Design is where assets get organised
-and exported.
-
-
-## Upload — where both paths meet
-
-A hosted drag-drop page. Zip from Path A, folder from Path B, same bundle either way.
-
-1. Re-runs the same validator server-side. Stage 1 ran on a machine we do not control, so this gate
-   is not optional
-1. Rejects any bundle stamped with an unknown catalog version, or one the current catalog cannot migrate
-1. Resolves every image path against `uploads/` and reports **missing** (referenced, no file) and
-   **unused** (file present, nothing references it — this is what catches the wrong photo being picked)
-1. Prints errors as one copy-pasteable block, worded to paste straight back into the chat
-
-
-## Server side
+**Stage 3 — server side**
 
 1. Derive AEO / GEO / SEO from the content tree (`org.json` → entity, blocks → structured data)
-1. Build and deploy
-1. (Automated) run cronjob to repeat the generation periodically to make the content fresh, and to
-   patch the fleet when the catalog or the SEO rules change
+1. Build and deploy — **Cloudflare Pages**, direct upload per site, custom domain via the Pages API
+1. Cronjob to refresh content and to patch the fleet when the catalog or the SEO rules change
 
 
-## What this needs before it can ship
+## Images
 
-- **Two additions to the catalog MCP**: `bundle_validate` (runs the real `validate-bundle.ts`) and
-  `site_preview` (an MCP App — the real catalog, rendered in the conversation). The server's
-  transport already suits both; no rewrite
-- **The upload page**
-- **Confirm the request-header beta.** Claude's Add-custom-connector dialog can take a fixed key as
-  a request header (`static_headers`) — set Authentication to None, enter `Bearer <token>` under
-  Request headers, and our existing `CATALOG_TOKEN` works unchanged, shared across our org. It is
-  beta and limited to some organizations, so check the dialog first: if the section is missing we
-  need OAuth instead, which is real work. Also lock the server to Anthropic's egress range
-  `160.79.104.0/21`. Never put the token in the URL
-- **An always-on catalog MCP.** Today it is `mcp/tunnel.sh` on a laptop. Once the MCP is a hard
-  dependency, a 502 means nobody in the company can generate anything. This is a blocking
-  prerequisite, not a nice-to-have
+The person uploads photographs into the chat, so the agent has *seen* them — `alt` and `imageKind`
+are grounded in the actual picture rather than guessed from a filename. The bundle stores the real
+relative path into the archive (`uploads/OPTIMISED/LOGO/FIRST/logo.svg`), so no mapping layer is
+needed at upload.
+
+The in-chat preview has no filesystem, so photographs come up blank there. **Layout and tone are
+truthful; photography is not.** The real images first appear after upload — and the checks that
+need to open the files (see below) run on the platform, not in the chat.
+
+
+## Keeping strangers out
+
+Settled, with the answer being the key we already had:
+
+- Claude's Add-custom-connector dialog has a **Request headers** section: set Authentication to
+  **None**, enter the key on `authorization` as `Bearer <token>` (sent verbatim — the scheme must
+  be typed). Our existing `CATALOG_TOKEN` works unchanged, shared across our org. It is **beta and
+  limited to some organizations**, so confirming the dialog has it is the first thing to check
+- If it is missing, the fallback is OAuth (`oauth_cimd` — Claude identifies itself with an
+  Anthropic-hosted metadata document, nothing to register). Real work; front it with an existing
+  identity provider rather than writing an authorization server
+- **Choosing OAuth means Claude owns the `Authorization` header** and refuses to let a request
+  header claim it — a shared key then has to answer on `x-api-key` or `x-auth-token`
+- Lock the server to Anthropic's egress range `160.79.104.0/21`. That is not identity — all Claude
+  traffic comes from there — but it removes the open internet
+- **Never put the token in a URL.** Anthropic's docs call it a vulnerability and the MCP spec
+  prohibits it: URLs land in logs, proxies and history
+- Connector auth cannot be edited after adding. Rotating the key is remove-and-re-add, and everyone
+  reconnects — a scheduled team action, not a quiet ops change
+
+**Discoverability is deliberately zero.** Listing in Anthropic's connector directory needs their
+review and is for public servers; this one is internal. People get the URL and the key from us.
+
+
+## Not "AI slop": what is actually checked
+
+Judgement made checkable, because taste does not survive being a guideline. Per page: density,
+shape repetition, evidence before the ask, one loud heading. Across the pages of one site: a
+repeated opening band, a repeated tone rhythm, one photograph carrying three pages. Across the
+fleet: layout-map divergence, so a new site does not resolve its slugs the way an existing one does.
+
+Ported from the earlier round of this work (`site-hosting`), which found these by measuring rather
+than guessing. Still to port:
+
+- **the picture-crop check** — read the image header, compare the photograph's real shape to the
+  frame it was put in, refuse anything cropped past about half of itself. Seven of seventeen
+  corrections on four generated pages were picture shape
+- **theme integrity on rendered markup** — a colour that leaked out of a component survives every
+  check that only reads the JSON
+
+And the honest part, which no check replaces: **the layers catch structure and monotony, never
+proportion and never truth.** A bundle that passes everything is a bundle worth looking at, not a
+finished site. Facts still need a human.
+
+
+## Open decision: facts as data, not as copy
+
+The earlier round stored facts by reference — `"Call [phone]"`, `{ source: "products" }` — and
+failed the build when a token or column did not exist. This repo bakes them into `site.json` as
+copy.
+
+It matters here because of the refresh cronjob. With facts as copy, "keep the content fresh" means
+regenerating and re-reviewing a page **per fact, forever**, and the same fact drifts between two
+pages of one site. With references, a refresh is a data update the build picks up, and a renamed
+field breaks the build instead of quietly emptying a column.
+
+**This changes what the bundle contains and what the cronjob is**, so decide it before the upload
+page and the platform are built around today's shape.
+
+
+## What is done, and what is left
+
+Done and proven: the MCP App preview rendering the real catalog inside claude.ai from a custom
+connector with a shared key (`poc/mcp-app/`, `npm run prove`); the auth answer; the between-pages
+variation checks in the validator.
+
+Left:
+
+- `bundle_validate` and `site_preview` on the real catalog server (`mcp/`) — the transport already
+  suits both, no rewrite
+- the preview UI built against the catalog, calling the platform's renderer rather than copying it
+- the upload page
+- the picture-crop and theme-integrity checks
+- Cloudflare Pages deploy, ported rather than re-derived
+- skill changes: image paths, and hard-fail when the catalog is unreachable
+- an always-on deploy, with the auth question answered
