@@ -18,7 +18,10 @@ and every site inherits it on the next rebuild, because no site contains bespoke
 | `website_info/` | real client briefs used for testing |
 | `docs/` | research and findings, with the reasoning behind each decision |
 
-The companion repo is **site-starter** — content only, one clone per client.
+The companion repo is **site-starter** — content only, one clone per client. It installs the
+renderer as an npm git dependency; this repo carries it as a submodule. Why they differ, and what
+the arrangement replaced, is in
+[`docs/2026-09-09-renderer-as-a-shared-repo.md`](docs/2026-09-09-renderer-as-a-shared-repo.md).
 
 ## Run
 

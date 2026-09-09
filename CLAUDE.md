@@ -30,6 +30,10 @@ The renderer discovers them by folder — adding a client is adding a directory,
 
 ## The renderer is a submodule
 
+Full reasoning — what this replaced, why the two consumers use different mechanisms, and the
+defects extraction exposed — is in
+[`docs/2026-09-09-renderer-as-a-shared-repo.md`](docs/2026-09-09-renderer-as-a-shared-repo.md).
+
 `renderer/` is a checkout of **website-renderer**, the repo that owns the catalog. Both this repo
 and `site-starter` consume that one source; neither owns a copy. It was a one-way subtree mirror
 before, which let the two drift — and they had, by one commit.
