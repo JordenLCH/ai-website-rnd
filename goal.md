@@ -52,7 +52,7 @@ project folder already keeps uploaded images organised under `uploads/`).
    things a document never states — phone, address, social URLs, registration number
 1. Person picks the brand colour
 1. Agent calls `catalog_list`. **Down → stop and say so.** No generation on a stale catalog
-1. Agent proposes theme + art direction, and renders a skeleton preview as an in-chat artifact so the
+1. Agent proposes theme + art direction, and renders a skeleton preview **in the conversation** so the
    person judges it by looking, not by reading a description
 1. Agent proposes the sitemap; `fleet_siblings` checks divergence against sites we already built
 1. Person decides / revises
@@ -63,9 +63,16 @@ project folder already keeps uploaded images organised under `uploads/`).
 
 Image props carry the **real relative path** into that folder
 (`uploads/OPTIMISED/LOGO/FIRST/logo.svg`) — the agent has seen the photo, so `alt` and `imageKind`
-are grounded rather than guessed. The preview artifact cannot load local files, so it draws a
-labelled placeholder showing the path and kind: layout is truthful, photography is not. Real images
-first appear after upload.
+are grounded rather than guessed. The preview cannot load local files, so images come up blank:
+layout and tone are truthful, photography is not. Real images first appear after upload.
+
+**The preview is an MCP App**, not a second renderer and not a separate web page — our catalog
+server declares a `ui://` resource, and Claude renders it inside the chat. Clicking inside it
+(switch page, re-validate) calls our tools directly. Proven end to end in `poc/mcp-app/`.
+
+**Claude Design is an input stage, not the host.** It documents no Skills and no MCP connectors,
+so the generation itself happens in an ordinary Claude chat; Design is where assets get organised
+and exported.
 
 
 ## Upload — where both paths meet
@@ -90,10 +97,14 @@ A hosted drag-drop page. Zip from Path A, folder from Path B, same bundle either
 
 ## What this needs before it can ship
 
-- **Two new MCP tools**: `bundle_validate` (runs the real `validate-bundle.ts`) and `preview_bundle`
-  (the real block catalog compiled to one self-contained file, fetched once per session and reused —
-  so re-rendering after an edit costs only the JSON)
+- **Two additions to the catalog MCP**: `bundle_validate` (runs the real `validate-bundle.ts`) and
+  `site_preview` (an MCP App — the real catalog, rendered in the conversation). The server's
+  transport already suits both; no rewrite
 - **The upload page**
+- **An answer on auth.** Claude's custom-connector dialog takes OAuth, not our static bearer token.
+  Either implement OAuth or drop the token and defend with an unguessable URL, the rate limiter and
+  an Anthropic-IP allowlist. Nothing ships until this is decided — a connector cannot be added
+  without it
 - **An always-on catalog MCP.** Today it is `mcp/tunnel.sh` on a laptop. Once the MCP is a hard
   dependency, a 502 means nobody in the company can generate anything. This is a blocking
   prerequisite, not a nice-to-have

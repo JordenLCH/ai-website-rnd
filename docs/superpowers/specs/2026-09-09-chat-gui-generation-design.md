@@ -1,6 +1,12 @@
 # Generating a site from a chat GUI, with nothing installed
 
-**Status:** design approved 2026-09-09, not yet implemented.
+**Status:** design approved 2026-09-09. Revised the same day after checking the platform docs and
+building a POC — the preview mechanism changed. Not yet implemented in `mcp/`.
+
+**Revision note.** The first version of this spec assumed the preview had to be a published
+claude.ai Artifact with the catalog inlined, because an artifact cannot fetch anything. It also
+assumed Claude Design could host the flow. Both were wrong, and the correction is in
+"Preview is an MCP App" below.
 
 ## The problem
 
@@ -51,6 +57,33 @@ blocks arbitrary hosts. Blocks therefore draw a labelled placeholder showing the
 `imageKind`. **Layout and tone are truthful; photography is not.** Real images first appear after
 upload. This is a real limitation and the skill must say so rather than let someone approve a design
 believing they have seen it finished.
+
+### Preview is an MCP App, not a published artifact
+
+**Claude Design cannot host this flow.** Its announcement and help centre document uploads,
+a canvas, and exports (`.zip`, PDF, PPTX, standalone HTML, a Claude Code handoff bundle) — and
+mention neither Skills nor MCP connectors. So the host is an ordinary claude.ai chat, where both
+are documented: Skills since October 2025, remote MCP custom connectors since January 2026.
+Claude Design remains useful as the place assets get organised, then exported — an input stage.
+
+The preview itself is an **MCP App** (the MCP Apps extension, shipped January 2026, supported by
+Claude and Claude Desktop). A tool declares `_meta.ui.resourceUri` pointing at a `ui://` resource;
+the host fetches that resource and renders it in a sandboxed iframe inside the conversation, with
+a JSON-RPC channel back over postMessage.
+
+Why this beats the artifact route, which the first draft chose:
+
+- **The app can call our tools.** `app.callServerTool()` round-trips through the host, so
+  validation happens on a click inside the preview rather than by another turn of conversation.
+  No CORS, no declared origin, and the viewer's connector credentials are reused.
+- **The catalog is served, not inlined.** No 16 MB page budget, no re-publishing the whole page
+  to change one block.
+- **One server owns catalog, validator and preview.** They cannot drift apart, because they are
+  the same deployment.
+
+A published Artifact remains the fallback if MCP Apps ever proves unavailable to us: the
+`downloads` capability's allowlist covers `json` and `zip`, and the `mcp` capability lets a page
+call the viewer's connectors. It is a worse fit, not an impossible one.
 
 ### Validation is the same validator, reached over MCP
 
@@ -131,17 +164,46 @@ identical.
 Unchanged. SEO/AEO/GEO derivation from the content tree, build, deploy, cron refresh and fleet-wide
 patching.
 
+## What the POC settled
+
+`poc/mcp-app/` — throwaway, `npm run prove` for the assertions — stood the whole loop up against
+the real catalog and a real MCP Apps host. Ten checks pass: the app tool advertises its UI, the
+`ui://` resource serves over the same stateless transport `mcp/src/http.ts` already uses, the real
+validator answers over MCP and rejects a broken bundle with an issue naming the break, the real
+catalog renders, and a click inside the app calls the server again and re-renders another page.
+
+Not covered: rendering inside claude.ai specifically. That needs a public URL, a connector, and a
+person to add it — everything up to that point is verified.
+
+Four things it changed:
+
+- **`mcp/` needs no transport change.** It is already `McpServer` + `StreamableHTTPServerTransport`,
+  stateless per request, which is exactly what MCP Apps wants.
+- **Auth does not match, and must be decided.** We authenticate with a static bearer
+  (`CATALOG_TOKEN`, `mcp/src/http.ts`). Claude's Add-custom-connector dialog offers an OAuth client
+  ID and secret; there is no field for a static bearer. Either implement OAuth, or drop the token
+  and rely on an unguessable URL plus the existing rate limiter plus an Anthropic-IP allowlist —
+  their docs require the server be reachable from those ranges, so allowlisting is supported.
+- **CORS becomes a decision.** A host that connects browser-side preflights; `CATALOG_ORIGINS`
+  currently allows nothing, deliberately.
+- **The UI must be one self-contained file.** The iframe CSP is deny-by-default. `vite-plugin-singlefile`
+  produced 235 KB for the POC's app, so this costs nothing in practice.
+
 ## Scope
 
-**In:** `bundle_validate` and `preview_bundle` MCP tools; the upload page; skill changes for Path B
-(image paths, artifact preview, hard-fail on MCP down); removing the offline-catalog fallback from
-both paths; an always-on MCP deploy.
+**In:** `bundle_validate` and the `site_preview` MCP App on the existing catalog server; the upload
+page; skill changes for Path B (image paths, hard-fail on MCP down); removing the offline-catalog
+fallback from both paths; an always-on public deploy with the auth question answered.
 
 **Out:** removing or changing Path A; any change to the block catalog, the theme contract, or the
 derivation pipeline; the later "Wordpress-like" content editor for months-later edits.
 
-## Open question deferred deliberately
+## Open questions deferred deliberately
 
-Auth on the upload page and on the write side generally. Stage 1 needs no new auth — the MCP is
-already bearer-token'd and stays read-only. The upload page is the first thing that accepts data from
-outside, and it should be designed with that question answered, not before.
+**Auth**, above — it is now the gating decision for Path B rather than a detail, because a custom
+connector cannot be added without answering it.
+
+**Upload from inside the preview.** The app could POST the finished bundle straight to the platform,
+which would collapse the upload page into the preview. Images are what stops it being free: binary
+does not belong in a JSON-RPC tool call, so a direct upload needs `_meta.ui.csp.connectDomains` plus
+a real CORS origin. Keep it out of v1; the upload page stays separate until images are solved.
