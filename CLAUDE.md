@@ -75,11 +75,18 @@ Two rules that matter:
 - **Work on a branch inside the submodule.** A fresh `git submodule update` leaves it on a detached
   HEAD, and commits made there are unreachable once you switch away. `cd renderer && git checkout main`,
   and the same for `platform`.
-- **A block change is two commits.** One in `renderer/`, pushed to `website-renderer`; then one here
-  bumping the gitlink. Until you bump, this repo still builds against the old catalog. A change to
-  the build farm is the same shape, and a change that spans both is four — renderer, platform,
-  and a gitlink bump here for each. `site-hosting` pins them separately again, so a farm change
-  only reaches production once its `farm/platform` pin moves too.
+- **A renderer change is two commits.** One in `renderer/`, pushed to `website-renderer`; then one
+  here bumping the gitlink. Until you bump, this repo still builds against the old catalog.
+  `site-hosting` pins its own `farm/renderer` separately, so a renderer change only reaches
+  production once that pin moves too — same two-commit shape, done again over there.
+
+  **A build-farm change is different: `site-hosting` no longer pins `farm/platform` by hand.**
+  `update.sh` runs `git submodule update --remote farm/platform` on every deploy, so whatever is on
+  `website-platform`'s `main` goes live on the *next prod deploy after you push* — no gitlink bump,
+  no second commit, no "forgot to update the pin" failure mode (2026-09-10, after finding platform
+  had no drift guard the way renderer's `catalogDrift` does). Push to `website-platform` main only
+  when you mean for it to ship. This repo's own `platform/` stays a manually-pinned submodule for
+  local dev/testing before that push — it is not what `update.sh` reads.
 
 Never import the renderer by relative path — `../../renderer/src/…` is what made it unmovable, and
 `mcp` had four of them. Import by package name, the way `platform` already did.
