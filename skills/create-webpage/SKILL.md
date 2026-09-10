@@ -1,6 +1,6 @@
 ---
 name: create-webpage
-description: Generate a complete, maintainable marketing website from a client brief — as validated JSON (content + design tokens), never hand-written HTML. Use this whenever the user wants to build, generate, scaffold, redesign, or re-theme a website, landing page, or set of marketing pages for a company or client; when they mention a client brief, brand colours, or a site they need built; when they ask to change a site's look, art direction, or theme; or when they want to add or reorder sections on a generated site. Use it even if they just say "build me a site for X" without mentioning JSON, blocks, or themes — this skill is how sites get built here.
+description: Generate a complete, maintainable marketing website from a client brief — as validated JSON (content + design tokens), never hand-written HTML — or restyle one with a new theme.json. Use this whenever the user wants to build, generate, scaffold, redesign, or re-theme a website, landing page, or set of marketing pages for a company or client; when they mention a client brief, brand colours, or a site they need built; or when they ask to change a site's whole look, art direction, or theme. Use it even if they just say "build me a site for X" without mentioning JSON, blocks, or themes — this skill is how sites get built here. For a scoped change to a site that already exists — add/remove a page, edit a section's copy, reorder blocks, tweak one token — use edit-webpage instead; it patches the existing bundle rather than regenerating it.
 ---
 
 # Create a webpage
@@ -64,10 +64,30 @@ Validate before previewing: it costs a second and catches what a screenshot neve
 SOURCE bundle, never a build — shipping HTML freezes the site, and it can then never be re-themed or
 receive a fleet-wide patch.
 
-**On the chat path, `site_preview` does not show photographs.** The preview has no filesystem, so
-every image comes up blank. Layout, tone and type are truthful; photography is not. Say that when
-you show it, or the person approves a design believing they have seen it finished — and the picture
-is the part they will care most about.
+**On the chat path, `site_preview` starts with every `<img>` blank — logo included — until pictures
+have been uploaded for real.** The MCP App draws the rendered HTML verbatim: no filesystem behind
+it, no server-side inlining. This is deliberate (base64 in the transcript costs more than the
+site), and it applies to **every** image the page has, not only photography.
+
+**Upload early — the preview then shows the real file, live, not a blob.** Once you have a domain
+and a draftId, call `bundle_publish` and hand the human the upload link right away, and say plainly:
+"upload now, it'll show up in the preview live." You do not need to wait until stage 9 — publishing
+here only ever creates a draft on the hosting side, never a live deploy, so calling it early or more
+than once is safe. Before that first upload (or for any picture nothing has been uploaded for yet),
+a broken `<img>` in the preview is still a click/drop target for an instant local-only `blob:`
+preview — say plainly that this one **is not saved anywhere** and still needs the real upload.
+**Logos must be raster** (WebP/JPEG/PNG/AVIF) — SVG is rejected by the upload endpoint on purpose,
+so flag an SVG logo at intake and get it converted before upload. Full mechanics, and why, are in
+`references/live-preview.md`.
+
+### Chat path: hold a draft, patch it — don't resend the whole bundle
+
+`bundle_put(site, theme, org)` once you have real JSON gets back a `draftId`; every edit after that
+is `bundle_patch(draftId, ops)` — RFC-6902-style, ~100 bytes instead of resending the whole bundle —
+and `site_preview(draftId)` draws the result inline, the real renderer, not a description of one.
+`bundle_publish(draftId, domain, org)` sends it to hosting (see above for doing this early). Full
+mechanics — the JSON Pointer op shapes, the 2h hold, when this does and doesn't apply — are in
+`references/live-preview.md`.
 
 ### Where files go
 
@@ -166,13 +186,22 @@ A look, a layout, a tone rhythm and a page structure are all things a human judg
 eye and cannot judge at all from prose. **Prose is the wrong medium for stages 3, 4 and 7.** Three
 routes, in order of preference:
 
-1. **The real preview** (`npm run dev`, port 5183) — the only one that is actually the renderer, so
-   what is on screen is what ships. Use it the moment real JSON exists: stage 4's tile, stage 5's
-   home page, stage 7's QA pass. Say which page and which width you are showing.
-2. **`npm run screens`** (port 5190) for choices that exist *before* any JSON does — the art
-   directions, sitemap shapes, anything with options to compare. Write one HTML file into
-   `.preview/screens/` and the server shows the newest. Write a **content fragment** — no `<html>`,
-   no `<head>` — and it gets wrapped in the frame. `.preview/` is gitignored; nothing here ships.
+1. **The real preview** (`npm run dev`, port 5183) — local path only, and the only one that is
+   actually the renderer, so what is on screen is what ships. Use it the moment real JSON exists:
+   stage 4's tile, stage 5's home page, stage 7's QA pass. Say which page and which width you are
+   showing. On the chat path, `site_preview(draftId)` is this route's equivalent — see "hold a
+   draft, patch it" above.
+2. **The `design` skill's canvas** (Claude Design) — chat path, for anything *before* real JSON
+   exists: stage 3's style tiles, stage 4's sitemap shapes, stage 7's QA findings laid out as one
+   screen. It publishes as an Artifact, so it survives the session the way a screenshot doesn't, and
+   where canvas-editing is enabled the human can click an element and leave feedback directly on it
+   rather than describing "the second tile" in prose. Draw the same six tile elements and A/B/C
+   labelling this section already asks for — the canvas is a better easel, not a reason to change
+   what's drawn on it.
+3. **`npm run screens`** (port 5190) — local-path equivalent of the canvas, for the same
+   before-JSON choices. Write one HTML file into `.preview/screens/` and the server shows the
+   newest. Write a **content fragment** — no `<html>`, no `<head>` — and it gets wrapped in the
+   frame. `.preview/` is gitignored; nothing here ships.
 
    ```
    .preview/screens/art-direction.html   one file per screen, never reuse a name
@@ -181,15 +210,19 @@ routes, in order of preference:
    Label the options **A / B / C** plainly on the page. Images resolve from `assets/` at
    `/img/<client>/<file>` — use the client's real photography when the question is whether a
    direction suits it.
-3. **A published page** (an Artifact, or whatever your harness offers) when the human is not at the
-   same machine and the choice needs to survive the session.
+4. **A plain published Artifact** — fallback when the `design` skill isn't available and you're on
+   the chat path, or the human is not at the same machine and the choice needs to survive the
+   session.
 
-**The screen shows; the terminal decides.** The page is display-only on purpose — no clicking, no
-selection state, no event file. The human looks at the screen and answers in the terminal, where you
-are already asking with `AskUserQuestion`. A second input channel in the browser would be one more
-thing to build and maintain, and it still could not wake you between turns, so it buys nothing.
+**The checkpoint decision still runs through `AskUserQuestion`, in the terminal, always.** For
+routes 1 and 3 the page is display-only on purpose — no clicking, no selection state, no event file;
+a second input channel there would be one more thing to build and it still couldn't wake you between
+turns. The `design` canvas is the one exception: its click-to-select and comments are a real,
+useful feedback channel *in addition to* the terminal decision, not instead of it — a comment
+narrows what A/B/C means, it doesn't replace picking one. Still ask with `AskUserQuestion` once the
+comments settle; don't treat an open comment thread as the human having decided.
 
-Both modes are `preview.mjs` in the starter — node builtins, no plugin, no install. A visual step
+Routes 1 and 3 are `preview.mjs` in the starter — node builtins, no plugin, no install. A visual step
 that depends on a plugin the creator has no other reason to have is a visual step that silently does
 not happen.
 
@@ -204,94 +237,27 @@ editorial" looks like is a different design being approved under the same name.
 ### 1. Intake — collect, do not guess
 Take the documents (PDF, brief, deck) and the brand colour, then collect the organisation facts into
 `content/<client>/org.json`. These never appear in marketing copy, cannot be inferred, and must not
-be invented — a fabricated registration number is worse than a missing one.
+be invented — a fabricated registration number is worse than a missing one. The full `org.json`
+schema, the Malaysia registration-number rule, and the exact question list to ask the human are in
+`references/intake.md` — use that list verbatim rather than composing your own; left to invent the
+wording, one model produces a tidy form and another files asset questions under a heading like
+"Platform details", and the difference lands on the client.
 
-```jsonc
-{ "name": "...", "legalName": "... Sdn Bhd", "url": "https://...",
-  "description": "one sentence, what they actually do",
-  "foundingDate": "1974", "registration": "...", "vatId": "...",
-  "phone": "...", "email": "...",
-  "address": { "street": "...", "locality": "...", "region": "...", "postalCode": "...", "country": "MY" },
-  "sameAs": ["https://linkedin.com/company/...", "https://g.page/..."],
-  "certifications": ["ISO 9001", "..."], "awards": ["..."],
-  "areaServed": ["Malaysia", "Singapore"],
-  "people": [{ "name": "...", "role": "...", "credential": "...", "sameAs": "..." }],
-  "numberOfEmployees": "..." }
-```
+The blockers are: registration number, legal name, phone/email, and the **logo file** (raster —
+WebP/JPEG/PNG/AVIF; flag now if it's only available as SVG, see `references/live-preview.md`).
+Everything else either shapes the site (buyer, goal, scope, sections, tone, motion) or strengthens
+it (`sameAs`, certifications, named people) without blocking the build — `references/intake.md` has
+the full breakdown and why each item is where it is.
 
-This file is the site's **E-E-A-T** carrier — the platform turns it into `Organization` /
-`LocalBusiness` schema. Each field answers a question a search or answer engine asks about
-trustworthiness:
+**Deliberately not asked: "how many directions do you want to see".** Stage 3 always samples four
+and discards the likeliest, stage 4 samples the tail of home-page orderings — that sampling is what
+keeps sites from converging on the training-data default, and letting the human dial it down to one
+undoes the reason it exists.
 
-- **Experience** — `foundingDate`, `numberOfEmployees`: how long, at what scale
-- **Expertise** — `certifications`, `people[].credential`: qualifications granted by someone else
-- **Authoritativeness** — `sameAs`: profiles the client does not control, so a crawler can corroborate
-  the entity elsewhere. This is the highest-value field here and the one most often skipped
-- **Trustworthiness** — `legalName`, `registration`, `address`, `phone`: a real accountable entity
-
-Ask for anything missing. Omitting a field is fine; guessing at one is not — wrong registration
-details are a legal problem, not a formatting one.
-
-**Malaysia — the registration number is not optional.** If `address.country` is `MY` (or the legal
-name carries `Sdn Bhd` / `Berhad` / `PLT`), s.30(2) Companies Act 2016 requires the **registered name
-and company registration number on the company's website** — the subsection names websites
-explicitly, alongside letters and invoices, and non-compliance carries up to RM50,000. Put both in
-`chrome.footer`'s `legal.line`, never in a page's blocks: the footer is the only element that appears
-on every page, and a compliance line on the home page is a line missing from the other four.
-
-```jsonc
-"legal": { "line": "Acme Precision Sdn. Bhd. (Registration No. 202001012345 (1234567-X)) · © 2026",
-           "links": [{ "label": "Privacy", "page": "privacy" }] }
-```
-
-Use the number exactly as SSM issued it — the 12-digit form with the old `1234567-X` number in
-brackets, if the client gave both. `validate` fails the bundle when the footer is missing either
-half, so collect `registration` and `legalName` at intake or the site cannot ship.
-
-#### Ask with this list, verbatim
-
-Do not compose your own intake questions. Emit this, filling in what the documents already answer so
-the human only sees what is genuinely missing. Left to invent the wording, one model produces a tidy
-form and another produces headings like "Platform details" with asset questions filed under them —
-same skill, different model, and the difference lands on the client.
-
-Say plainly which items block the build, because they are not equally urgent and a flat list of
-twelve questions reads as though they are.
-
-```
-ANSWERED FROM YOUR DOCUMENTS — correct me if any of this is wrong
-  <field>: <value>            ← list every one you filled, so it can be checked
-  ...
-
-BLOCKS THE BUILD — I cannot produce a shippable site without these
-  1. Registration number      (Malaysia: s.30(2), the footer gate fails without it)
-  2. Legal name, exactly as registered
-  3. Phone and email
-
-SHAPES THE SITE — I will ask again before writing copy if these change
-  4. Who buys from them       (the buyer decides whether pages split by product or by audience)
-  5. What the site must make happen
-                              (a quote request and a spec download are different sites)
-  6. Any page that must exist for a reason I would not guess
-
-STRENGTHENS THE SITE — omit any of these and the site still ships
-  7. sameAs profiles          (LinkedIn, Google Business — the highest-value field here and
-                               the most skipped: it is how a crawler corroborates the entity
-                               somewhere the client does not control)
-  8. Certifications, named exactly   ("ISO 9001", not "ISO standards")
-  9. Employee count, awards, area served
- 10. Named people with credentials
-```
-
-Three rules for running this list:
-
-- **A vague answer is a missing answer.** "ISO standards" is not a certification; ask which one.
-  Writing `ISO 9001` because it is the common one is inventing a credential.
-- **Never fill a blocker to keep moving.** A wrong registration number is a legal problem, not a
-  formatting one. Stop and ask, or ship with the field absent and say so.
-- **Assets and branding are not intake questions.** Photos, logo and guidelines arrive at stage 8,
-  after the layout exists and you know which images it actually needs. Asking for them now gets you
-  a folder of whatever the client had to hand.
+**Section photography is not an intake question; the logo is.** Bulk photos wait for stage 8, after
+the layout exists and you know which images it actually needs. The logo is the exception: one fixed
+file whose header/footer role never depends on layout, so collect it now, the same turn as the legal
+facts.
 
 Nothing about hosting, SEO or refresh belongs in intake either. Those are derived server-side after
 upload and need nothing from the creator — see "After you hand off".
@@ -632,7 +598,9 @@ Validate, preview one last time, then publish. See below for what the platform d
 **On the chat path this is `bundle_publish`,** with the site's own domain, the bundle, and
 `org.json` — which is required, because the entity graph is built from it alone and a site without
 one is refused here rather than at upload. What comes back is a **link the human opens in a
-browser** to add the photographs.
+browser** to add the photographs — if you already sent this link at stage 5 or 8 (see
+`references/live-preview.md`), this call just re-publishes the finished JSON to the same link;
+say that plainly rather than handing over what looks like a second, different link.
 
 The pictures deliberately do not go through the conversation. Base64 in a transcript is several
 times the size of the file and is re-sent on every later turn, so one site's photography would cost
@@ -783,3 +751,5 @@ First check whether an existing block with a different variant does the job — 
 - `references/catalog.md` — every block, its variants, its props, and the primitives for `FreeSection`
 - `references/art-direction.md` — the tokens, what drives distinctiveness, off-mode sampling, slop tells
 - `references/house-rules.md` — validation gates, content-vs-layout rules, and known pitfalls with their causes
+- `references/intake.md` — the `org.json` schema and the verbatim intake question list
+- `references/live-preview.md` — draft/patch mechanics, uploading pictures early, why SVG logos are rejected
