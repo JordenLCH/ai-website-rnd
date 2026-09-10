@@ -11,12 +11,13 @@ and every site inherits it on the next rebuild, because no site contains bespoke
 | Path | Role |
 |---|---|
 | `renderer/` | submodule → `website-renderer`. `@blackdash/renderer`: block catalog, validator, preview server. Shared with site-starter; preview and checking only |
-| `content/` | the fleet — one folder per client, gitignored |
-| `mcp/` | read-only catalog MCP. Serves what drifts: blocks, schemas, token contract, fleet |
 | `platform/` | build farm — renders a bundle to static HTML and derives every SEO/AEO/GEO artifact |
 | `skills/create-webpage/` | source of the skill shipped inside starter repos |
 | `website_info/` | real client briefs used for testing |
 | `docs/` | research and findings, with the reasoning behind each decision |
+
+`mcp/` (catalog MCP) and `content/` (the fleet) moved to `site-hosting` on 2026-09-10 — see
+[`docs/superpowers/specs/2026-09-10-mcp-content-to-site-hosting-design.md`](docs/superpowers/specs/2026-09-10-mcp-content-to-site-hosting-design.md).
 
 The companion repo is **site-starter** — content only, one clone per client. It installs the
 renderer as an npm git dependency; this repo carries it as a submodule. Why they differ, and what
@@ -26,13 +27,12 @@ the arrangement replaced, is in
 ## Run
 
 ```bash
-git submodule update --init                # renderer/ is a submodule
-
-cd mcp && npm run smoke                  # validate every bundle, prove the gates fire
-cd mcp && npm start                      # catalog over stdio
-cd mcp && ./tunnel.sh                    # catalog over HTTP + public tunnel
+git submodule update --init                # renderer/, platform/ are submodules
 
 cd platform && npm run build -- <bundle-dir> <out-dir>
+
+# catalog MCP now lives in site-hosting — run from there:
+#   cd site-hosting/mcp && npm run smoke / npm start / ./tunnel.sh
 
 ./scripts/release-renderer.sh            # pack the renderer for creator repos
 ```

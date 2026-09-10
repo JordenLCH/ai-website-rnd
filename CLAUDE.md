@@ -12,13 +12,20 @@ If you are here to **test the flow**, jump to "Test task" at the bottom.
 | Path | What it is |
 |---|---|
 | `renderer/` | **git submodule** → [`website-renderer`](https://github.com/JordenLCH/website-renderer). `@blackdash/renderer`: block catalog, validator, preview server. Preview and checking only — no fleet, no SEO, no MCP |
-| `mcp/` | the catalog MCP server (HTTP + bearer, plus a stdio entry point). Read-only, except for the three `bundle_*` tools that hand a finished bundle to hosting — the store stays on the far side |
 | `platform/` | **git submodule** → [`website-platform`](https://github.com/JordenLCH/website-platform). The server side — build farm and SEO/AEO/GEO derivation. Runs after upload, and `site-hosting` pins the same repo |
-| `content/` | the fleet — one folder per client, gitignored. **Everything here is served to any catalog-token holder by `fleet_siblings`**, so it holds live client sites only; it starts empty, and earlier bundles are in `dev/fleet-archive/`. Test bundles live in `mcp/fixtures/` |
 | `plugin/` | the `website-create` plugin — the skill and the catalog MCP packaged as one install. Self-contained: it carries its own marketplace entry, so it needs no public storefront. `plugin/skills/` is **generated** — see [`docs/plugin-release-sop.md`](docs/plugin-release-sop.md) before touching it |
 | `skills/` | the distributable skills and **the source copy** — `create-webpage` (the workflow) and `sourcing-stock-photos` (photography when a brief has none, usable on its own). `./skills/install.sh [../site-starter]` syncs every directory holding a `SKILL.md` into `plugin/skills/` and a starter checkout; adding a skill is adding a directory. Copies drift: the starter's still told creators to fall back to a stale catalog after this one stopped |
 | `website_info/` | five real client briefs with copy, brand colours and local images |
 | `docs/` | research + spike findings, with the reasoning behind every design decision |
+
+`mcp/` (the catalog MCP server) and `content/` (the fleet) moved to `site-hosting` on 2026-09-10 —
+see [`docs/superpowers/specs/2026-09-10-mcp-content-to-site-hosting-design.md`](docs/superpowers/specs/2026-09-10-mcp-content-to-site-hosting-design.md)
+for why. They previously depended on `file:../platform` and `file:../renderer` from *this* repo's
+checkouts, a second independent pin of the same submodules site-hosting already carries — the
+persistent-server move made that drift real instead of latent. Both now live at
+`site-hosting/mcp/` and `site-hosting/content/`, resolving `file:../farm/platform` and
+`file:../farm/renderer` there instead. Start the catalog server from `site-hosting/mcp` (`./tunnel.sh`),
+not from here.
 
 **Start with [`docs/how-a-site-gets-generated.md`](docs/how-a-site-gets-generated.md)** — the
 end-to-end account of the pipeline: the nine workflow stages and why they run content → structure →
@@ -31,8 +38,9 @@ the version bump is the only signal a user has that their copy is stale, `plugin
 rsync target that a `--delete` sync will silently overwrite, and claude.ai needs the connector
 configured separately because the plugin's `${CATALOG_TOKEN}` cannot expand on the web.
 
-Content lives in `<repo>/content/<client>/` as three files: `site.json`, `theme.json`, `org.json`.
+Content lives in `site-hosting/content/<client>/` as three files: `site.json`, `theme.json`, `org.json`.
 The renderer discovers them by folder — adding a client is adding a directory, not editing an import.
+Point a local preview at it with `CONTENT_DIR=<path-to-site-hosting>/content`.
 
 ## Two submodules: the renderer and the platform
 
@@ -47,15 +55,12 @@ before, which let the two drift — and they had, by one commit.
 ```bash
 git clone --recurse-submodules <this repo>     # or, in an existing clone:
 git submodule update --init                    # brings both renderer/ and platform/
-npm --prefix renderer install && npm --prefix platform install && npm --prefix mcp install
+npm --prefix renderer install && npm --prefix platform install
 ```
 
-There is no root package manifest — each of `renderer/`, `platform/` and `mcp/` installs its own,
-and `mcp` resolves the other two by `file:` path, so the submodules must be present before it
-installs. A clone that skipped `--recurse-submodules` fails there first, with a message about a
-missing `../platform` rather than about the step that was actually missed.
-
-`platform` and `mcp` still resolve `file:../renderer`, so nothing about their imports changed.
+There is no root package manifest — each of `renderer/` and `platform/` installs its own. `mcp/`
+now lives in `site-hosting`, where it resolves `platform`/`renderer` the same way, by `file:` path
+into that repo's own submodule checkout — see the note under Layout above.
 
 **`platform/` is a submodule for the same reason**, added later: it has two consumers that are not
 each other — this repo, where it is developed beside the catalog, and `site-hosting`, which runs it
@@ -88,7 +93,7 @@ Never import the renderer by relative path — `../../renderer/src/…` is what 
   `chrome.header`, then the page's blocks, then `chrome.footer`. Page `blocks` arrays must not
   contain Nav or Footer; repeating them per page means five copies to keep in sync and a header
   that can silently differ between pages. `chrome` is optional in the schema only so older bundles
-  keep validating — every bundle in `content/` now uses it, so copy that shape.
+  keep validating — every bundle in `site-hosting/content/` now uses it, so copy that shape.
 - **`theme.json`** — `{ name, tokens: {39 CSS custom properties}, sectionStyles: { <slug>: {layout, tone, vars?} } }`
 
 The `variant` is an **opaque slug** (`hero/home`, not `hero/dark-overlay`). The theme decides what it
@@ -98,9 +103,9 @@ rhythm and type all change while content stays untouched.
 ## Commands
 
 ```bash
-# preview this repo's fleet — content lives outside the renderer, so point at it
-cd renderer && CONTENT_DIR=../content npm run dev         # :5183
-cd renderer && npm run validate -- ../content/<client>/site.json ../content/<client>/theme.json
+# preview the real fleet — content now lives in site-hosting, point the preview at it
+cd renderer && CONTENT_DIR=<path-to-site-hosting>/content npm run dev         # :5183
+cd renderer && npm run validate -- <path-to-site-hosting>/content/<client>/site.json <path-to-site-hosting>/content/<client>/theme.json
 
 # creator side lives in the site-starter repo, which installs the renderer from git
 #   npm run dev / npm run validate / npm run package
@@ -108,12 +113,11 @@ cd renderer && npm run validate -- ../content/<client>/site.json ../content/<cli
 # platform side
 cd platform && npm run build -- <bundle-dir> <out-dir>   # HTML + JSON-LD + sitemap + llms.txt
 cd platform && npm run build -- <bundle-dir> <out-dir> --deploy=<domain>   # …and push it to Cloudflare Pages
-cd mcp && npm run smoke                    # validates every bundle, proves the gates fire
-cd mcp && ./tunnel.sh                      # start the catalog server (HTTP :8787, bearer auth)
-cd mcp && npm start                        # stdio form, if you need it standalone
-cd mcp && npm run prove                    # 20 headless checks, including the publish path
 
-# publishing: put these in mcp/.env.local, which tunnel.sh sources, and `bundle_publish` appears
+# catalog MCP now lives in site-hosting — run these from site-hosting/mcp, not here
+#   npm run smoke / ./tunnel.sh (:8787, bearer auth) / npm start (stdio) / npm run prove
+
+# publishing: put these in site-hosting/mcp/.env.local, which tunnel.sh sources, and `bundle_publish` appears
 #   SITE_HOSTING_URL=http://127.0.0.1:3000  SITE_HOSTING_KEY=<site-hosting's BUNDLE_KEY>
 # without them the tool says so rather than pretending to store anything
 # going live is a second, separate pair, and it lives in site-hosting/.env, not here:
@@ -164,12 +168,12 @@ worth naming separately.
 ```bash
 docker compose up -d database                 # in site-hosting — Payload has no store without it
 cd site-hosting && npm run dev                # :3000 — stores bundles, serves /upload/<code>, runs the farm
-cd mcp && ./tunnel.sh                         # :8787 — catalog + bundle_* tools, behind the named tunnel
+cd site-hosting/mcp && ./tunnel.sh            # :8787 — catalog + bundle_* tools, behind the named tunnel
 ```
 
 `bundle_publish` appears only when the **catalog server** has a hosting target, and the catalog
 server gets its environment from `tunnel.sh`, not from a shell you happened to export in. It
-sources an untracked `mcp/.env.local` for exactly this:
+sources an untracked `site-hosting/mcp/.env.local` for exactly this:
 
 ```bash
 SITE_HOSTING_URL=http://127.0.0.1:3000
@@ -177,12 +181,12 @@ SITE_HOSTING_KEY=<site-hosting's BUNDLE_KEY, copied verbatim from its .env>
 ```
 
 So the credentials arrive in two different places for two different reasons, and mixing them up
-produces two different failures. `SITE_HOSTING_*` belongs to **`mcp/.env.local`** — without it
-`bundle_publish` refuses with a message saying nothing was stored. `CLOUDFLARE_API_TOKEN` and
-`CLOUDFLARE_ACCOUNT_ID` belong to **`site-hosting/.env`** — without them the site builds and never
-deploys. Neither is inherited from the other process; a restart of the wrong one changes nothing.
+produces two different failures. `SITE_HOSTING_*` belongs to **`site-hosting/mcp/.env.local`** —
+without it `bundle_publish` refuses with a message saying nothing was stored. `CLOUDFLARE_API_TOKEN`
+and `CLOUDFLARE_ACCOUNT_ID` belong to **`site-hosting/.env`** — without them the site builds and
+never deploys. Neither is inherited from the other process; a restart of the wrong one changes nothing.
 
-**Proven end to end on 2026-09-10**, fixture `mcp/fixtures/merryfair` published as
+**Proven end to end on 2026-09-10**, fixture `site-hosting/mcp/fixtures/merryfair` published as
 `e2e-proof.example`: 22 pictures uploaded through the browser half, farm build green
 (platform `f3ad99e`, renderer `de22a2f`, catalog `0.5.0`), `wrangler` deployed, and
 `e2e-proof-example.pages.dev` served all four pages plus `sitemap.xml`, `llms.txt`, the JSON-LD
@@ -197,19 +201,22 @@ turns red and lists issues when a bundle is invalid.
 
 ## Where each concern lives, and why
 
-**Never hand-edit `.mcp.json`.** It is gitignored in both repos and written by `setup-mcp.sh`,
-because it holds a live token and because an edited copy drifts out of sync with
-`mcp/.catalog-token` — which surfaces as an unexplained auth failure at the next session start.
-`mcp/tunnel.sh` runs the script for you, so starting the server also configures this repo.
+**Never hand-edit `.mcp.json`.** It is gitignored in every repo and written by `setup-mcp.sh`
+(each repo keeps its own copy of this script — it just writes local config), because it holds a
+live token and because an edited copy drifts out of sync with the server's `.catalog-token` — which
+surfaces as an unexplained auth failure at the next session start. `site-hosting/mcp/tunnel.sh` runs
+the script *in site-hosting* for you when it starts the server; this repo's own copy still needs
+running by hand to point *this* repo's agent at that server, since mcp no longer lives here.
 
 ```bash
 ./setup-mcp.sh --show          # what is configured now
 ./setup-mcp.sh --env           # reference $CATALOG_TOKEN instead of writing the token
-./setup-mcp.sh <token> <url>   # another endpoint: staging, a dev tunnel
+./setup-mcp.sh <token> <url>   # point this repo at the running catalog server, e.g. http://127.0.0.1:8787
 ```
 
-Both repos use `type: "http"` with a bearer token — this repo against `127.0.0.1:8787`, and
-`site-starter` against the public tunnel, which is what a creator on another machine gets. The
+Both repos use `type: "http"` with a bearer token — this repo against `127.0.0.1:8787` (or wherever
+site-hosting's mcp is actually running), and `site-starter` against the public tunnel, which is
+what a creator on another machine gets. The
 stdio form still exists as an entry point but is no longer the config: it cold-starts `tsx` at
 session init and intermittently misses the client's connect timeout, which surfaces as
 `CONNECTION_CLOSED` with nothing to debug. An already-running HTTP server survives client restarts.
@@ -308,21 +315,22 @@ Goal: exercise the whole flow on a brief nobody has generated yet, and report wh
 `merryfair` and `aonic` were already built — they are in `dev/fleet-archive/`, so generating those
 proves nothing.
 
-1. **Connect the catalog.** `cd mcp && ./tunnel.sh`, then confirm `catalog_list` returns the block
-   count and a `catalogVersion`. If the MCP shows as disconnected, the server is not running — start
-   it rather than falling back to the offline catalog, or `fleet_siblings` silently never runs and
-   the divergence check in step 3 is skipped without saying so.
+1. **Connect the catalog.** `cd site-hosting/mcp && ./tunnel.sh`, then confirm `catalog_list` returns
+   the block count and a `catalogVersion`. If the MCP shows as disconnected, the server is not
+   running — start it rather than falling back to the offline catalog, or `fleet_siblings` silently
+   never runs and the divergence check in step 3 is skipped without saying so.
 2. **Invoke the `create-webpage` skill** and follow it. Read the brief, propose a sitemap, sample
    four art directions and justify the pick, then compose.
 3. **Check divergence** with `fleet_siblings` before writing content. Layout-map overlap above ~0.7
    against a sibling means change the layout map, not the palette. The fleet is empty until a site is
-   written into `content/`, and the tool now answers `checked: false` and says so — that is the check
-   not running, not a pass. Restore a comparison set from `dev/fleet-archive/` if you want one.
-4. **Write** `content/<client>/site.json` and `content/<client>/theme.json`. There is nothing to
-   register — the preview globs `content/*/`, so a new folder just appears in the dropdown. Put Nav
-   and Footer in `site.chrome`, not in each page's `blocks`.
-5. **Validate** until clean, then **preview** (`CONTENT_DIR=../content`) and actually look at all
-   pages at two widths.
+   written into `site-hosting/content/`, and the tool now answers `checked: false` and says so — that
+   is the check not running, not a pass. Restore a comparison set from `dev/fleet-archive/` if you
+   want one.
+4. **Write** `site-hosting/content/<client>/site.json` and `site-hosting/content/<client>/theme.json`.
+   There is nothing to register — the preview globs `content/*/`, so a new folder just appears in the
+   dropdown. Put Nav and Footer in `site.chrome`, not in each page's `blocks`.
+5. **Validate** until clean, then **preview** (`CONTENT_DIR=<path-to-site-hosting>/content`) and
+   actually look at all pages at two widths.
 6. **Package** with `renderer/tools/compress.sh` and confirm the zip contains source JSON and assets
    — never `dist/`.
 
