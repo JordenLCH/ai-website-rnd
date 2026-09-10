@@ -51,7 +51,7 @@ Settings → Connectors → Add custom connector
 | Field | Value |
 |---|---|
 | Name | Blackdash catalog |
-| URL | `https://tools.cod3r.men/mcp` |
+| URL | `https://catalog.blackdash.my/mcp` |
 | Authentication | Request headers (not OAuth) |
 | Header name | `x-api-key` |
 | Header value | the catalog token |

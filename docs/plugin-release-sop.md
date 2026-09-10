@@ -17,7 +17,7 @@ second manifest is the install record, not a listing on anything public.
 |---|---|---|
 | `plugin/.claude-plugin/plugin.json` | manifest — **`version` lives here** | yes, every release |
 | `plugin/.claude-plugin/marketplace.json` | the install record | rarely |
-| `plugin/.mcp.json` | `blackdash-catalog` → `https://tools.cod3r.men/mcp`, header `x-api-key: ${CATALOG_TOKEN}` | only if the endpoint moves |
+| `plugin/.mcp.json` | `blackdash-catalog` → `https://catalog.blackdash.my/mcp`, header `x-api-key: ${CATALOG_TOKEN}` | only if the endpoint moves |
 | `plugin/skills/create-webpage/` | **generated copy** | **no — see below** |
 | `plugin/commands/setup.md` | `/website-create:setup` | yes |
 | `plugin/scripts/catalog-token.sh` | stores/checks/clears the token | yes |
@@ -134,7 +134,7 @@ Uploading the whole plugin is right — but only the skill half runs on claude.a
 other two do not, and configure around them:
 
 - **The `blackdash-catalog` MCP** — set it up as a custom connector instead: Settings →
-  Connectors → Add custom connector, URL `https://tools.cod3r.men/mcp`, auth **Request headers**,
+  Connectors → Add custom connector, URL `https://catalog.blackdash.my/mcp`, auth **Request headers**,
   header `x-api-key` = the token. The plugin's `.mcp.json` carries `${CATALOG_TOKEN}`, and
   environment-variable expansion is a local-client behaviour — on the web there is no shell to
   expand it, so that header would be sent literally and rejected.
