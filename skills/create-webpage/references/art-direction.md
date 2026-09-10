@@ -66,6 +66,12 @@ previews, split views. Media queries would break those; container units don't.
 `--color-on-accent` must have real contrast against `--color-accent`. A mid-green with white text
 fails WCAG; use a near-black instead. Check it rather than assuming.
 
+**Colour ranks last here, and that is the reason it goes wrong.** *Last* gets read as *don't think
+about it*, and an unthought palette is not a neutral one — it is the model's prior, which is a warm
+off-white ground every time. `references/palette.md` is the positive procedure: four neutral families
+to select from rather than compose, hue unity and a chroma ceiling you can read off a hex, the accent
+as a spend budget, and the five contrast pairs. Read it before writing the eleven colour tokens.
+
 ## Tones
 
 Each section resolves to one tone, which rebinds `--bg/--ink/--muted/--line/--btn-bg/--btn-fg`:

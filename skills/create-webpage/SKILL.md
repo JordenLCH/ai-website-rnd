@@ -301,8 +301,15 @@ gap list forward and ask once.
 
 ### 3. Theme — the look on one sheet, not a fake page
 Now, and not before, choose the visual direction. The first direction a model proposes is the mode of
-its training data, which is why generated sites look alike. Generate four candidates with a
-self-assessed probability for each, discard the likeliest, and present **three**.
+its training data, which is why generated sites look alike.
+
+**Propose three, each from a different objective** — Measured (processing fluency), Fit
+(prototypicality for the category), Spark (novelty inside the same measured floor). Sampling four and
+dropping the likeliest shifts the centre without guaranteeing spread, and three blind runs of one
+brief still produced three names for one look. Candidates drawn from objectives that pull apart
+cannot collapse. Resolve Fit first, present Measured first, and give each one a stated **cost** as
+well as a pitch. `references/proposing-themes.md` has the protocol, the orthogonality check and the
+audience axes.
 
 Present each in about two lines — the register, the type pairing and its *scale ratio*, the density
 dial, the tone rhythm, one sentence on why it suits this client and this sitemap. **Do not write
@@ -739,17 +746,85 @@ These come from real breakages; `references/house-rules.md` has the full list an
 
 If the user wants a different look, write a **new `theme.json` only**. Do not touch `site.json`. A correct architecture means changing the tokens and the slug mappings restyles every page — different layouts, different tone rhythm, different type. If you find yourself editing content to change the look, something is mis-modelled; say so rather than working around it.
 
-## Adding a section the catalog can't express
+## Composing sections: reach for `FreeSection` first
 
-First check whether an existing block with a different variant does the job — it almost always does, and it stays patchable. If it genuinely doesn't, two options:
+Twenty-four blocks, two or three layouts each, and every site in the fleet drawing from the same
+bag is *why generated sites resemble each other*. A typed block is a decision somebody else already
+made about what that section looks like; a page assembled entirely from them is a page nobody
+designed. `FreeSection` is the answer, and it is not an escape hatch — **it is the default for any
+section that carries the site's identity.**
 
-1. **`FreeSection`** (if the project has it): compose from primitives — a grid recipe plus a tree of Stack/Row/Grid/Card/Heading/Text/Image/Button/Field/etc. Still pure JSON, still themeable, still validated. Use it for one or two signature moments per site, not everywhere: when every section is bespoke, nothing looks designed and review costs multiply.
-2. **Propose a new block** to the shared catalog as a change request. Don't write component code inside a client site — it can't be patched centrally, and it will drift.
+It is not bespoke markup. It is pure JSON, themed by the same tokens, validated by the same
+validator, and patched by the same fleet sweep. What it does *not* inherit is a fix to a typed
+block's internals — which only matters for the sections listed below.
+
+```jsonc
+{ "type": "FreeSection", "variant": "story/origin", "props": {
+    "role": "story",                                  // required — see below
+    "grid": { "cols": 12, "gap": "lg", "pad": "xl", "align": "start" },
+    "bg": { "image": "...", "kind": "environment", "overlay": true, "parallax": 0.2 },
+    "children": [ /* Stack | Row | Grid | Card | Heading | Text | Eyebrow | Quote | Button |
+                     Image | Stat | List | Figure | Caption | Badge | Marker | KeyValue |
+                     Carousel | Divider | Spacer | Field */ ] } }
+```
+
+### The six sections that must stay typed, and exactly why
+
+The build farm derives structured data by looking up **block type**. `FreeSection` is read for the
+page's outline, its meta description and its OG image — `role: "hero"` is understood — but every
+typed derivation below is a `first(page, '<Type>')` lookup, so a `FreeSection` in its place emits
+nothing and says nothing about it.
+
+| Keep the typed block | What is lost otherwise |
+|---|---|
+| `Locations` | `LocalBusiness` + `PostalAddress` — local pack eligibility |
+| `SpecTable` / `CatalogGrid` | `Product` + `additionalProperty` — the one rich result still live |
+| `Hero` (when it carries `breadcrumb`) | `BreadcrumbList` — the SERP trail |
+| `Testimonials` | `Review` — comprehension only, and stripped when `unverified` |
+| `FAQ` | `FAQPage` — no rich result since 2026-05-07, still machine-readable |
+| `Steps` | `HowTo` — retired 2023, same status |
+
+The first three are worth real money and the rule is simple: **anything a machine has to read stays
+typed; everything else is yours.** Range, proof, story, process copy, CTAs, the parts of a page a
+person forms an opinion from — compose those freely.
+
+`role` is required on every `FreeSection` and is not decoration: it is what survives free
+composition for the house rules, and for the hero it is what the meta description and OG image are
+read from. One of `hero · proof · range · story · spec · quote · process · contact · cta · nav ·
+footer · media`.
+
+> **Known gap, worth knowing before you rely on it.** `FreeSection`'s schema comment says role is
+> what "JSON-LD and house rules depend on", but `platform/src/seo.ts` only acts on `role: "hero"`.
+> A `role: "spec"` or `role: "contact"` section produces no typed schema today. The comment promises
+> more than the code delivers — which is the reason for the table above rather than a note saying
+> "set the role and you're fine".
+
+### What keeps free composition from becoming slop
+
+These are enforced, and each exists because it broke something real:
+
+- **Nesting depth ≤ 5.** Flatten it.
+- **Exactly one level-1 `Heading` in the hero, and none anywhere else.**
+- **One display-size heading per section** (`Stat` is exempt — a row of figures is one gesture).
+- **`span` only means something inside a `Grid`** or at the top level of the section. On a child of a
+  `Stack` it creates implicit columns and lays the stack out sideways: it renders, it validates, and
+  it looks like a stylesheet bug.
+- **At most 8 animated nodes** in a section.
+- **A `Text` node over 420 characters** needs splitting, or `role: "story"`.
+- **An overlay background needs `kind: "environment"`** — a cutout under text is unreadable.
+
+### Still propose a new block when the shape recurs
+
+If the same composition shows up on a third site, that is a block, not a FreeSection. Propose it to
+the shared catalog as a change request. What you must never do is write component code inside a
+client site — that cannot be patched centrally and it will drift.
 
 ## Reference files
 
 - `references/catalog.md` — every block, its variants, its props, and the primitives for `FreeSection`
 - `references/art-direction.md` — the tokens, what drives distinctiveness, off-mode sampling, slop tells
+- `references/palette.md` — the eleven colour tokens: pick a neutral family, hue unity, accent budget, contrast bands
+- `references/proposing-themes.md` — the three-proposal protocol (measured / fit / spark), forcing them apart, and what audience may and may not decide
 - `references/house-rules.md` — validation gates, content-vs-layout rules, and known pitfalls with their causes
 - `references/intake.md` — the `org.json` schema and the verbatim intake question list
 - `references/live-preview.md` — draft/patch mechanics, uploading pictures early, why SVG logos are rejected

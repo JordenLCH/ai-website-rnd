@@ -48,7 +48,7 @@ contact details there rather than spending one of the seven `items` slots on the
 twelve-page site can still show five top-level items. The nav collapses behind a menu button below
 620px and marks the current page `aria-current` — both are automatic, nothing to declare.
 
-**Footer** — layouts `columns`, `centered-minimal`
+**Footer** — layouts `columns`, `centered-minimal`, `slim-bar`, `contact-rail`
 ```jsonc
 { "brand": "...", "logo": "...", "tagline": "one line, what they do",
   "columns": [{ "title": "Products", "links": [{ "label": "...", "page": "products" }] }],   // 1–4
@@ -68,6 +68,13 @@ number. `social` takes text labels, not icons — the catalog ships no icon set.
 
 Older bundles wrote `links` as `[string]`. They still validate and render exactly as before; the
 migration carries each string to `{label}` and leaves `page` unset for a human to fill in.
+
+Pick the layout from what the footer is *for*, not from taste. `columns` is the sitemap footer, and
+the safe default for a site with real depth. `contact-rail` gives the address, phone and email a
+weighted first column — the right choice when the client is local or professional-services and
+being reachable is the point. `slim-bar` is one horizontal band and assumes the page already
+carries a Contact block above it. `centered-minimal` is a centred brand with a single link row —
+it wants ≤6 links total, because an unlabelled centred row stops being scannable past that.
 
 ## 2. Lead
 
@@ -164,8 +171,15 @@ as though the client were asserting it. `Notice` is excluded from both by design
 
 ## 8. FreeSection
 
-One block whose props are a layout recipe rather than fixed slots. Reach for it only when the catalog
-genuinely cannot express a section.
+One block whose props are a layout recipe rather than fixed slots. **Reach for it first for any
+section that carries the site's identity** — range, proof, story, process, CTA. Twenty-four blocks
+shared across every site in the fleet is the reason generated sites resemble each other; a typed
+block is a decision somebody else already made about how that section looks.
+
+Keep the typed block only where a machine reads the block *type*: `Locations`, `SpecTable`,
+`CatalogGrid`, `Testimonials`, `FAQ`, `Steps`, and `Hero` when it carries `breadcrumb`. Those are
+`first(page, '<Type>')` lookups in the build farm, and a `FreeSection` standing in their place emits
+no structured data. See SKILL.md, "Composing sections", for what each one is worth.
 
 ```jsonc
 { "type": "FreeSection", "variant": "hero/home", "props": {
@@ -175,8 +189,8 @@ genuinely cannot express a section.
   "children": [ /* primitive tree */ ] }}
 ```
 
-**Primitives (20).** Layout: `Stack`, `Row`, `Grid` (`cols`), `Card`, `Figure` (`caption`, wraps an
-`Image`). Content: `Heading` (`level` 1–6, `size` display|heading|title|body, `accent?`), `Text`
+**Primitives (21).** Layout: `Stack`, `Row`, `Grid` (`cols`), `Card`, `Carousel`, `Figure`
+(`caption`, wraps an `Image`). Content: `Heading` (`level` 1–6, `size` display|heading|title|body, `accent?`), `Text`
 (`size` lede|body|small, `accent?`), `Eyebrow`, `Quote`, `Caption`, `Stat`,
 `List` (`style` plain|dashed|rows), `Image` (`kind`, `ratio`), `Button` (`kind`, `page?`),
 `Field` (`type` text|email|tel|textarea|select), `Divider`, `Spacer`,
