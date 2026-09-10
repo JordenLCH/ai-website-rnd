@@ -32,5 +32,5 @@ docs/images
 poc/mcp-app/.poc-token
 create-webpage.zip
 
-# built plugin archives — rebuild with scripts/package-plugin.sh
+# built plugin archives — rebuild with ./package-plugin.sh
 dist-plugin/

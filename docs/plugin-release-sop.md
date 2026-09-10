@@ -106,7 +106,7 @@ claude.ai takes plugins as an archive — it does not use marketplaces, so none 
 `marketplace add` / `plugin update` flow above applies there.
 
 ```bash
-./scripts/package-plugin.sh    # → dist-plugin/website-create-v<version>.zip (and .plugin)
+./package-plugin.sh    # → dist-plugin/website-create-v<version>.zip (and .plugin)
 ```
 
 The script re-runs `install.sh` and both validations first, then zips **the contents of

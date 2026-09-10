@@ -7,7 +7,7 @@
 #
 # Re-syncs the skill copy first, because the most likely thing to ship stale is the skill.
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")" && pwd)"
 OUT="$ROOT/dist-plugin"
 VERSION="$(node -p "require('$ROOT/plugin/.claude-plugin/plugin.json').version")"
 
@@ -16,7 +16,7 @@ claude plugin validate "$ROOT/plugin" >/dev/null
 claude plugin validate "$ROOT/plugin/.claude-plugin/plugin.json" >/dev/null
 
 mkdir -p "$OUT"
-ZIP="$OUT/website-create-v$VERSION.zip"
+ZIP="$OUT/bd-website-create-v$VERSION.zip"
 rm -f "$ZIP"
 ( cd "$ROOT/plugin" && zip -qr "$ZIP" . -x '.DS_Store' '**/.DS_Store' )
 
