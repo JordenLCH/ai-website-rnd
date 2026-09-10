@@ -1,9 +1,17 @@
 {
   "name": "website-create",
-  "description": "Website create plugin — generate a marketing site as validated JSON (content + design tokens), never hand-written HTML. Ships the create-webpage and edit-webpage skills and the Blackdash catalog MCP they read block schemas from.",
-  "version": "0.4.0",
-  "author": { "name": "Blackdash" },
+  "description": "Website create plugin \u2014 generate a marketing site as validated JSON (content + design tokens), never hand-written HTML. Ships the create-webpage and edit-webpage skills and the Blackdash catalog MCP they read block schemas from.",
+  "version": "0.4.1",
+  "author": {
+    "name": "Blackdash"
+  },
   "homepage": "https://github.com/JordenLCH/website-renderer",
   "license": "UNLICENSED",
-  "keywords": ["website", "generation", "blocks", "theme", "seo"]
+  "keywords": [
+    "website",
+    "generation",
+    "blocks",
+    "theme",
+    "seo"
+  ]
 }

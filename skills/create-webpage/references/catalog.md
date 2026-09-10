@@ -189,7 +189,9 @@ no structured data. See SKILL.md, "Composing sections", for what each one is wor
   "children": [ /* primitive tree */ ] }}
 ```
 
-**Primitives (21).** Layout: `Stack`, `Row`, `Grid` (`cols`), `Card`, `Carousel`, `Figure`
+**Primitives (21).** Layout: `Stack`, `Row`, `Grid` (`cols`), `Card`,
+`Carousel` (`perView` 1–4, `perViewMobile` 1–2, `effect` slide|fade|coverflow,
+`loop`, `autoplay` ms 0–12000, `controls` dots|arrows|both|none, min 2 children), `Figure`
 (`caption`, wraps an `Image`). Content: `Heading` (`level` 1–6, `size` display|heading|title|body, `accent?`), `Text`
 (`size` lede|body|small, `accent?`), `Eyebrow`, `Quote`, `Caption`, `Stat`,
 `List` (`style` plain|dashed|rows), `Image` (`kind`, `ratio`), `Button` (`kind`, `page?`),
@@ -207,10 +209,16 @@ so the heading stays one string for outline and JSON-LD extraction. An `accent` 
 `text` renders unchanged and the validator warns.
 
 **Every node accepts:** `area` (grid-area `"r/c/r/c"`), `span`, `gap`, `pad`, `align`, `justify`,
-`maxw`, `tone`, `motion: {type, delay}`, `parallax`, `unverified`.
+`maxw`, `tone`, `motion: {type, delay}`, `unverified`.
 
 **Motion types:** `fade`, `fade-up`, `slide-left`, `slide-right`, `scale-in`, `reveal-clip`.
 Stagger with `delay` in 60–90 ms steps. Motion is disabled automatically under `prefers-reduced-motion`.
+
+**`parallax` moves two things and nothing else:** an `Image` primitive, and the section's own
+`bg` above. The schema accepts it on any node because every node shares one prop shape, but only
+those two have a rule that reads it — set it on a `Stack` or a `Card` and it validates, ships, and
+moves nothing. The validator warns. Use 0.15–0.35 for a background that should feel anchored,
+0.4–0.6 when the drift is meant to be noticed; one moving layer per section, never two.
 
 **Sizing values are token names, never raw values** — `gap: "lg"` resolves to a theme token. A raw
 `"24px"` is invalid and would break re-theming.
