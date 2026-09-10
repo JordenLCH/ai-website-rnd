@@ -107,14 +107,17 @@ cd renderer && npm run validate -- ../content/<client>/site.json ../content/<cli
 
 # platform side
 cd platform && npm run build -- <bundle-dir> <out-dir>   # HTML + JSON-LD + sitemap + llms.txt
+cd platform && npm run build -- <bundle-dir> <out-dir> --deploy=<domain>   # …and push it to Cloudflare Pages
 cd mcp && npm run smoke                    # validates every bundle, proves the gates fire
 cd mcp && ./tunnel.sh                      # start the catalog server (HTTP :8787, bearer auth)
 cd mcp && npm start                        # stdio form, if you need it standalone
 cd mcp && npm run prove                    # 20 headless checks, including the publish path
 
-# publishing: set these on the catalog server and `bundle_publish` appears
+# publishing: put these in mcp/.env.local, which tunnel.sh sources, and `bundle_publish` appears
 #   SITE_HOSTING_URL=http://127.0.0.1:3000  SITE_HOSTING_KEY=<site-hosting's BUNDLE_KEY>
 # without them the tool says so rather than pretending to store anything
+# going live is a second, separate pair, and it lives in site-hosting/.env, not here:
+#   CLOUDFLARE_API_TOKEN  CLOUDFLARE_ACCOUNT_ID   — absent, a publish builds but never deploys
 ```
 
 ## Publishing, and where the other half lives
@@ -138,6 +141,56 @@ composed against, and **a farm older than the bundle refuses to build**. That di
 dangerous one — migrations only run forwards, so an out-of-date farm renders a page that parses,
 looks fine, and is the wrong site. Forward drift stays a note, because that is the fleet-patch
 story working.
+
+**Where the site actually lands: Cloudflare Pages.** The last step of a publish is
+`platform/src/deploy.ts` — one Pages project per site, named from the domain (`merryfair.com` →
+`merryfair-com.pages.dev`), direct-uploaded with `wrangler pages deploy`, custom domain attached
+over the API afterwards. Deploying is opt-in at every layer, and each layer says so rather than
+guessing: the farm CLI only deploys when passed `--deploy=<domain>`, `deployToPages` returns
+`{status:'skipped'}` when the credentials are absent, and hosting's publish route sets
+`deploy: Boolean(CLOUDFLARE_API_TOKEN && CLOUDFLARE_ACCOUNT_ID)`. A build that published every
+time it ran would publish a bundle somebody was only checking.
+
+That last gate is the one that surprises people: with those two variables unset in
+`site-hosting/.env`, publish still answers `202 {"deploying":false}` and builds happily into
+`dist-tenants/<domain>/` — a success that never went live. **`deploying` in the publish response is
+the field to read**, not the build status.
+
+### Running the whole chain locally
+
+Four processes, in this order. Each one's absence has a different symptom, which is why they are
+worth naming separately.
+
+```bash
+docker compose up -d database                 # in site-hosting — Payload has no store without it
+cd site-hosting && npm run dev                # :3000 — stores bundles, serves /upload/<code>, runs the farm
+cd mcp && ./tunnel.sh                         # :8787 — catalog + bundle_* tools, behind the named tunnel
+```
+
+`bundle_publish` appears only when the **catalog server** has a hosting target, and the catalog
+server gets its environment from `tunnel.sh`, not from a shell you happened to export in. It
+sources an untracked `mcp/.env.local` for exactly this:
+
+```bash
+SITE_HOSTING_URL=http://127.0.0.1:3000
+SITE_HOSTING_KEY=<site-hosting's BUNDLE_KEY, copied verbatim from its .env>
+```
+
+So the credentials arrive in two different places for two different reasons, and mixing them up
+produces two different failures. `SITE_HOSTING_*` belongs to **`mcp/.env.local`** — without it
+`bundle_publish` refuses with a message saying nothing was stored. `CLOUDFLARE_API_TOKEN` and
+`CLOUDFLARE_ACCOUNT_ID` belong to **`site-hosting/.env`** — without them the site builds and never
+deploys. Neither is inherited from the other process; a restart of the wrong one changes nothing.
+
+**Proven end to end on 2026-09-10**, fixture `mcp/fixtures/merryfair` published as
+`e2e-proof.example`: 22 pictures uploaded through the browser half, farm build green
+(platform `f3ad99e`, renderer `de22a2f`, catalog `0.5.0`), `wrangler` deployed, and
+`e2e-proof-example.pages.dev` served all four pages plus `sitemap.xml`, `llms.txt`, the JSON-LD
+graph and the `.webp` assets. The custom-domain attach was the one step that did not complete —
+`.example` is not a real zone, so whether that token carries the zone scope `attachDomain` needs is
+still unproven. `attachDomain` is best-effort by design: it logs and returns `null` rather than
+failing the deploy, so a site can go live at `*.pages.dev` with its own domain silently unattached.
+Check the `domain` field in the deploy result, not just the exit code.
 
 The preview app has three dropdowns — `site`, `theme`, and page tabs — plus a status readout that
 turns red and lists issues when a bundle is invalid.
