@@ -13,8 +13,13 @@ import { App } from '@modelcontextprotocol/ext-apps'
 type Preview = {
   client: string
   /** the migrated bundle, kept here so a page switch needs no server-side session —
-   *  this server is stateless per request by design, and a preview must not change that */
+   *  this server is stateless per request by design, and a preview must not change that.
+   *  Only used when there's no draftId: a draft-backed preview switches tabs by id instead,
+   *  so the whole bundle isn't resent on every click. */
   bundle?: { site: unknown; theme: unknown }
+  /** present when this preview came from a bundle_put draft — carried forward so a tab switch
+   *  can ask for it by id instead of resending site+theme inline. */
+  draftId?: string
   ok: boolean
   issues: { where: string; message: string; severity: string }[]
   pages: string[]
@@ -22,6 +27,53 @@ type Preview = {
   html: string
   css: string
   catalogVersion: string
+}
+
+/* Client-side only: a blob: URL needs no network request, so it doesn't touch the deny-by-default
+ * CSP this app runs under, and nothing here is sent back to the server — the bundle's props still
+ * say `/img/<client>/...`, unchanged. This is a proofing aid, not an upload path: the real images
+ * still go through bundle_publish's browser upload step, which is the only place a file persists.
+ * Told plainly, or someone drops thirty photos in here expecting them saved and loses all of it the
+ * moment the tab closes — this server holds nothing past the request, same as everywhere else. */
+const DROPZONE_CSS = `
+img.bd-broken{cursor:pointer;outline:2px dashed currentColor;outline-offset:-2px;filter:opacity(.55)}
+img.bd-broken.bd-drag{outline-color:#4a90e2;filter:opacity(.85)}
+`
+
+/* `error` fires asynchronously (even a same-origin 404 takes at least a task), so the count of
+ * broken images isn't known at the moment `render` returns — the bar updates itself as each one
+ * actually fails, rather than pretending to know up front. */
+function wireImageFallback(root: ShadowRoot, onBroken: () => void) {
+  root.querySelectorAll('img').forEach((el) => {
+    const img = el as HTMLImageElement
+    if (img.complete && img.naturalWidth > 0) return
+    img.addEventListener('error', () => { armDropTarget(img); onBroken() }, { once: true })
+  })
+}
+
+function armDropTarget(img: HTMLImageElement) {
+  img.classList.add('bd-broken')
+  img.title = 'preview only, not saved here — drop or click a local file to see it in this layout; ' +
+    'the real image still has to be uploaded at publish'
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = 'image/*'
+  input.style.display = 'none'
+  img.insertAdjacentElement('afterend', input)
+  const use = (file?: File | null) => {
+    if (!file) return
+    img.src = URL.createObjectURL(file)
+    img.classList.remove('bd-broken', 'bd-drag')
+    input.remove()
+  }
+  img.addEventListener('click', () => input.click())
+  input.addEventListener('change', () => use(input.files?.[0]))
+  img.addEventListener('dragover', (e) => { e.preventDefault(); img.classList.add('bd-drag') })
+  img.addEventListener('dragleave', () => img.classList.remove('bd-drag'))
+  img.addEventListener('drop', (e) => {
+    e.preventDefault()
+    use(e.dataTransfer?.files?.[0])
+  })
 }
 
 const bar = document.getElementById('bar')!
@@ -43,9 +95,10 @@ const app = new App({ name: 'Blackdash site preview', version: '0.0.0' })
 
 function render(p: Preview) {
   const errs = p.issues.filter((i) => i.severity === 'error')
-  bar.textContent = errs.length
+  const summary = errs.length
     ? `${p.client} — ${errs.length} error(s): ${errs.slice(0, 2).map((i) => `${i.where} ${i.message}`).join(' · ')}`
     : `${p.client} — valid · catalog ${p.catalogVersion}`
+  bar.textContent = summary
   bar.setAttribute('data-state', errs.length ? 'error' : 'ok')
 
   tabs.replaceChildren(...p.pages.map((key) => {
@@ -53,19 +106,29 @@ function render(p: Preview) {
     b.textContent = key
     b.disabled = key === p.page
     /* A page switch is a fresh tool call, not local state — this is the round trip
-       that proves the UI can drive the server rather than only display one result. */
+       that proves the UI can drive the server rather than only display one result.
+       Reuse the draftId when there is one: the point of a draft is that switching
+       tabs costs a page key, not the ~25 KB bundle it was already holding. */
     b.onclick = async () => {
       b.textContent = '…'
       const r = await app.callServerTool({
         name: 'site_preview',
-        arguments: { site: p.bundle?.site, theme: p.bundle?.theme, page: key },
+        arguments: p.draftId
+          ? { draftId: p.draftId, page: key }
+          : { site: p.bundle?.site, theme: p.bundle?.theme, page: key },
       })
       show(r as Parameters<typeof show>[0])
     }
     return b
   }))
 
-  shadow.innerHTML = `<style>${p.css}</style>${p.html}`
+  shadow.innerHTML = `<style>${p.css}${DROPZONE_CSS}</style>${p.html}`
+  let broken = 0
+  wireImageFallback(shadow, () => {
+    broken++
+    bar.textContent = `${summary} · ${broken} image(s) not loaded here — click/drop a local file to ` +
+      `preview it, upload for real at publish`
+  })
 }
 
 /* The notification params ARE the CallToolResult — there is no `.result` wrapper. Reading

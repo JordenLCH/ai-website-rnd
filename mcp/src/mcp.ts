@@ -12,7 +12,8 @@ import { validateBundle } from '@blackdash/renderer/validate-bundle'
    becomes "it published wrong". */
 import { renderPage } from '@blackdash/platform/build'
 import { referencedAssets, assetFileName } from '@blackdash/platform/assets'
-import { target, putDraft, getDraft, deleteDraft } from './publish.ts'
+import { target, putDraft, getDraft, deleteDraft, type Target } from './publish.ts'
+import { putBundle, getBundle, replaceBundle, setHostingCode, applyPatch, type PatchOp } from './drafts.ts'
 
 /** The MCP Apps mime type. Declared here rather than pulled from `@modelcontextprotocol/ext-apps`
  *  because that package peers on zod 4 while this server and the renderer are on zod 3, and two
@@ -55,6 +56,38 @@ function asJson(label: string, v: unknown): any {
   } catch (e) {
     throw new Error(`${label} arrived as JSON text, but it does not parse: ${(e as Error).message}`)
   }
+}
+
+/** The bundle a tool works on, however it arrived: inline (`site`/`theme`/`org`, the original
+ *  calling convention) or by `draftId` (bundle_put once, then patch and reference it — the whole
+ *  point being that a caller editing one field never resends the other 25 KB). draftId wins when
+ *  both are present, since a caller that passed one had no reason to also pass the other. */
+function resolveBundle(args: { draftId?: string; site?: unknown; theme?: unknown; org?: unknown }) {
+  if (args.draftId) {
+    const b = getBundle(args.draftId)
+    return { site: b.site, theme: b.theme, org: b.org, hostingCode: b.hostingCode }
+  }
+  if (args.site === undefined) throw new Error('pass either a draftId (from bundle_put) or an inline site/theme')
+  return { site: asJson('site', args.site), theme: asJson('theme', args.theme), org: asJson('org', args.org) }
+}
+
+function hostedImageUrl(t: Target, hostingCode: string, name: string): string {
+  return `${t.url}/api/bundle/${hostingCode}/assets?name=${encodeURIComponent(name)}`
+}
+
+/** Swap the site's own `/img/<client>/…` paths for the real hosted file, once bundle_publish has
+ *  minted a hosting draft for this bundle and the human has uploaded something under that name.
+ *  A name that hasn't arrived yet still 404s exactly as before — the preview app's own
+ *  drop-to-preview fallback catches that unchanged, so this can only ever improve the preview,
+ *  never regress it. */
+function withHostedImages(html: string, site: { pages: Record<string, unknown> }, hostingCode: string, t: Target): string {
+  let out = html
+  for (const path of referencedAssets(site as Parameters<typeof referencedAssets>[0])) {
+    const name = assetFileName(path)
+    if (!name) continue
+    out = out.split(path).join(hostedImageUrl(t, hostingCode, name))
+  }
+  return out
 }
 
 export function createServer() {
@@ -146,6 +179,55 @@ export function createServer() {
       : { checked: true, fleet })
   })
 
+  server.registerTool('bundle_put', {
+  title: 'Hold a bundle for cheap edits',
+  description:
+    'Send a bundle once and get back a draftId. Every tool that takes site/theme/org also takes ' +
+    'draftId instead — and bundle_patch changes one field for ~100 bytes rather than resending the ' +
+    'whole bundle. Held in memory on this server for 2 hours of inactivity, then gone; call this ' +
+    'again if a draftId comes back unknown. Not the same thing as bundle_publish — this never ' +
+    'leaves the conversation, nothing is stored past the server restarting.',
+  inputSchema: { site: z.any(), theme: z.any(), org: z.any().optional() },
+  }, async ({ site: rawSite, theme: rawTheme, org: rawOrg }) => {
+    const site = asJson('site', rawSite), theme = asJson('theme', rawTheme), org = asJson('org', rawOrg)
+    const draftId = putBundle({ site, theme, org })
+    return json({ ok: true, draftId, note: 'pass this as draftId to bundle_validate, site_preview, bundle_patch or bundle_publish' })
+  })
+
+  server.registerTool('bundle_patch', {
+  title: 'Edit a held bundle in place',
+  description:
+    'Change one or a few fields of a bundle_put draft without resending it. Each op is ' +
+    '{op: "replace"|"add"|"remove", path, value} — path is a JSON Pointer into the chosen target, ' +
+    'e.g. {op:"replace", path:"/pages/home/blocks/0/type", value:"Heroo"}. Runs the validator on ' +
+    'the result and returns the same compact verdict as site_preview, so you know immediately ' +
+    'whether the edit was legal — call site_preview with the same draftId to see it drawn.',
+  inputSchema: {
+    draftId: z.string(),
+    target: z.enum(['site', 'theme', 'org']).optional().describe('which of the three documents the ops apply to — defaults to site'),
+    ops: z.array(z.object({
+      op: z.enum(['replace', 'add', 'remove']),
+      path: z.string().describe('JSON Pointer, e.g. /pages/home/blocks/0/type'),
+      value: z.any().optional(),
+    })).min(1),
+  },
+  }, async ({ draftId, target: which = 'site', ops }) => {
+    try {
+      const bundle = getBundle(draftId)
+      const patched = applyPatch(bundle[which], ops as PatchOp[])
+      const next = { ...bundle, [which]: patched }
+      replaceBundle(draftId, next)
+      const v = validateBundle(next.site, next.theme, next.org)
+      return json({
+        ok: v.ok, draftId, patched: which, opsApplied: ops.length,
+        errors: v.issues.filter((i) => i.severity === 'error'),
+        warnings: v.issues.filter((i) => i.severity === 'warning'),
+      })
+    } catch (e) {
+      return json({ ok: false, error: (e as Error).message })
+    }
+  })
+
   /* What `npm run validate` did, for someone who cannot run npm. The same module the build farm
      imports — the point of moving validation to the server is that there is still only one of it,
      not that there is now a friendlier second one. */
@@ -155,10 +237,11 @@ export function createServer() {
     'Run the authoritative validator over a site.json / theme.json pair (org.json optional but ' +
     'required for jurisdiction checks). This is the same module the build farm runs on upload, ' +
     'so a bundle that passes here cannot fail there for schema reasons. Call it after every ' +
-    'material edit, not once at the end.',
-  inputSchema: { site: z.any(), theme: z.any(), org: z.any().optional() },
-  }, async ({ site: rawSite, theme: rawTheme, org: rawOrg }) => {
-    const [site, theme, org] = [asJson('site', rawSite), asJson('theme', rawTheme), asJson('org', rawOrg)]
+    'material edit, not once at the end. Pass a draftId from bundle_put instead of the inline ' +
+    'bundle once you are iterating — same result, no resend.',
+  inputSchema: { site: z.any().optional(), theme: z.any().optional(), org: z.any().optional(), draftId: z.string().optional() },
+  }, async ({ site: rawSite, theme: rawTheme, org: rawOrg, draftId }) => {
+    const { site, theme, org } = resolveBundle({ draftId, site: rawSite, theme: rawTheme, org: rawOrg })
     const { ok, issues, density, unverified } = validateBundle(site, theme, org)
     return json({
       catalogVersion: CATALOG_VERSION, ok,
@@ -177,13 +260,18 @@ export function createServer() {
   title: 'Preview a site in the conversation',
   description:
     'Render a bundle with the real catalog and show it inline, with its validation verdict and a ' +
-    'tab per page. Pass the bundle you are working on. The markup, the stylesheet and the migrated ' +
-    'bundle are handed to the app out of band; the text you get back is the verdict alone, so ' +
-    'calling this after every edit costs a few hundred bytes rather than a page of HTML.',
-  inputSchema: { site: z.any(), theme: z.any(), org: z.any().optional(), page: z.string().optional() },
+    'tab per page. Pass the bundle you are working on, or a draftId from bundle_put once you are ' +
+    'past the first draft — bundle_patch a field, then preview the draftId, with no resend. The ' +
+    'markup, the stylesheet and the migrated bundle are handed to the app out of band; the text ' +
+    'you get back is the verdict alone, so calling this after every edit costs a few hundred ' +
+    'bytes rather than a page of HTML.',
+  inputSchema: {
+    site: z.any().optional(), theme: z.any().optional(), org: z.any().optional(),
+    draftId: z.string().optional(), page: z.string().optional(),
+  },
   _meta: { ui: { resourceUri: PREVIEW_URI }, 'ui/resourceUri': PREVIEW_URI },
-  }, async ({ site: rawSite, theme: rawTheme, org: rawOrg, page }) => {
-    const [site, theme, org] = [asJson('site', rawSite), asJson('theme', rawTheme), asJson('org', rawOrg)]
+  }, async ({ site: rawSite, theme: rawTheme, org: rawOrg, draftId, page }) => {
+    const { site, theme, org, hostingCode } = resolveBundle({ draftId, site: rawSite, theme: rawTheme, org: rawOrg })
     const v = validateBundle(site, theme, org)
     const errors = v.issues.filter((i) => i.severity === 'error')
     if (!v.ok || !v.site || !v.theme) {
@@ -196,13 +284,19 @@ export function createServer() {
     const key = page && pages.includes(page) ? page : pages[0]
     /* Render the validator's migrated copy, never the caller's raw input — drawing the original
        is what once published a page with its footer missing. */
-    const html = renderPage(v.site.pages[key], v.site, v.theme, key)
+    let html = renderPage(v.site.pages[key], v.site, v.theme, key)
+    const t = target()
+    if (hostingCode && t) html = withHostedImages(html, v.site, hostingCode, t)
 
     const payload = {
       client: v.site.client, catalogVersion: CATALOG_VERSION,
       ok: true, issues: v.issues, pages, page: key,
       html, css: siteCss(),
-      bundle: { site: v.site, theme: v.theme },
+      /* Carried so the app's tab switch can ask for this draft by id instead of resending the
+         whole bundle — omitted when there wasn't one, so the app falls back to its old inline
+         resend for a bundle that was never bundle_put. */
+      draftId,
+      bundle: draftId ? undefined : { site: v.site, theme: v.theme },
     }
     /* The render travels in `_meta`, and only a verdict goes into the text content.
        The text content is billed into the conversation and re-sent on every subsequent turn, so
@@ -248,11 +342,12 @@ export function createServer() {
     'pictures already uploaded. The images themselves never travel through the conversation.',
   inputSchema: {
     domain: z.string().describe('the site\'s own domain, e.g. merryfair.com — this is its identity in hosting'),
-    site: z.any(), theme: z.any(),
-    org: z.any().describe('required to publish: the entity graph is derived from this file alone'),
+    site: z.any().optional(), theme: z.any().optional(),
+    org: z.any().optional().describe('required to publish: the entity graph is derived from this file alone'),
+    draftId: z.string().optional().describe('a bundle_put draft instead of resending site/theme/org inline'),
   },
-  }, async ({ domain, site: rawSite, theme: rawTheme, org: rawOrg }) => {
-    const [site, theme, org] = [asJson('site', rawSite), asJson('theme', rawTheme), asJson('org', rawOrg)]
+  }, async ({ domain, site: rawSite, theme: rawTheme, org: rawOrg, draftId }) => {
+    const { site, theme, org } = resolveBundle({ draftId, site: rawSite, theme: rawTheme, org: rawOrg })
     const t = target()
     if (!t) return noTarget()
     if (!org) return json({
@@ -280,6 +375,9 @@ export function createServer() {
       const draft = await putDraft(t, {
         domain, site: stamped, theme: v.theme, org, expected, catalogVersion: CATALOG_VERSION,
       })
+      /* So a later site_preview(draftId) can point images at the real uploaded files instead of
+         the site's own unreachable `/img/<client>/…` path — see the rewrite in site_preview. */
+      if (draftId) setHostingCode(draftId, draft.code)
       return json({
         ok: true, catalogVersion: CATALOG_VERSION, ...draft,
         warnings: v.issues.filter((i) => i.severity === 'warning'),
@@ -317,8 +415,19 @@ export function createServer() {
     catch (e) { return json({ ok: false, error: (e as Error).message }) }
   })
 
+  /* The sandboxed preview iframe allows zero outbound origins by default — img-src included. This
+     is the one grant it needs: the hosting server this instance is configured to publish to, so an
+     <img> can point at a real uploaded file (see withHostedImages) instead of the site's own
+     `/img/<client>/…` path, which nothing in a chat-only preview can otherwise resolve. Computed
+     once at startup, not per-request — SITE_HOSTING_URL doesn't change mid-process. */
+  const hostingOrigin = (() => {
+    const t = target()
+    try { return t ? new URL(t.url).origin : undefined } catch { return undefined }
+  })()
+
   server.registerResource('site-preview', PREVIEW_URI, {
   title: 'Site preview app', description: 'The in-conversation preview UI.', mimeType: APP_MIME,
+  _meta: hostingOrigin ? { ui: { csp: { resourceDomains: [hostingOrigin] } } } : undefined,
   }, async (uri) => ({
     contents: [{
       uri: uri.href, mimeType: APP_MIME,
