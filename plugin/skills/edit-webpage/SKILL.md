@@ -69,9 +69,9 @@ click, which no validator catches (it isn't a build-time link checker):
 Index-based removal on an array is position-sensitive — read the current `items` array first if
 more than one thing might have changed since you last saw it.
 
-**Reorder sections on a page.** No native "move" op (RFC 6902's `move` is deliberately not
-supported — see `mcp/src/drafts.ts`). Do it as `remove` then `add` at the new index, in that order
-within one ops array, since ops apply in sequence and indices shift after a `remove`:
+**Reorder sections on a page.** RFC 6902's `move` is deliberately not supported. Do it as
+`remove` then `add` at the new index, in that order within one ops array, since ops apply in
+sequence and indices shift after a `remove`:
 ```json
 [
   {"op": "remove", "path": "/pages/home/blocks/3"},
@@ -87,27 +87,39 @@ removing it drops the page below the density floor (`bundle_validate` warns; it 
 ```json
 {"op": "add", "path": "/pages/home/blocks/-", "value": {"type": "FAQ", "variant": "faq/default", "props": {"...": "..."}}}
 ```
-Pick the block type and variant the way `create-webpage` stage 2/6 would — call `catalog_get` for
-it if you're not sure of its prop shape, don't guess a shape from another block's.
+Pick the block type and variant the way `create-webpage` stage 4 would — a role first, then the
+block that serves it. Call `catalog_get` for its prop shape; shapes differ between blocks that look
+alike.
 
 **A theme token or slug tweak** (one colour, one radius, add a `sectionStyles` entry): same
 `bundle_patch`, `target: "theme"`. This is the one edit that's allowed to touch every page's look
 at once — that's what the token indirection is for. If the ask is "make it look completely
 different," that's `create-webpage`'s re-theming path (a new `theme.json`), not a patch.
 
-## What this skill does not do
+## Where the edges are
 
-- **No checkpoints, no `AskUserQuestion` ceremony** for a scoped edit — the person already told you
-  what to change. Ask only when the request is genuinely ambiguous (which of three CTAs, which
-  page) or touches org facts (registration number, legal name) that must never be guessed.
-- **No re-sampling** of art direction or sitemap. If the edit is big enough that it changes those
-  ("actually split this into two pages," "the whole tone should shift") say so and hand off to
-  `create-webpage`'s relevant stage rather than improvising a smaller version of it here.
-- **Does not invent facts.** The tier rules in `create-webpage` (write freely / write and mark
-  `unverified` / never invent) still apply — an edit that adds a stat or a testimonial marks it
-  the same way a first draft would.
-- **Does not publish silently.** Patching a held draft never touches the live site; only
-  `bundle_publish` does, same gate as create-webpage.
+- **Patch straight through.** The person already told you what to change, so the checkpoint
+  ceremony `create-webpage` runs does not apply. Ask when the request is genuinely ambiguous (which
+  of three CTAs, which page) or when it touches an org fact — a registration number or legal name is
+  the human's to state.
+- **An edit that changes the architecture belongs to `create-webpage`.** "Actually split this into
+  two pages", "the whole tone should shift" — say so and hand off to the stage that owns it, which
+  is cheaper than improvising a smaller version of stage 4 or stage 3 here.
+- **Mark what you add the way a first draft would.** A stat or testimonial introduced by an edit
+  carries `unverified` exactly as it would at stage 5.
+- **Publishing stays an explicit act.** Patching a held draft touches nothing live; `bundle_publish`
+  is the only thing that does.
+
+**Check anything that touched the theme.** A one-token patch reaches every page: darkening a colour
+can push text on the inverse band under 4.5:1, and adding a section can use a slug the theme never
+defined, which renders unstyled while validating cleanly. Neither is visible in a preview of the
+page you happened to look at. **REQUIRED SUB-SKILL:** `check-webpage`, whenever the patch touched
+`theme` or added a block.
+
+A copy-only patch — a headline, a phone number, a button label — needs no such pass.
+
+**Done when** the patch verdict comes back `ok:true`, the preview shows the change you intended, any
+theme-touching patch has been through `check-webpage`, and you have said which page you changed.
 
 ## When you don't have a draft to patch
 

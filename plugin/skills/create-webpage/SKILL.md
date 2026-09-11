@@ -21,7 +21,9 @@ Two failure modes kill generated sites. Both come from confusing these layers:
 | **Structure** — which blocks, what order, what copy | fixed catalog | free-form markup → unmaintainable, unpatchable |
 | **Art direction** — tokens, which layout & tone each slug resolves to | generated per client | reused defaults → every site looks like the same template |
 
-So: keep the *vocabulary* rigid — the block catalog is fixed, and you never write markup — but make both the **composition** and the **art direction** genuinely different each time. Reusing the catalog is the point; reusing an ordering of it is the failure. A site that looks templated is usually a site where the page structure was the model's default, wearing a new palette.
+So: keep the *vocabulary* rigid — the block catalog is fixed, and you never write markup — but make both the **composition** and the **art direction** genuinely different each time. Reusing the catalog is the point; reusing an ordering of it is the failure.
+
+Two words carry that through every stage below. **The mode** is the likeliest thing to propose: the first art direction, the first page ordering, the arrangement every competitor already uses. It arrives without being chosen, and a site that looks templated is almost always the mode wearing a new palette. **The tail** is everything else you sampled. Stages 3 and 4 both work the same way — generate, identify the mode, then choose from the tail.
 
 ## Get the catalog from the platform, not from memory
 
@@ -45,16 +47,16 @@ context you need for composition.
 | Preview | `site_preview` — renders in the conversation | `npm run dev`, port 5183 |
 | Publish | `bundle_publish` — returns a link for the pictures | `./package.sh <client>`, upload the zip |
 
-Both validators are the same module the build farm imports, so a bundle that passes on either cannot
-fail at upload for schema reasons. Neither is a friendlier second opinion; wanting one is a bug.
-Validate before previewing. Publish the SOURCE bundle, never a build — shipping HTML freezes the
-site and it can never be re-themed or patched.
-
-Everything that only exists in a checkout — the servers, the folder layout, the QA scripts — is in
-`references/local-path.md`. The rest of this file assumes chat.
+Both validators are the same module the build farm imports, so a bundle passing on either cannot
+fail at upload for schema reasons; wanting a friendlier second opinion is a bug. Publish the SOURCE
+bundle — built HTML freezes the site out of re-theming and fleet patches.
+`references/local-path.md` holds everything that exists only in a checkout.
 
 **Hold a draft and patch it.** `bundle_put(site, theme, org)` once real JSON exists returns a
-`draftId`; every edit after is `bundle_patch(draftId, ops)` — ~100 bytes instead of resending 25 KB —
+`draftId`; every edit after is `bundle_patch(draftId, target, ops)` — ~100 bytes instead of
+resending 25 KB. **`target` is `site`, `theme` or `org` and defaults to `site`**, so a token fix or
+a new slug needs `target: "theme"` explicitly; sent without it the ops are applied to the pages and
+fail on a path that isn't there —
 and `site_preview(draftId)` draws the result. `references/live-preview.md` has the op shapes and the
 2h hold.
 
@@ -76,7 +78,6 @@ it is unreadable, and it can only refuse what you declared.
 
 Generating a whole site and then asking "is this right?" is the expensive way to be wrong. Each stage
 below produces something small enough to review in seconds, and you stop and wait at every ▸ mark.
-Work that survives a checkpoint is never regenerated.
 
 ```
 1  intake             (human)  drop the documents first, you read them, then ask what's left
@@ -139,18 +140,8 @@ to them. **Everything shown at a ▸ must be answerable from that alone.**
 
 A question in catalog vocabulary still gets answered — people don't like admitting they didn't
 follow — and an answer given without understanding arrives with false confidence and you build on
-it.
-
-| Instead of | Say |
-|---|---|
-| hero, CTA, media+text, catalogue grid, spec table | the big banner at the top · the "get in touch" bar · a picture with text beside it · your products in a grid · the specifications table |
-| tone band, inverse, accent, surface | a dark section · your brand colour as a full-width background |
-| type scale, 1.25, weight 800 | how big the headings are next to the body text · how heavy the lettering is |
-| density, tight/loose | how much breathing room between things |
-| tokens, slugs, variants, blocks, props, JSON | nothing — these are how the site is stored, not anything they choose |
-| contrast 2.45:1, 44px tap targets | "the grey text on the dark band is too faint to read" · "these buttons are too small to hit on a phone" |
-| `unverified`, the validator, the build farm | "these four claims need you to confirm before it can go live" |
-| draftId, bundle, props' `src` | "here's your link — drop your photos in and they appear on the page" |
+it. `references/plain-language.md` is the translation table; consult it while writing anything a
+human reads.
 
 Three rules follow:
 
@@ -172,7 +163,7 @@ judged from prose at all. **Prose is the wrong medium for stages 3, 4 and 7.**
 
 - **`site_preview(draftId)` once a bundle exists** — the real renderer and stylesheet, so what is on
   screen is what ships. Use it from stage 5 on, after every material patch, instead of narrating the
-  change. Say which page you are showing.
+  change.
 - **The `design` skill's canvas before one exists** — stage 3's tiles, stage 4's skeletons, stage
   7's findings. It publishes as an Artifact, so it survives the session, and where canvas-editing is
   enabled the human can click an element and comment rather than describing "the second tile". A
@@ -211,15 +202,17 @@ Everything else either shapes the site (buyer, goal, scope, sections, tone) or s
 it (`sameAs`, certifications, named people) without blocking the build — `references/intake.md` has
 the full breakdown and why each item is where it is.
 
-**Deliberately not asked: "how many directions do you want to see".** Stage 3 always samples four
-and discards the likeliest, stage 4 samples the tail of home-page orderings — that sampling is what
-keeps sites from converging on the training-data default, and letting the human dial it down to one
-undoes the reason it exists.
+**Deliberately not asked: "how many directions do you want to see".** Stages 3 and 4 always sample
+and always drop the mode; letting the human dial that down to one hands them the mode.
 
 **Section photography is not an intake question; the logo is.** Bulk photos wait for stage 8, after
 the layout exists and you know which images it actually needs. The logo is the exception: one fixed
 file whose header/footer role never depends on layout, so collect it now, the same turn as the legal
 facts.
+
+**Done when** every blocker carries a value or an explicit "they don't have one", and every fact
+you filled in from a document cites the document it came from, so the human can correct it in one
+pass.
 
 Nothing about hosting, SEO or refresh belongs in intake either. Those are derived server-side after
 upload and need nothing from the creator — see "After you hand off".
@@ -234,12 +227,11 @@ what is missing. One table, no prose:
 | Manufacturing process | brief, one line | ~15 | needs the human, or mark `unverified` |
 | Testimonials | — | 0 | omit the role, or ask |
 
-Content precedes design, because design in the absence of content is decoration — and this is the
-cheapest fix for the failure this pipeline actually has, where a 380-word brief silently becomes a
-nine-section site of forty-word sections and nobody sees it until the whole thing is written.
+A 380-word brief silently becomes nine thin sections, and nobody sees it until the whole thing is
+written.
 
 Total the "words available" column. **Under ~1,200 words of real source material you cannot fill more
-than a home page and two subpages at honest density.** Say that now. The human either supplies more,
+than a home page and two subpages without going thin.** Say that now. The human either supplies more,
 accepts fewer pages, or accepts that some sections will be written by you and shipped `unverified`.
 All three are fine; discovering it at stage 6 is not.
 
@@ -260,14 +252,19 @@ extremes and tests the layout against content the client will never have.
 Anything missing here is a question for stage 4's checkpoint, not a stop of its own — carry the
 gap list forward and ask once.
 
+
+**Done when** the words-available column is totalled, the extremes table has a row for every
+constraint you found, and you have said out loud whether the total supports the scope asked for at
+intake.
+
 ### 3. Theme — the look on one sheet, not a fake page
-Now, and not before, choose the visual direction. The first direction a model proposes is the mode of
-its training data, which is why generated sites look alike.
+Now, and not before, choose the visual direction. The first direction you think of is the mode, which
+is why generated sites look alike.
 
 **Propose three, each from a different objective** — Measured (processing fluency), Fit
 (prototypicality for the category), Spark (novelty inside the same measured floor). Candidates drawn
-from objectives that pull apart cannot collapse into three names for one look, which is what
-sampling-and-discarding kept producing. Resolve Fit first, present Measured first, give each a
+from objectives that pull apart cannot collapse into three names for one look — which is what
+sampling alone kept producing, because three samples of one distribution share its mode. Resolve Fit first, present Measured first, give each a
 stated **cost** as well as a pitch. The protocol, the orthogonality check, the served font families
 and the six elements every style tile must carry are in `references/proposing-themes.md`. Read it
 before proposing.
@@ -298,25 +295,19 @@ reaches for it. Use it if you can say what it does here that small-caps sans wou
 `prefers-reduced-motion` honoured for you. Default to subtle scroll reveals. Say in the pitch what it
 implies — "things fade in gently as you scroll", or "nothing moves".
 
-Iterate on tokens only; content does not exist yet, so nothing is wasted.
-
 **Write the pick down as three adjectives and treat them as binding.** They are what every later
 decision gets tested against — "precise" and a 28px radius contradict each other, and the
 contradiction is only visible if the word was written down. Pick adjectives a competitor could not also claim, and make one of the three slightly
 uncomfortable — the discomfort is what stops the set collapsing into the words every site uses.
 Record what you rejected.
 
-```json
-"direction": {
-  "adjectives": ["quiet", "precise", "expensive"],
-  "rejected": ["warm editorial — the register undersells a specification-led buyer"],
-  "why": "they sell on tolerance figures; restraint reads as confidence in the numbers"
-}
-```
+Put it at `theme.direction`, top level — `references/proposing-themes.md` has the shape. At stage 7
+it is what you audit the tokens against, including for the next agent, who otherwise re-derives the
+direction from the values and gets it wrong.
 
-Put it at the top level of `theme.json`. At stage 7 it is what you audit the tokens against —
-including for the next agent, who otherwise re-derives the direction from the values and gets it
-wrong.
+**Done when** three candidates exist, each with a stated cost, and the winner's three adjectives are
+written into `theme.direction` with what you rejected.
+
 ### 4. Sitemap — sample the architecture, then roles, still no copy
 A **section role** is the job a section does — proof, range, story, spec, process — not a block type
 and not a theme slug. A page is an ordered list of roles, and that shorthand is for your notes:
@@ -326,8 +317,14 @@ and not a theme slug. A page is an ordered list of roles, and that shorthand is 
 > *shown to the human as:* opening banner · every chair laid out in a grid · the full specifications
 > table · one model in detail with text beside it · "request a quote" at the bottom
 
-**First, name the category default — then refuse it.** `fleet_siblings` tells you whether this site
-resembles *ours*. It cannot see that every competitor in the client's own category is built the same
+**Call `fleet_siblings` before writing content**, passing the theme you are leaning towards. It
+compares this site against the ones already built and reports layout-map overlap; above ~0.7 against
+a sibling, change the layout map rather than the palette. On an empty fleet it answers
+`checked: false` — that is the check *not running*, not a pass, and it should be said out loud
+rather than quietly read as clearance.
+
+**It sees our fleet, not the client's category.** That tool tells you whether this site resembles
+*ours*. It cannot see that every competitor in the client's own category is built the same
 way and that you are about to land on it too. So list what the client's three closest competitors all
 share:
 
@@ -340,12 +337,11 @@ market. It is also what you show the human when they ask why the page doesn't lo
 competitor they had in mind.
 
 **Then sample the home-page architecture.** Write three orderings with self-assessed probabilities,
-discard the likeliest, pick from the tail — otherwise every site opens `hero → stats → catalogue`,
-because that is the mode. Vary, in descending order of effect: what comes first after the hero
+drop the mode, take from the tail — otherwise every site opens `hero → stats → catalogue`. Vary, in descending order of effect: what comes first after the hero
 (leading with the catalogue instead of stats is a different company); whether a role appears at all
 (five strong sections beat nine even ones, and stage 2 tells you which five you can fill); where the
 dark and accent bands fall; page count and split. Fewer sections with more content each is almost
-always the better tail choice, and it is what the density gate rewards.
+always the better tail choice: it is how you avoid nine thin sections.
 
 Give each role a word budget from the stage-2 inventory. A role with no source and no budget should
 not be in the sitemap.
@@ -385,24 +381,29 @@ A wrong sitemap caught here costs one message; caught after copy exists it costs
 sitemaps with their skeletons. Then ask for the theme pick and the sitemap pick in one
 `AskUserQuestion`.
 
-**The options list holds the tail candidates only.** Name the likeliest one below the options, as
-reasoning — visible and unpickable. Presenting it *as an option* annotated "the category default,
-avoid" puts the mode back on the table, and it gets chosen.
+**The options list holds the tail only.** Name the mode below it, as reasoning — visible and
+unpickable. Presenting the mode *as an option* annotated "avoid this one" puts it back on the table,
+and it gets chosen.
 
-**Say which `catalogVersion` you built against** — one line, from `catalog_list`. A bundle built
-against a stale catalog fails at build rather than at validation, and without this line nobody can
-tell which happened.
+**Record the `catalogVersion` in two places.** It is a real optional field at the top level of
+`site.json` — write it there, verbatim from `catalog_list`, **including the build hash**
+(`0.5.0+1ed25a77e046c01d`, not `0.5.0`). That string is what the farm's drift guard compares
+against, and a bundle carrying only the short version cannot be checked. Then say it in your handoff
+summary too, for the human. A bundle built against a stale catalog fails at build rather than at
+validation, and without the field nobody can tell which happened.
+
+
+**Done when** every option shows every page with its ordered roles *and* a skeleton, the do-not list
+is stated, and the human has picked a theme and a sitemap at the ▸.
 
 ### 5. First pages — three of them, then stop
 Write **three pages fully: the home page, and the two that carry the most structured content** — the
 spec table, the price comparison, the nine-item catalogue, the form. Then stop.
 
 Three, not one: a home page is a hero, a proof strip and a call to action, and almost any set of
-tokens survives it. The system only proves itself on the dense pages, which is why studios design
-the key screen and the hardest screens in the same sitting — and why the audit's worst layout
-defects (a notice box around 400px of nothing, cards with a radius and a border and no elevation, a
-grid that stopped collapsing at two columns) all lived on dense sections that nothing had exercised
-yet. Two dense pages rather than one also catches the defect a single page cannot show: a slug that
+tokens survives it. The system only proves itself on the dense pages — which is why studios design
+the key screen and the hardest screen in the same sitting, and why layout defects concentrate on
+dense sections nothing has exercised yet. Two dense pages rather than one also catches the defect a single page cannot show: a slug that
 was quietly tuned to suit *that* page and breaks on the next one using it.
 
 **If the sitemap has three pages or fewer, this stage is the whole site** — say so, take the
@@ -410,13 +411,15 @@ corrections, and stage 6 has nothing to do. Four or five pages: still write thre
 spend the correction round on the pages carrying the most structure, not to get closest to
 finishing.
 
-Write it **at full density**: aim for **60+ words and 6+ content nodes per section**, **700+ words
-per page**, and one image per two sections that can carry one. A section that fills a screen and
-carries forty words is what makes a generated site read as an unfinished template rather than a
-company's website, and it is the single most common failure here — more damaging than any colour or
-layout choice. Hero, CTA, quote, nav and footer are exempt; so are blocks that cannot hold more
-(`Stats`, `Locations`). The full guidance, and the primitives that get you there, are under
-"Density" below — read it before writing, not after.
+Write it **at full density**: **60+ words and 6+ content nodes per section**, **700+ words per
+page**, one image per two sections that can carry one. Hero, CTA, quote, nav and footer are exempt,
+as are blocks that cannot hold more (`Stats`, `Locations`).
+
+A section that fills a screen and carries forty words is **thin**. Thin is what makes a generated
+site read as an unfinished template rather than a company's website, and it is the most common
+failure here — more damaging than any colour or layout choice, and the one a human notices first
+without being able to name it. `references/density.md` has the primitives that get a section off
+thin; read it before writing, not after.
 
 Headlines must carry a concrete noun from the brief that a competitor could not also claim. "Build
 faster. Ship smarter." is a slop tell independent of any visual choice: if the headline would still
@@ -427,9 +430,25 @@ carries, what terminology the client uses for their own products, what claims ar
 home page in particular exercises most of the range — hero, proof, capability, story, call to
 action — so a correction there lands on most of what follows.
 
+**Publish here, before the corrections.** You have real pages and you took the domain at intake, so
+`bundle_publish` now and hand over the upload link — this is the moment the site gains any route at
+all for a photograph, and every later stage assumes the link is already in their hands. It creates a
+draft, never a live site, and re-publishing keeps both the link and anything already uploaded. Tell
+them plainly: "that page lists the photos the site is asking for, by name — rename yours to match
+and drop them in whenever you like. They'll appear as they land, and nothing is public until we say
+so."
+
+The page derives that checklist from the `src` values already in the bundle, so it works from here
+on. Stage 8 is where you turn it into a brief they can act on — what each picture has to *show* —
+but a client who wants to start now is not blocked.
+
 ▸ Take the corrections before writing anything else. Collected after the whole site exists, they mean
 rewriting the whole site; collected here, they cost three pages at most — and usually none, because
 a correction to tone or density is applied to stage 6's pages as they are written.
+
+
+**Done when** three pages carry real copy and every section on them is either off thin or on the
+exempt list — counted, not estimated.
 
 ### 6. Remaining pages
 Apply stage 5's corrections to every remaining page. If stage 5 covered the whole site, say that and
@@ -439,49 +458,109 @@ the approved sitemap, raise it rather than quietly resolving it — the human kn
 When a page needs a look the theme has no slug for, **add the slug to `theme.json` and reuse it**, do
 not invent a one-off. Adding a bespoke treatment per page as you go is the junior habit that produces
 a theme with fourteen near-identical slugs and no system; the senior habit is to notice the second
-occurrence and name the shared thing. Two slugs per block type is the ceiling.
+occurrence and name the shared thing.
+
+**Two slugs per block type is the ceiling everywhere except `Hero`.** The validator wants each page
+to open distinctly, so a four-page site carries four hero slugs — `hero/home`, `hero/services`,
+`hero/about`, `hero/contact` — and that is the rule working, not slug sprawl. The ceiling is about
+*body* sections, where a fourteenth near-identical card treatment means nobody built a system.
+
+
+**Done when** every page in the approved sitemap exists, and every slug used resolves in
+`theme.json`. A slug a page invented and the theme never defined renders unstyled.
 
 ### 7. Design QA — the pass that is not "does it validate"
-Validation proves the JSON is legal. It does not prove the page works.
+**REQUIRED SUB-SKILL:** use `check-webpage`. It owns the nine checks, the script that computes
+contrast and theme coverage, and the report format.
 
-**Five checks you run from the bundle, no browser needed:** contrast (you hold the hex values —
-compute relative luminance and the ratio; 4.5:1 body, 3:1 large), content extremes (find stage 2's
-longest name and nine-item list in the JSON), slop tells (same radius everywhere? accent in the
-indigo band? monospace only on labels?), the page read with images ignored, and the tokens audited
-against `theme.direction`.
+Two things carry over from here that it cannot know: stage 2's content-extremes table is the input
+to its check 2, and `theme.direction` from stage 3 is what its check 5 audits the tokens against. A
+theme with no `direction` block fails that check for want of anything to compare to — write it at
+stage 3, not here.
 
-**Four that need eyes on a rendered page** — four widths, greyscale-and-squint, tap targets and
-focus, nothing hidden at rest. In a checkout you run these yourself (`references/local-path.md`). On
-chat you cannot: `site_preview` draws the page but you cannot resize it, screenshot it, tab through
-it or run script in it. Once the draft is published the human has a real page in a real browser —
-the only pair of eyes in the room. Ask them:
+Report to the client as two lists in their language — **what you fixed**, and **what is their
+call** — never as nine rows of ratios they cannot verify.
 
-> Four things I can't check from here — could you open the site and look?
->
-> 1. On your phone, scroll all the way down. Anything overlapping, cut off, or spilling sideways?
-> 2. Same page on a laptop, then drag the window narrower. Anything collapse badly in between?
-> 3. Press Tab a few times. Does something visibly light up as you go?
-> 4. Scroll down slowly. Any section that stays blank instead of appearing?
+**Done when** `check-webpage` reports all nine rows with a Who and a Result, and its browser-only
+questions have been put to the human.
 
-`references/design-qa.md` has all nine in full, the report table with its **Who** column, and why
-`NOT RUN` is an honest row where a tick is not. Report to the client as two lists in their language —
-**what you fixed**, and **what is their call** — never as nine rows of ratios they cannot verify.
 ### 8. Assets and facts — name every picture the site needs
 The layout now exists, so you know exactly which images it wants and what each one has to be. Turn
 that into a list and hand it over — a human asked "send me some photos" sends whatever is on their
 phone; a human asked for "your workshop, wide, showing the bays in use" sends that.
 
-**Produce the picture list first**, one row per image slot the bundle references:
+**Produce the picture list first**, one row per image slot the bundle references. **The filename
+column is the point** — the upload page matches dropped files by name against the `src` in your
+props, so a row without the exact filename is a row the human cannot deliver:
 
-| Where | What it has to show | Shape | They have it? |
+| Save it as | Where it goes | What it has to show | Shape |
 |---|---|---|---|
-| Home hero | the workshop with bays in use, room at the top for the headline | wide, `environment` | ask |
-| Products, card 3 | the CFM backrest alone on a plain ground | square, `cutout` | ask |
-| About, portrait | the founder, waist-up | portrait, `detail` | ask |
+| `hero-workshop.jpg` | top of the home page | the workshop with bays in use, room at the top for the headline | wide |
+| `cfm-backrest.jpg` | products, third card | the backrest alone on a plain ground | square |
+| `founder-portrait.jpg` | about page | the founder, waist-up | portrait |
 
-Ask for their own photographs against that list — they almost always have more than they think, and
-a real picture of the actual place beats anything you can source. What comes back with nothing
-against it is the gap list, and only that gap list goes to stock.
+**`alt` is written twice, and the validator polices neither.** At stage 5 you have no pixels, so
+write the alt the picture list *specifies* — "the cold store, down an aisle, racking either side" —
+never the filename. Then when the photograph is actually up and you can see it in the preview,
+correct any alt the real image contradicts. An empty `alt` string validates cleanly and ships, so
+nothing will catch it for you.
+
+**Choosing an overlay layout commits that row to an `environment` photo.** `overlay-fullbleed` puts
+text on the picture, and the validator refuses a `cutout` under it — so the `imageKind` is decided
+at stage 5 when you pick the layout, and the picture list must then *ask for* a photo that suits it
+("shot wide, with empty sky at the top for the headline"). That is the one place declaring a kind
+before seeing the pixels is correct: you are not describing a photo, you are specifying one.
+
+**The `src` you write must be `/img/<client>/<filename>`** — hosting matches uploads against that
+shape exactly, and a `src` of `"hero-workshop.jpg"` or `"images/hero.jpg"` is silently dropped: the
+upload page never asks for it, `bundle_status` never reports it missing, and the image is
+permanently blank with no error anywhere. So `hero-workshop.jpg` in the table below means
+`"src": "/img/sterling/hero-workshop.jpg"` in the props.
+
+Name each file for what it shows before you hand the list over; `image-1.jpg` leaves them no way to
+tell which is which.
+
+**Hand over the list with this, adapted.** Everything in it is something clients hit and are
+surprised by, so it belongs in the words they read rather than in a note to yourself to mention it:
+
+> **Your photo page:** <upload link>
+>
+> It lists every photo the site is waiting for, by name. Open it in a browser — your phone is fine,
+> that's where the pictures are.
+>
+> - **Rename each photo to the name on the list, then drop it in.** That's how the page knows which
+>   picture goes where. **Don't convert or resize anything** — send them straight off your phone in
+>   whatever format they are, and the site sorts that out.
+> - **Dropped the wrong one somewhere?** Delete it on that page, or just drop the right one in under
+>   the same name. Nothing to start over.
+> - You can close the page and come back — it remembers what's already in.
+> - Nothing is public while you do this.
+>
+> When the last photo is in, a **"Publish the site"** button on that page comes alive. Pressing it
+> is what puts the site live — it does not happen on its own.
+>
+> Worth knowing now: **once you publish, that page stops accepting photos.** If you want to swap one
+> later, come back to me and I'll reopen it. The link isn't broken, it's finished.
+
+Why each line is there: hosting decodes JPEG, PNG, WebP, AVIF, **HEIC**, TIFF and GIF and re-encodes
+to the format the *name* says, so "convert it first" is work the server already does and an iPhone
+photo goes up as it came off the phone. A wrong name is refused with the full list of names it
+wanted, which reads as an error rather than as guidance. And after publishing, uploads answer "this
+site is published; re-publish from the conversation to change it" — a client who was not told that
+concludes the link died.
+
+Three limits, if they come up: **40 MB** a file, **2400px** on the longest edge (everything is
+resized down on arrival, so a print-resolution original is not what gets served), and **no SVG** —
+a logo needs PNG or WebP. Photo metadata is dropped in re-encoding, which matters to anyone who
+assumes their copyright EXIF travels with the file.
+
+Ask for their own photographs first — they almost always have more than they think, and a real
+picture of the actual place beats anything you can source. Rows that come back empty are the gap
+list, and only the gap list goes to stock.
+
+**`bundle_status(domain)` is the loop's exit condition** — it is keyed by the domain, not the draftId. It reports exactly which expected files are still
+missing, so work it until it is empty rather than asking "did you upload them?" — the human often
+believes they did, and a file that landed under the wrong name is invisible to both of you.
 
 **Then work the `unverified` checklist**: every marked section is confirmed, corrected, or removed.
 Until it is empty the build farm refuses to publish. Verify every number and claim while you are
@@ -490,6 +569,10 @@ one, which is why this part stays the human's.
 
 Check every image for **third-party branding** — a competitor's logo on a worker's jacket is a real
 problem no validator catches.
+
+
+**Done when** `bundle_status` reports no missing files, every remaining slot is deliberately
+type-only, and the `unverified` list is empty.
 
 #### Filling the gaps with stock
 
@@ -506,7 +589,7 @@ Two things the sub-skill cannot know, because they are this pipeline's:
 - **Where the file goes.** In a checkout, `assets/<client>/<slug>.jpg`, referenced as
   `/img/<client>/<slug>.jpg`. On the chat path there is no `assets/` folder — the picture reaches
   the site through the browser upload link, so hand the human the shortlist and let them drop the
-  files there. Nothing requires `.webp`; optimisation is the build farm's job.
+  files there. Nothing requires `.webp` — hosting re-encodes on upload, before the farm ever runs.
 - **`alt` and `imageKind` come from the pixels**, once there is a file to look at. Where the
   download cannot happen, leave both empty and say why — a guessed `imageKind` defeats the one check
   the validator performs with it.
@@ -518,25 +601,27 @@ here rather than at upload. If you already sent the upload link at stage 5 or 8,
 re-publishes the finished JSON to the *same* link; say so, rather than handing over what looks like
 a second, different one.
 
-**Explain the link to someone who has never uploaded a file to a website before:**
+**If publishing fails, say so and stop there.** Hosting being down is not something to work around:
+the upload link is the only route a photograph has into the site, so there is no partial version of
+this stage. Tell them plainly — "the hosting service isn't reachable right now, so I can't generate
+your upload link; let's try again shortly" — and keep the draft. Nothing is lost: the bundle is
+still held, and re-running `bundle_publish` later picks up exactly here. What you must not do is
+improvise a substitute route for the pictures or describe the site as finished.
 
-> Here's your link: <url>
->
-> Open it in a browser. It lists every photo the site needs, with the name it expects — drag your
-> files onto it and each one drops into place. You can close the page and come back; it remembers.
-> When the last one's in, the site goes live on its own. Nothing is public until then.
+**The upload wording lives at stage 8** — hand over that script, not a shorter improvised version.
+If they have already had it, do not re-explain: say the link is the same one and their uploads are
+still there.
 
-Not "the bundle awaits asset resolution". Say plainly why the photos go through a browser and not
-the chat — a transcript re-sends every picture on every later turn, so one site's photography would
-cost more than the site. That is not an apology for a missing feature; it is why this works for
-someone with no development machine at all.
-
-**The names in your props are the names the human will be asked for.** A `src` of
-`/img/acme/hero-workshop.webp` asks them for `hero-workshop.webp`, so name images for what they
-show — `image-1.webp` leaves the person matching them up with no way to know which is which.
+Say plainly why photos go through a browser and not the chat — a transcript re-sends every picture
+on every later turn, so one site's photography would cost more than the site. Not "the bundle awaits
+asset resolution". That is not an apology for a missing feature; it is why this works for someone
+with no development machine at all.
 
 `bundle_status` reports what is still missing; `bundle_discard` withdraws a draft, which is how a
 mistyped domain is fixed. Once a site is live it can only be changed by publishing again.
+
+**Done when** `bundle_publish` has returned a link, the human has been told what to do with it, and
+your summary states the `catalogVersion` you built against.
 
 ## After you hand off
 The bundle you publish is source, not a built site: hosting stores it, renders it with the same build
@@ -572,7 +657,7 @@ editing `site.json` to make a theme work, the theme is wrong.
 - **`chrome` carries Nav and Footer once for the whole site.** Page `blocks` arrays must not repeat
   them.
 - **Slugs are editorial roles**, not block types: `hero/home`, `hero/page`, `hero/statement` should
-  resolve differently. About two slugs per block type.
+  resolve differently. About two slugs per block type — except `Hero`, which takes one per page.
 - **Content must suit the layout.** `overlay-fullbleed` puts text on the photo, so it requires
   `imageKind: "environment"`.
 
@@ -584,6 +669,7 @@ Read these when the stage that needs them arrives — not upfront.
 | File | Read it at |
 |---|---|
 | `references/intake.md` | stage 1 — the `org.json` schema and the verbatim question list |
+| `references/plain-language.md` | every ▸ — the client-facing translation table |
 | `references/proposing-themes.md` | stage 3 — the three-proposal protocol, served fonts, the style tile |
 | `references/palette.md` | stage 3 — the eleven colour tokens, hue unity, accent budget |
 | `references/art-direction.md` | stages 3–4 — tokens, what drives distinctiveness, slop tells |
@@ -591,7 +677,10 @@ Read these when the stage that needs them arrives — not upfront.
 | `references/composing-sections.md` | stage 5 — `FreeSection` and the six typed sections |
 | `references/density.md` | stage 5 — hitting density, and marking `unverified` |
 | `references/house-rules.md` | stages 5–6 — validation gates and known pitfalls |
-| `references/design-qa.md` | stage 7 — the nine checks and the report table |
+
 | `references/live-preview.md` | stages 5–9 — draft/patch ops, uploading pictures early |
 | `references/after-handoff.md` | stage 9 — what the platform derives, honestly |
 | `references/local-path.md` | only in a checkout — servers, folder layout, QA scripts |
+
+Stage 7 lives in a skill of its own — `check-webpage` — because a finished site gets checked more
+often than it gets built, and `edit-webpage` needs the same pass after a token change.

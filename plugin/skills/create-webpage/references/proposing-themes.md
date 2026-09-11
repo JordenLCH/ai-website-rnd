@@ -138,4 +138,62 @@ sections as they enter, nothing on hover but state changes. Say in the pitch wha
 Iterate on tokens only. Content does not exist yet, so nothing is wasted.
 
 **Write the pick down as three adjectives, and treat them as binding.** A studio names the direction
-before it sets values, because the adjectives are what every later decision gets tested against —
+before it sets values, because the adjectives are what every later decision gets tested against:
+"precise" and a 28px radius contradict each other, and the contradiction is only visible if the word
+was written down.
+
+## The families that actually render
+
+**Only these fourteen are served. A theme naming any other renders as system-ui, silently — no
+error, no validator message; the page just looks unstyled for reasons nobody can see.**
+
+```
+Archivo · Archivo Narrow · Barlow Condensed · Chivo · DM Mono · Familjen Grotesk
+Fraunces · IBM Plex Mono · IBM Plex Sans · Inter · JetBrains Mono · Karla
+Public Sans · Space Grotesk
+```
+
+The style tile must use the **same family string** you will put in `--font-display` and
+`--font-body`. A tile drawn in Georgia while the prose promises Fraunces is a different design
+approved under the wrong name, and the substitution surfaces two stages later as "the theme looks
+nothing like the tile".
+
+## The style tile — all six elements
+
+A tile missing one is not a shorter tile; it is a tile that cannot answer the question it was drawn
+for:
+
+```
+1  type scale      every step you will actually use — display, heading, lede, body, eyebrow
+2  tone bands      all four: default · surface · inverse · accent, each labelled, each
+                   showing its own text colour on its own ground
+3  a button        the real --btn-radius, --btn-pad and --btn-weight, not a browser default
+4  a rule          the real --border and --color-line, at the weight the theme uses
+5  a caption       smallest text, in --color-muted, on the default ground
+6  a table row     a label and a value, because specification content is where type breaks
+```
+
+**The tone bands get dropped most often and matter most.** Which sections go inverse or accent
+carries more brand identity than the colour values do, so three tiles without tone bands read as
+three fonts on one background — and the human, correctly, says they all look the same. If you draw
+only one element, draw those.
+
+Use the client's real words for the sample strings — a product name, a real figure. Not lorem: the
+tile has to survive the words it will actually hold.
+
+**Build the tile, not a page.** A human shown a mocked page judges the fake copy and the invented
+layout instead of the type and colour you want a decision on.
+
+
+## The `direction` block
+
+Written at the top level of `theme.json` once the human picks. It is what stage 7's check 5 audits
+the tokens against, and what the next agent reads instead of re-deriving the direction from values.
+
+```json
+"direction": {
+  "adjectives": ["quiet", "precise", "expensive"],
+  "rejected": ["warm editorial — the register undersells a specification-led buyer"],
+  "why": "they sell on tolerance figures; restraint reads as confidence in the numbers"
+}
+```

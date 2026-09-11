@@ -1,5 +1,38 @@
 # Composing sections — `FreeSection` first, typed blocks where they earn it
 
+## The primitive shape — get this wrong and every node fails
+
+**Primitives are keyed `el`, not `type`.** Blocks use `type`; the nodes inside a `FreeSection` use
+`el`, and the schema is a discriminated union on it, so a node written with `type` fails outright.
+This is the single most common way a first `FreeSection` returns a wall of validator errors.
+
+```jsonc
+{ "type": "FreeSection", "variant": "about/story", "props": { "nodes": [
+  { "el": "Stack", "children": [
+    { "el": "Eyebrow", "text": "Since 2009" },
+    { "el": "Heading", "level": 2, "text": "..." },
+    { "el": "Text", "size": "lede", "text": "..." },
+    { "el": "Button", "label": "Request a quote", "kind": "primary", "page": "contact" }
+  ]}
+]}}
+```
+
+Three shapes that differ from their neighbours, and each costs a round trip:
+
+| Primitive | The catch |
+|---|---|
+| `Button` | takes **`label`**, where `Text`, `Eyebrow`, `Quote` and `Caption` all take `text` |
+| `Image` | needs `src` **and** `alt`; `ratio` is an enum — `square`, `portrait`, `landscape`, `wide`, `fill` — not a number |
+| `Grid` | `cols` is an integer 2–12; containers (`Stack`, `Row`, `Grid`, `Card`, `Figure`) need at least one child |
+
+`Heading` takes `level` (1–6). A page needs an `h1`, and a `FreeSection` carrying `role: "hero"`
+does **not** supply one — the validator still reports `page has no Hero`. Open every page with a
+typed `Hero` block and compose below it.
+
+Call `catalog_get` for the exact current shape rather than copying an example; this table is the
+part that bites, not the whole contract.
+
+
 Referenced from `SKILL.md` stage 5. Read before writing the first page.
 
 ## Composing sections: reach for `FreeSection` first

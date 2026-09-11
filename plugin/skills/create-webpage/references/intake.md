@@ -111,38 +111,42 @@ STILL NEED THESE — I can't ship a site without them
   3. The phone number and email you want on the site
   4. The logo file                                (PNG, JPG or WebP — if you only have an SVG I'll
                                                    need it converted before it can go up)
+  5. What web address will this live at?          (yoursite.com.my — if you haven't bought one yet
+                                                   just tell me the name you're leaning towards;
+                                                   I only need something to file the draft under
+                                                   and it can be changed later)
 
 ABOUT THE SITE — a sentence each is plenty
-  5. Your brand colour                            (the exact code if you know it — "#1B4D3E" or a
+  6. Your brand colour                            (the exact code if you know it — "#1B4D3E" or a
                                                    Pantone — otherwise just name it, or point me at
                                                    the logo and I'll read it off that. If the
                                                    company doesn't have one, say so: I'll propose
                                                    three and you pick)
-  6. Who buys from you?
-  7. What should the site actually make happen?   (get quote requests, explain the range, look
+  7. Who buys from you?
+  8. What should the site actually make happen?   (get quote requests, explain the range, look
                                                    credible to a buyer, hire people, sell online)
-  8. How big?                                     (homepage only / home plus 2-3 pages / full site)
-  9. What must the homepage cover?                (beyond the top banner — products or services,
+  9. How big?                                     (homepage only / home plus 2-3 pages / full site)
+ 10. What must the homepage cover?                (beyond the top banner — products or services,
                                                    industries you serve, case studies, numbers,
                                                    technology, partners, customer quotes, news,
                                                    careers, contact)
- 10. How should it sound?                         (technical and precise / bold and visionary /
+ 11. How should it sound?                         (technical and precise / bold and visionary /
                                                    plain and practical)
- 11. Any page you need that I wouldn't think to add?
- 12. A site you like, or one you'd hate to look like?
+ 12. Any page you need that I wouldn't think to add?
+ 13. A site you like, or one you'd hate to look like?
 
 NICE TO HAVE — the site ships without these, but they make it stronger
- 13. Links to your company anywhere else online   (LinkedIn, Google Business, Facebook, Instagram,
+ 14. Links to your company anywhere else online   (LinkedIn, Google Business, Facebook, Instagram,
                                                    an industry directory — these are how Google
                                                    confirms you're a real company, and they're the
                                                    most-skipped thing on this list)
- 14. Certifications, with the exact name          ("ISO 9001", not "ISO standards")
- 15. Roughly how many staff, any awards, which countries or states you cover
- 16. Key people worth naming, and their qualifications
+ 15. Certifications, with the exact name          ("ISO 9001", not "ISO standards")
+ 16. Roughly how many staff, any awards, which countries or states you cover
+ 17. Key people worth naming, and their qualifications
 ```
 
-Items 1-4 map to `legalName`, `registration`, `phone`/`email` and the logo; 13 is `sameAs`, 15 is
-`numberOfEmployees` / `awards` / `areaServed`, 16 is `people[]`. Do that mapping yourself when you
+Items 1-4 map to `legalName`, `registration`, `phone`/`email` and the logo; 14 is `sameAs`, 16 is
+`numberOfEmployees` / `awards` / `areaServed`, 17 is `people[]`. Do that mapping yourself when you
 write `org.json` — never by showing the human the field names.
 
 **Motion is not on this list.** Someone who has not seen the page cannot tell you whether they want
@@ -150,7 +154,7 @@ write `org.json` — never by showing the human the field names.
 direction, and the human judges it on the real preview at stage 5, where there is something to look
 at.
 
-**Item 5 does not block the build, and is still not optional to ask.** Every theme candidate at
+**Item 6 does not block the build, and is still not optional to ask.** Every theme candidate at
 stage 3 is built *from* the brand colour, so a run that never asked is a run that invented one and
 designed three themes around the invention. A brand guide constrains stage 3 before you sample
 anything; having no brand colour is a real answer and stage 3 proposes instead. Picking one quietly
@@ -176,3 +180,17 @@ Three rules for running this list:
 
 Nothing about hosting, SEO or refresh belongs in intake either. Those are derived server-side after
 upload and need nothing from the creator — see "After you hand off" in `SKILL.md`.
+
+
+## Why the domain is a blocker, and why a provisional one is fine
+
+It looks like a launch detail, so it gets left to the end — and on the chat path that breaks the
+pictures. `bundle_publish` takes a domain, publishing is what mints the upload link, and the upload
+link is the **only** route a photograph has into the site. No domain, no link, no pictures: you reach
+stage 8 holding a list of images with no way to deliver any of them.
+
+So ask at intake, and make it cheap to answer. Publishing creates a *draft*, never a live site, so
+the domain is just the key the draft is filed under — `sterlingcoldchain.com.my` works whether or not
+they own it yet. If it turns out wrong, `bundle_discard` withdraws the draft and you publish again
+under the right one. What you must not do is wait: a client who "will sort the domain later" has
+also, without knowing it, postponed every photograph on their site.

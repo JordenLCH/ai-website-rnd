@@ -101,9 +101,9 @@ someone ends up crediting a photographer whose work is no longer on the page.
 Not caveats — the parts a person acts on:
 
 - **Not for the logo.** The trade-mark prohibition covers favicon, wordmark, and any registry filing.
-- **Never captioned as theirs.** Alt text and captions describe a workshop, an office, a clinic —
-  never "our workshop", "our team". Beyond the endorsement clause, presenting stock as your own
-  premises is the kind of claim that attracts advertising-standards complaints.
+- **Caption it generically.** Alt text and captions describe *a* workshop, *an* office, *a* clinic.
+  "Our workshop" and "our team" claim the endorsement the licence forbids, and presenting stock as
+  your own premises is the kind of claim that attracts advertising-standards complaints.
 - **This is scaffolding.** For a service business especially, an afternoon with a decent phone at the
   real place — their bay, their staff, their signage — outperforms any of it, because the customer is
   trying to judge whether *that* place looks competent. Put the real shoot in the backlog.
@@ -125,7 +125,8 @@ photo page link, provider, and the contributor's own title **quoted as theirs**,
 fact. Then say, in as many words, that you have not seen these images and the branding check has not
 happened.
 
-Three things not to do there, because each was produced by an agent working from titles alone:
+Hand over the shortlist and stop there. Three guardrails, because an agent working from titles alone
+produced each of these:
 
 - **No `alt`.** An `alt` describes a photograph, and you have looked at none.
 - **No image-kind or aspect judgement.** Depth and framing are things you see, not things you infer.
@@ -138,15 +139,52 @@ looked.
 
 ## Using this inside a generated site
 
-When this runs as part of `create-webpage`, the destination is `assets/<client>/<slug>.jpg` and the
-prop is `/img/<client>/<slug>.jpg`.
+`create-webpage` arrives here with a gap list — the image slots its layout needs and the client could
+not fill. Where the file goes next depends on the surface, and getting it wrong leaves a reference
+pointing at nothing:
 
-**Nothing requires `.webp`.** The `src` prop is a plain string (`renderer/src/blocks/shared.ts`) and
-the build resolves any path matching `/img/<client>/<file>` whatever the extension. The fleet is all
-`.webp` because the humans who supplied those photographs had already optimised them, not because a
-check demands it. Optimisation is the build farm's job, past the upload, where the toolchain is known.
+| Surface | Where the picture actually goes |
+|---|---|
+| A checkout | download to `assets/<client>/<slug>.jpg`; the prop reads `/img/<client>/<slug>.jpg` |
+| Chat, code execution on | you can fetch and look, but there is no `assets/` folder the site reads from — the file reaches the site through the browser upload link |
+| Chat, no code execution | hand over the shortlist; the human downloads and uploads |
+
+On both chat rows the upload page is the delivery mechanism, and it asks for files **by the name the
+prop uses**. So the shortlist you hand over is not a list of links — it is a set of delivery
+instructions, one per gap, and each one carries the filename:
+
+```
+1.  hero-workshop.jpg    ← save it under exactly this name
+    https://www.pexels.com/photo/12345678/
+    Pexels · "Interior of an auto repair workshop" (the contributor's title, not mine —
+    I have not seen this image)
+    Hit the free download, choose Large, rename it to exactly that, drop it on your upload page.
+    No need to convert or resize it — the server does both.
+```
+
+Three things make that work and are easy to drop: the **exact filename**, the provider's own title
+marked as theirs, and the sentence saying you have not seen it. A shortlist missing the filename
+produces files the upload page cannot match, and the human cannot tell why nothing appeared.
+
+Then ask them to tell you when the files are up, and check `bundle_status(domain)` — it is keyed by
+the site's domain, so if you are running standalone and don't have one, ask for it rather than
+trusting the answer — a photo saved as `pexels-photo-12345678.jpg` is invisible to the matcher even though it is
+sitting right there on the page.
+
+**Nothing requires `.webp`.** The `src` prop is a plain string and the build resolves any path
+matching `/img/<client>/<file>` whatever the extension. The fleet is all `.webp` because the humans
+who supplied those photographs had already optimised them — optimisation is the build farm's job,
+past the upload, where the toolchain is known.
 
 `alt` and `imageKind` are written from the pixels once step 3 has run — `environment` for a scene
 with depth, `cutout` for a product on a plain ground, `detail` for a close crop. The validator
 refuses a cutout under `overlay-fullbleed` because text on it would be unreadable, and it can only
 refuse what you declared.
+
+## Done when
+
+The set is finished when every file has been opened with `Read`, `CREDITS.json` has an entry per
+file, and every `alt` describes the picture you looked at. On a surface where the download cannot
+happen, it is finished when the shortlist is handed over **and you have said in as many words that
+you have not seen these images** — an unseen shortlist presented as a chosen set is the one failure
+this skill cannot recover from later.
