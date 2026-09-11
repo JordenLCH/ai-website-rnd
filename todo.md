@@ -51,7 +51,7 @@ manually update the content".
 
 ### 4. Server-side asset processing
 **Not from the `goal.md` audit** — found 2026-09-09 while adding stock-photo sourcing to
-`skills/create-webpage/SKILL.md`. Recorded here because the skill now depends on it.
+`plugin/skills/create-webpage/SKILL.md`. Recorded here because the skill now depends on it.
 
 **Goal:** the creator's surface drops a correctly-named image file under `assets/<client>/` and
 stops. Conversion, resizing and format negotiation happen in `platform/` after upload.

@@ -87,3 +87,55 @@ the photography, the room the layout leaves, and the type scale — the palette 
 `color.mjs` (colour maths and contrast solving). `node emit2.mjs` writes fifteen proposals — five
 clients, three principles — every one of which clears every band in `palette.md` and validates
 against the live token contract and layout vocabulary.
+
+
+---
+
+## The families that actually render
+
+Public Sans · Space Grotesk
+```
+
+There is no error and no validator message — the page just renders in the system font and looks
+unstyled for reasons nobody can see. So the tile must use the **same family string** you will put in
+`--font-display` and `--font-body`. Do not assume a family renders just because you named it
+correctly. A tile drawn in Georgia while the prose promises Fraunces is a
+different design being approved under the wrong name, and the substitution surfaces two stages later
+as "the theme looks nothing like the tile".
+
+Name the typeface decision *against its alternatives*. "Inter" is not a bad font; **Inter unchosen is
+the tell** — it signals nobody made a typography decision. The same is now true of monospace for
+small labels and numerals: it reads as structured and technical, which is exactly why every generator
+reaches for it, and it is on track to be as telling as an indigo gradient. Use it if you can say what
+it does here that a small-caps sans would not.
+
+**Build the tile, not a page.** A style tile is what a studio shows at this point — deliberately
+*not* a mocked page with lorem in it, because a human shown a fake page judges the fake copy and the
+
+## The style tile — all six elements
+
+                   showing its own text colour on its own ground
+3  a button        the real --btn-radius, --btn-pad and --btn-weight, not a browser default
+4  a rule          the real --border and --color-line, at the weight the theme uses
+5  a caption       smallest text, in --color-muted, on the default ground
+6  a table row     a label and a value, because specification content is where type breaks
+```
+
+**The tone bands are the ones that get dropped, and they are the ones that matter most.** Which
+sections go inverse or accent carries more brand identity than the colour values do, so three tiles
+without tone bands read as three fonts on one background — and the human, correctly, says they all
+look the same. If you draw only one element, draw those.
+
+Use the client's real words for the sample strings — a product name, a real figure. Not lorem, and
+not "The quick brown fox": the tile has to survive the words it will actually hold.
+
+**Motion is part of the direction, so set it here.** Four tokens carry it — `--motion-duration`,
+`--motion-ease`, `--motion-state`, `--motion-distance` — plus per-section reveals, with
+`prefers-reduced-motion` honoured for you. Default to subtle scroll reveals: a ~620ms ease on
+sections as they enter, nothing on hover but state changes. Say in the pitch what it implies —
+"things fade in gently as you scroll", or "nothing moves" — so it isn't a surprise at stage 5.
+
+Iterate on tokens only. Content does not exist yet, so nothing is wasted.
+
+**Write the pick down as three adjectives, and treat them as binding.** A studio names the direction
+before it sets values, because the adjectives are what every later decision gets tested against —

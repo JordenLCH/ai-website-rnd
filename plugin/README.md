@@ -61,15 +61,17 @@ refuses a connector that sets it. The server accepts `x-api-key`, `x-auth-token`
 `Authorization`, with or without a `Bearer ` prefix; the plugin sends `x-api-key` so both paths
 are configured identically.
 
-The skill half is uploaded separately there (Skills → `skills/create-webpage.zip`).
+The skill half is uploaded separately there (Skills → the `.skill` archive that
+`./package-plugin.sh` writes into `dist-plugin/`).
 
 ## Source of truth
 
-`skills/create-webpage/` in this repo is the source. `plugin/skills/create-webpage/` is a synced
-copy — never edit it directly; run `./skills/install.sh`, which refreshes it.
+`plugin/skills/<name>/` is the source, and the only copy. Edit it directly.
 
-The script no longer installs to `~/.claude/skills/`, and deletes a copy left there by an older
-run. A local-directory plugin install serves the skill straight out of `plugin/skills/`, so a
-second copy under the same name is the same skill loaded twice — and one refresh away from the
-two disagreeing about which is current. Copies that remain: the source, the plugin's, and a
-starter checkout's if you pass one.
+There used to be a second tree at `skills/<name>/` that an `install.sh` rsynced here. It was
+removed on 2026-09-11: two identical trees is one that goes stale, and the sync step was
+something a release could skip in silence. A local-directory plugin install serves the skill
+straight out of `plugin/skills/`, so this is the copy that actually runs.
+
+Archives are built, never committed: `./package-plugin.sh` writes the plugin zip and one
+`.skill` per skill into `dist-plugin/`, both from this directory. Nothing is hand-zipped.

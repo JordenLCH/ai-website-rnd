@@ -1,6 +1,6 @@
 ---
 name: edit-webpage
-description: Change a site that already exists — add, remove, or reorder a page or section; edit copy, an image reference, or a theme token; fix one validator warning. Use this whenever the ask is a change to something already built ("add a careers page", "fix the hero headline", "make the CTA button bigger", "remove the testimonials section"), not a request to build a new site from a brief. If there is no existing site.json/theme.json for this client yet, use create-webpage instead — this skill assumes one is already real.
+description: Use when the ask is a change to a site that already exists — "add a careers page", "fix the hero headline", "make the CTA button bigger", "remove the testimonials section", reorder sections, swap an image, tweak one theme token, or clear one validator warning. If there is no site.json/theme.json for this client yet, use create-webpage instead.
 ---
 
 # Edit a webpage

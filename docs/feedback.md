@@ -244,7 +244,7 @@ From one end-to-end run: `website_info/wungadv/` (Wung & Co Advocates) built as 
 plus a Swiper carousel and parallax, taken through preview, static build and packaging.
 
 This section is written as **edits to make**, keyed to the nine workflow stages in
-[`skills/create-webpage/SKILL.md`](../skills/create-webpage/SKILL.md). Each item says where it goes,
+[`plugin/skills/create-webpage/SKILL.md`](../plugin/skills/create-webpage/SKILL.md). Each item says where it goes,
 what to add, and what it cost when it was missing. Renderer-side fixes already applied are marked
 **[done]** — they are listed because the skill text still needs to change alongside them.
 

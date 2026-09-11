@@ -13,8 +13,8 @@ If you are here to **test the flow**, jump to "Test task" at the bottom.
 |---|---|
 | `renderer/` | **git submodule** → [`website-renderer`](https://github.com/JordenLCH/website-renderer). `@blackdash/renderer`: block catalog, validator, preview server. Preview and checking only — no fleet, no SEO, no MCP |
 | `platform/` | **git submodule** → [`website-platform`](https://github.com/JordenLCH/website-platform). The server side — build farm and SEO/AEO/GEO derivation. Runs after upload, and `site-hosting` pins the same repo |
-| `plugin/` | the `website-create` plugin — the skill and the catalog MCP packaged as one install. Self-contained: it carries its own marketplace entry, so it needs no public storefront. `plugin/skills/` is **generated** — see [`docs/plugin-release-sop.md`](docs/plugin-release-sop.md) before touching it |
-| `skills/` | the distributable skills and **the source copy** — `create-webpage` (the workflow) and `sourcing-stock-photos` (photography when a brief has none, usable on its own). `./skills/install.sh [../site-starter]` syncs every directory holding a `SKILL.md` into `plugin/skills/` and a starter checkout; adding a skill is adding a directory. Copies drift: the starter's still told creators to fall back to a stale catalog after this one stopped |
+| `plugin/` | the `website-create` plugin — the skills and the catalog MCP packaged as one install. Self-contained: it carries its own marketplace entry, so it needs no public storefront. Release steps are in [`docs/plugin-release-sop.md`](docs/plugin-release-sop.md) — the version bump is the only signal a user has that their copy is stale |
+| `plugin/skills/` | the skills themselves — `create-webpage` (the workflow), `edit-webpage` (scoped changes) and `sourcing-stock-photos` (photography when a brief has none, usable on its own). **Edit these directly; there is no second copy.** The old `skills/` source tree and its `install.sh` rsync were removed on 2026-09-11 — two identical trees is one that goes stale, and the sync was a release step that could be skipped silently. Adding a skill is adding a directory with a `SKILL.md`; `./package-plugin.sh` globs them into `dist-plugin/` as the plugin zip plus one `.skill` each |
 | `website_info/` | five real client briefs with copy, brand colours and local images |
 | `docs/` | research + spike findings, with the reasoning behind every design decision |
 
@@ -77,16 +77,21 @@ Two rules that matter:
   and the same for `platform`.
 - **A renderer change is two commits.** One in `renderer/`, pushed to `website-renderer`; then one
   here bumping the gitlink. Until you bump, this repo still builds against the old catalog.
-  `site-hosting` pins its own `farm/renderer` separately, so a renderer change only reaches
-  production once that pin moves too — same two-commit shape, done again over there.
 
-  **A build-farm change is different: `site-hosting` no longer pins `farm/platform` by hand.**
-  `update.sh` runs `git submodule update --remote farm/platform` on every deploy, so whatever is on
-  `website-platform`'s `main` goes live on the *next prod deploy after you push* — no gitlink bump,
-  no second commit, no "forgot to update the pin" failure mode (2026-09-10, after finding platform
-  had no drift guard the way renderer's `catalogDrift` does). Push to `website-platform` main only
-  when you mean for it to ship. This repo's own `platform/` stays a manually-pinned submodule for
-  local dev/testing before that push — it is not what `update.sh` reads.
+  **Production is different: `site-hosting` pins neither farm submodule by hand.** `update.sh` runs
+  `git submodule update --remote farm/platform farm/renderer` on every deploy, so whatever is on
+  `website-platform`'s and `website-renderer`'s `main` goes live on the *next prod deploy after you
+  push* — no gitlink bump, no second commit, no "forgot to update the pin" failure mode. Platform
+  joined first (2026-09-10, after finding it had no drift guard the way renderer's `catalogDrift`
+  does); renderer joined the same day, after prod was caught rendering an older catalog than the
+  laptop — 16 KB less CSS, four footer layouts missing, and nothing saying so, because
+  `catalogDrift` only refuses a farm *older than the bundle*. A stale renderer that still parses is
+  silent. They move together on purpose: `platform` resolves `file:../renderer`, so updating one
+  without the other is the exact mismatch that `file:` path exists to prevent.
+
+  Push to either `main` only when you mean for it to ship. This repo's own `renderer/` and
+  `platform/` stay manually-pinned submodules for local dev/testing before that push — they are not
+  what `update.sh` reads.
 
 Never import the renderer by relative path — `../../renderer/src/…` is what made it unmovable, and
 `mcp` had four of them. Import by package name, the way `platform` already did.

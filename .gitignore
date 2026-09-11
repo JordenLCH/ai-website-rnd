@@ -30,7 +30,6 @@ docs/images
 
 # POC shared key, written at run time
 poc/mcp-app/.poc-token
-create-webpage.zip
 
 # built plugin archives — rebuild with ./package-plugin.sh
 dist-plugin/

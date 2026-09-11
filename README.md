@@ -12,7 +12,7 @@ and every site inherits it on the next rebuild, because no site contains bespoke
 |---|---|
 | `renderer/` | submodule → `website-renderer`. `@blackdash/renderer`: block catalog, validator, preview server. Shared with site-starter; preview and checking only |
 | `platform/` | build farm — renders a bundle to static HTML and derives every SEO/AEO/GEO artifact |
-| `skills/create-webpage/` | source of the skill shipped inside starter repos |
+| `plugin/` | the `website-create` plugin — skill + catalog MCP in one install. `plugin/skills/<name>/` is the only copy of each skill; there is no separate source tree |
 | `website_info/` | real client briefs used for testing |
 | `docs/` | research and findings, with the reasoning behind each decision |
 

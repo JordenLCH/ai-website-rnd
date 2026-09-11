@@ -18,20 +18,29 @@ second manifest is the install record, not a listing on anything public.
 | `plugin/.claude-plugin/plugin.json` | manifest — **`version` lives here** | yes, every release |
 | `plugin/.claude-plugin/marketplace.json` | the install record | rarely |
 | `plugin/.mcp.json` | `blackdash-catalog` → `https://catalog.blackdash.my/mcp`, header `x-api-key: ${CATALOG_TOKEN}` | only if the endpoint moves |
-| `plugin/skills/create-webpage/` | **generated copy** | **no — see below** |
+| `plugin/skills/<name>/` | the skills — **this is the source, and the only copy** | yes, directly |
 | `plugin/commands/setup.md` | `/website-create:setup` | yes |
 | `plugin/scripts/catalog-token.sh` | stores/checks/clears the token | yes |
 
-### The skill copy is generated. Never edit it.
+### The skills live in `plugin/skills/`. There is no second copy.
 
-The source is `skills/create-webpage/`. `./skills/install.sh` rsyncs it into `plugin/skills/`
-(and into a starter checkout if you pass one). Edit the copy and the next `install.sh` run
-deletes your work with no warning, because the sync is `--delete`.
+Edit `plugin/skills/<name>/SKILL.md` directly. A local-directory plugin install serves the skill
+straight out of that folder, so it is both the source and the thing that runs.
 
-It no longer installs to `~/.claude/skills/`, and removes a copy left there by an older run.
-A local-directory plugin install serves the skill straight out of `plugin/skills/`, so a second
-copy under the same name is the same skill loaded twice — one refresh away from the two
-disagreeing about which is current.
+**This changed on 2026-09-11.** There used to be a second tree at `skills/<name>/` that
+`./skills/install.sh` rsynced into `plugin/skills/` (and into a `site-starter` checkout if you
+passed one). Both are gone. Two byte-identical trees is one tree that eventually goes stale, and
+the sync was a release step that could be skipped in silence — the failure it caused looked like
+a shipped fix that had no effect. A hand-built `skills/create-webpage.skill` sat tracked in git
+alongside them, two days stale, still carrying a `references/` file the skill no longer had.
+
+Adding a skill is adding a directory under `plugin/skills/` with a `SKILL.md` in it. Nothing
+enumerates them; `package-plugin.sh` globs.
+
+Archives are built, never committed. `./package-plugin.sh` writes into `dist-plugin/`
+(gitignored): the plugin zip, plus one `<name>-v<version>.skill` per skill for claude.ai's
+Skills page, which takes one skill at a time. Never hand-zip a skill — that is a third copy of
+the same text with no way to tell which version it holds.
 
 ## How a user knows an update exists
 
@@ -45,19 +54,19 @@ changes nothing a client can detect unless the version moves.
 
 ## Release SOP
 
-1. Fix it in the **source** — `skills/create-webpage/` for skill text, `plugin/` for the
-   command, script, manifest or MCP config.
-2. `./skills/install.sh` — syncs the plugin's skill copy. Skip this and you ship the old skill.
-3. Bump `version` in `plugin/.claude-plugin/plugin.json`. Patch for a wording or bug fix, minor
+1. Fix it in `plugin/` — `plugin/skills/<name>/` for skill text, the rest for the command,
+   script, manifest or MCP config. There is no sync step any more; the file you edited is the
+   file that ships.
+2. Bump `version` in `plugin/.claude-plugin/plugin.json`. Patch for a wording or bug fix, minor
    for a new command or a changed workflow.
-4. `claude plugin validate ./plugin` and `claude plugin validate ./plugin/.claude-plugin/plugin.json`
+3. `claude plugin validate ./plugin` and `claude plugin validate ./plugin/.claude-plugin/plugin.json`
    — the first checks the marketplace manifest, the second the plugin manifest. Both, because
    `validate` on a directory stops at the marketplace file.
-5. Commit and push.
-6. `claude plugin tag plugin/` — cuts a `website-create--v<version>` git tag and **fails if
+4. Commit and push.
+5. `claude plugin tag plugin/` — cuts a `website-create--v<version>` git tag and **fails if
    plugin.json and the marketplace entry disagree**, which is the mistake this step exists to
    catch.
-7. Tell users: `claude plugin marketplace update blackdash`, then
+6. Tell users: `claude plugin marketplace update blackdash`, then
    `claude plugin update website-create@blackdash`, then restart the session. Restart is not
    optional — a running session holds the old copy.
 

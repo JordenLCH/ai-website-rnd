@@ -47,66 +47,114 @@ Use the number exactly as SSM issued it — the 12-digit form with the old `1234
 brackets, if the client gave both. `validate` fails the bundle when the footer is missing either
 half, so collect `registration` and `legalName` at intake or the site cannot ship.
 
-## Ask with this list, verbatim
+## First turn: ask for the documents, not for the fields
 
-Do not compose your own intake questions. Emit this, filling in what the documents already answer so
-the human only sees what is genuinely missing. Left to invent the wording, one model produces a tidy
-form and another produces headings like "Platform details" with asset questions filed under them —
-same skill, different model, and the difference lands on the client.
+**Never open with the question list.** A person who has a company profile PDF, a deck and a logo on
+their desktop should not be transcribing a phone number out of them by hand — they drop the files in
+and you read them. Asking sixteen questions first makes them do the extraction you are better at,
+and most of the answers arrive wrong or not at all.
+
+So the first thing you emit is this, and nothing else:
+
+```
+Send me whatever you already have about the company — drag the files straight into this chat:
+
+  • company profile, brief, deck, brochure, product catalogue — PDF, Word, slides, all fine
+  • the logo (PNG, JPG or WebP — not SVG, it won't upload)
+  • brand guidelines, if there are any
+  • a link to your current website, and to any competitor worth reacting to
+
+Send the messy versions. I'll read them and fill in everything I can, then come back with a short
+list of what's genuinely still missing — probably four or five things, in plain English.
+```
+
+Then read every file before you say anything else. Rules for reading them:
+
+- **Say where each fact came from.** "Phone: 03-1234 5678 (company profile, p.4)" is checkable;
+  a bare value is not. This is the whole reason the human can approve the list in seconds.
+- **A scanned PDF with no text layer is not read.** If you cannot extract text, say so by name —
+  "`profile.pdf` is a scan, I can't read it; can you retype the contact block or send the original?"
+  — rather than quietly treating it as a document with nothing in it.
+- **Two documents disagreeing is a question, not a tiebreak.** An old address in the brochure and a
+  new one on the website is exactly the thing to ask about; picking the newer-looking one silently
+  puts a wrong address in schema markup.
+- **Marketing adjectives are not facts.** "Leading manufacturer since the 70s" gives you neither
+  `foundingDate` nor anything else. Extract only what is stated.
+- The documents are also stage 2's source material — note word counts as you read, so the content
+  inventory is not a second pass over the same PDFs.
+
+## Then ask for the gaps, in this wording
+
+Emit this second, with everything the documents already answered pre-filled so the human only sees
+what is genuinely missing. Do not compose your own wording: left to invent it, one model produces a
+tidy form and another produces headings like "Platform details" with asset questions filed under
+them — same skill, different model, and the difference lands on the client.
+
+**No schema jargon in anything the human reads.** They do not have to know what `sameAs`,
+`areaServed` or s.30(2) is, and a field name in a question is a field they answer wrongly. The
+parenthetical says why it matters in their language; `org.json` is your problem, not theirs.
 
 Say plainly which items block the build, because they are not equally urgent and a flat list of
-twelve questions reads as though they are.
+sixteen questions reads as though they are.
 
 ```
-ANSWERED FROM YOUR DOCUMENTS — correct me if any of this is wrong
-  <field>: <value>            ← list every one you filled, so it can be checked
+FROM YOUR DOCUMENTS — have a quick look, tell me anything that's wrong or out of date
+  <what it is>: <value>   (where you found it)    ← list every one, so it can be checked
   ...
 
-BLOCKS THE BUILD — I cannot produce a shippable site without these
-  1. Registration number      (Malaysia: s.30(2), the footer gate fails without it)
-  2. Legal name, exactly as registered
-  3. Phone and email
-  4. Logo file, and brand guidelines if any exist
-                              (this is the one asset collected now, not at stage 8 — it's a fixed
-                               file, not a folder to sort, and its role in the header/footer
-                               doesn't depend on which sitemap or theme gets picked. If the client
-                               has a brand guide, its colours and type constrain stage 3 before you
-                               sample anything against a blank slate. If the logo file is an SVG,
-                               say now that it needs converting to PNG/WebP before upload — see
-                               "Uploading pictures" in SKILL.md for why)
+STILL NEED THESE — I can't ship a site without them
+  1. Company name exactly as it's registered      (e.g. "Acme Precision Sdn. Bhd.")
+  2. Company registration number                  (Malaysian law requires the registered name and
+                                                   number to appear on the website, so the site
+                                                   won't pass its checks without it — the SSM
+                                                   number, exactly as issued)
+  3. The phone number and email you want on the site
+  4. The logo file                                (PNG, JPG or WebP — if you only have an SVG I'll
+                                                   need it converted before it can go up)
 
-SHAPES THE SITE — I will ask again before writing copy if these change
-  5. Who buys from them       (the buyer decides whether pages split by product or by audience)
-  6. What the site must make happen
-                              (book a demo, explain the lineup, establish credibility, recruit,
-                               drive a purchase — a quote request and a spec download are
-                               different sites)
-  7. Scope                    (homepage only / home + 2-3 key pages / full multi-page site —
-                               this sets the size of every stage after intake, ask it before
-                               stage 2's inventory, not after)
-  8. Which sections the homepage must carry
-                              (hero is assumed; beyond that — products/services, industries
-                               served, case studies, stats, technology, partners, testimonials,
-                               news, careers, contact — so stage 4 samples against a real list
-                               instead of guessing one)
-  9. Copy tone                (technical & precise / bold & visionary / plain & practical —
-                               stage 5 writes to this from the first sentence)
- 10. Motion                   (static / subtle scroll reveals / rich & animated — default to
-                               subtle if unanswered; this is a section-style choice, not a
-                               per-block one, so get it before stage 6)
- 11. Any page that must exist for a reason I would not guess
- 12. An existing site, codebase, or screenshot to react to
-                              (not to copy — it tells you what to avoid as much as what to keep;
-                               feed it into stage 4's do-not-list, same as a named competitor)
+ABOUT THE SITE — a sentence each is plenty
+  5. Your brand colour                            (the exact code if you know it — "#1B4D3E" or a
+                                                   Pantone — otherwise just name it, or point me at
+                                                   the logo and I'll read it off that. If the
+                                                   company doesn't have one, say so: I'll propose
+                                                   three and you pick)
+  6. Who buys from you?
+  7. What should the site actually make happen?   (get quote requests, explain the range, look
+                                                   credible to a buyer, hire people, sell online)
+  8. How big?                                     (homepage only / home plus 2-3 pages / full site)
+  9. What must the homepage cover?                (beyond the top banner — products or services,
+                                                   industries you serve, case studies, numbers,
+                                                   technology, partners, customer quotes, news,
+                                                   careers, contact)
+ 10. How should it sound?                         (technical and precise / bold and visionary /
+                                                   plain and practical)
+ 11. Any page you need that I wouldn't think to add?
+ 12. A site you like, or one you'd hate to look like?
 
-STRENGTHENS THE SITE — omit any of these and the site still ships
- 13. sameAs profiles          (LinkedIn, Google Business — the highest-value field here and
-                               the most skipped: it is how a crawler corroborates the entity
-                               somewhere the client does not control)
- 14. Certifications, named exactly   ("ISO 9001", not "ISO standards")
- 15. Employee count, awards, area served
- 16. Named people with credentials
+NICE TO HAVE — the site ships without these, but they make it stronger
+ 13. Links to your company anywhere else online   (LinkedIn, Google Business, Facebook, Instagram,
+                                                   an industry directory — these are how Google
+                                                   confirms you're a real company, and they're the
+                                                   most-skipped thing on this list)
+ 14. Certifications, with the exact name          ("ISO 9001", not "ISO standards")
+ 15. Roughly how many staff, any awards, which countries or states you cover
+ 16. Key people worth naming, and their qualifications
 ```
+
+Items 1-4 map to `legalName`, `registration`, `phone`/`email` and the logo; 13 is `sameAs`, 15 is
+`numberOfEmployees` / `awards` / `areaServed`, 16 is `people[]`. Do that mapping yourself when you
+write `org.json` — never by showing the human the field names.
+
+**Motion is not on this list.** Someone who has not seen the page cannot tell you whether they want
+"lively" — the answer comes back as a mood, not a decision. Stage 3 sets it with the rest of the
+direction, and the human judges it on the real preview at stage 5, where there is something to look
+at.
+
+**Item 5 does not block the build, and is still not optional to ask.** Every theme candidate at
+stage 3 is built *from* the brand colour, so a run that never asked is a run that invented one and
+designed three themes around the invention. A brand guide constrains stage 3 before you sample
+anything; having no brand colour is a real answer and stage 3 proposes instead. Picking one quietly
+is the only wrong move.
 
 **Deliberately not on this list: "how many directions do you want to see".** Stage 3 always
 samples four and discards the likeliest, stage 4 always samples the tail of home-page orderings —
