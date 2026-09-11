@@ -1,8 +1,13 @@
 # Catalog reference
 
-**Call `catalog_list` first.** This file is the offline fallback — the live catalog ships weekly and
-your repo does not contain it. A creator repo holds content only: `content/<client>/site.json`,
-`theme.json`, `org.json` and `assets/`. There are no block components to read, and no CSS to edit.
+**Call `catalog_list` first.** This file is a reading reference, not a fallback you may generate
+from: the live catalog ships weekly, and this copy carries no `catalogVersion` build hash, so a
+bundle composed from it cannot be drift-checked. Read it freely to remind yourself what a block
+takes; compose against the live catalog. If the catalog is unreachable, stage 4 stops — see the
+skill.
+
+A creator repo holds content only: `content/<client>/site.json`, `theme.json`, `org.json` and
+`assets/`. There are no block components to read, and no CSS to edit.
 
 24 block types. A block instance is `{ "type": <name>, "variant": <slug>, "props": {...} }`.
 The **variant is an opaque slug** — the theme decides what it looks like. Never name a slug after an
@@ -17,6 +22,13 @@ appearance (`hero/dark-overlay`); name it after its editorial role (`hero/home`)
 6. Conversion — CTA, ContactForm, Locations, FAQ
 7. People & posts — Team, PostList, Notice
 8. FreeSection + primitives
+
+**Wherever a block takes `image`, write its `imageAlt`.** Seven of them (`Hero`, `Features`, `Team`,
+`PostList`, `Locations`, `Promo`, `LogoWall`) declare it optional and render `alt=""` when you leave
+it out, so the omission validates silently and the picture is invisible to a screen reader. Alt says
+what the picture contributes, not what is in the frame: a client's logo takes their company name, a
+product takes the model, a face takes the person and their role. Never the filename, and never
+opening with "Photo of" — the element is already announced as an image.
 
 ---
 
@@ -194,8 +206,9 @@ no structured data. See SKILL.md, "Composing sections", for what each one is wor
 `loop`, `autoplay` ms 0–12000, `controls` dots|arrows|both|none, min 2 children), `Figure`
 (`caption`, wraps an `Image`). Content: `Heading` (`level` 1–6, `size` display|heading|title|body, `accent?`), `Text`
 (`size` lede|body|small, `accent?`), `Eyebrow`, `Quote`, `Caption`, `Stat`,
-`List` (`style` plain|dashed|rows), `Image` (`kind`, `ratio`), `Button` (`kind`, `page?`),
-`Field` (`type` text|email|tel|textarea|select), `Divider`, `Spacer`,
+`List` (`style` plain|dashed|rows), `Image` (`src`, `alt`, `kind`, `ratio`),
+`Button` (`label`, `kind`, `page?`),
+`Field` (`label`, `type` text|email|tel|textarea|select), `Divider`, `Spacer`,
 `Badge` (`text`, `kind` accent|quiet|outline), `Marker` (`text` — `"01"`),
 `KeyValue` (`rows: [{k, v}]`, min 2).
 

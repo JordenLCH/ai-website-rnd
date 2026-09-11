@@ -21,8 +21,13 @@ dev/
 workers.md
 better_AI_demo
 
-# written by setup-mcp.sh, holds a live catalog token
-.mcp.json
+# written by setup-mcp.sh, holds a live catalog token.
+# Anchored to the root on purpose: a bare `.mcp.json` also matched `plugin/.mcp.json`, which is not
+# a local artifact at all — it is the config that SHIPS inside the plugin, and it holds no secret
+# (`x-api-key: ${CATALOG_TOKEN}`, an env reference). Ignoring it meant a fresh clone had no copy, so
+# package-plugin.sh would zip a plugin with no MCP config and the catalog would silently never
+# connect for the creator who installed it.
+/.mcp.json
 
 # throwaway chrome screenshots from a review session — never committed
 preview-shots/

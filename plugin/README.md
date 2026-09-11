@@ -4,6 +4,11 @@ One install gives a creator both halves of the pipeline:
 
 - **skill** `create-webpage` — the workflow: read the brief, propose a sitemap, sample art
   directions, compose `site.json` + `theme.json`, validate, package.
+- **skill** `edit-webpage` — a scoped change to a site that already exists: one page, one
+  section, one token.
+- **skill** `check-webpage` — the nine-check design-QA pass, with a script that computes contrast,
+  theme coverage, alt text and form labels. `create-webpage` calls it at stage 7.
+- **skill** `sourcing-stock-photos` — photography when the brief has none; usable on its own.
 - **MCP** `blackdash-catalog` — the things a skill must not hard-code because they drift:
   block catalog, prop schemas, the token contract, and the existing fleet.
 - **command** `/website-create:setup` — keys in the catalog API key.

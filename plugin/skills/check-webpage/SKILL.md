@@ -14,10 +14,17 @@ Nine checks, split by one question: does this one need **eyes** on a rendered pa
 ## Run the script first
 
 ```bash
-python3 scripts/check-theme.py theme.json site.json
+python3 <this skill's folder>/scripts/check-theme.py theme.json site.json
 ```
 
-It answers checks 1 and 3 outright and adds theme coverage, deterministically:
+The script sits beside this file, in the skill's own directory — **not** in the user's project, which
+is where your working directory usually is. Inside the installed plugin that is
+`${CLAUDE_PLUGIN_ROOT}/skills/check-webpage/scripts/check-theme.py`; as a standalone `.skill` upload
+it is `check-webpage/scripts/check-theme.py`. A bare `scripts/check-theme.py` resolves against the
+project and will not be found.
+
+It answers checks 1 and 3 outright, adds theme coverage, and takes the browser-free half of checks 4
+and 8 — all deterministically:
 
 - **contrast** on every pairing the tone bands create, including translucent hairlines composited
   over their real ground — exits non-zero on any failure
@@ -26,6 +33,11 @@ It answers checks 1 and 3 outright and adds theme coverage, deterministically:
 - **coverage** — every variant slug the pages use must exist in `sectionStyles`. A slug the theme
   never defines renders unstyled, the bundle still validates, and the page is silently not the
   design anyone approved
+- **alt text and form labels** — the scriptable half of checks 4 and 8. Seven blocks (`Hero`,
+  `Features`, `Team`, `PostList`, `Locations`, `Promo`, `LogoWall`) declare `imageAlt` optional next
+  to their `image` and render `alt=""` when it is absent, so a page of products, faces and client
+  logos validates clean and is invisible to a screen reader. It also flags alt that is the filename,
+  alt that opens with "Photo of", and alt that repeats the adjacent heading verbatim
 
 Where code execution is unavailable, do it by hand: relative luminance, then
 `(L1+0.05)/(L2+0.05)`, 4.5:1 body and 3:1 large, and read the slugs off the two files.
@@ -55,7 +67,12 @@ itself a QA pass is worse than one that admits it checked five things.
    else? Any "yes" needs a reason, not a fix by reflex.
 4. **Read the page with the images turned off.** Ignore every `src` and read the copy alone. If it
    stops making sense, the copy is leaning on photography the client may replace with something else
-   entirely.
+   entirely. **Then read the alt text as the copy** — that is what a screen reader gets, and the
+   script tells you which images have none. Alt describes what the picture contributes, not what is
+   in the frame: a client's logo takes their name, a product takes the model, a face takes the
+   person and their role. The catalog cannot mark an image decorative, so a blank alt is always
+   indistinguishable from a forgotten one — if a picture genuinely carries nothing, say so in the
+   report rather than leaving the field empty. (WCAG 1.1.1)
 5. **Audit the tokens against `theme.direction`.** Take the three adjectives and name, for each, the
    token that carries it. If "precise" is carried by nothing — or contradicted by a 28px radius and
    a 600ms ease — either the tokens or the adjective is wrong. This is the check that keeps a chosen
@@ -64,12 +81,18 @@ itself a QA pass is worse than one that admits it checked five things.
 **B — four checks that need eyes on a rendered page.**
 
 6. **Four widths, not two** — 360, 768, 1280, 1600. Most breakage lives at 768 and 360, and a site
-   checked only at "narrow and wide" reliably ships a nav that wraps into itself.
+   checked only at "narrow and wide" reliably ships a nav that wraps into itself. Then **zoom to
+   200% at 1280** and look for the same failures again: WCAG 1.4.10 wants the page to reflow into
+   one column with no sideways scrolling, and a layout pinned with fixed widths passes every
+   breakpoint and still breaks here.
 7. **Greyscale, then squint.** Strip the colour and check the hierarchy still reads; if it collapses,
    colour was carrying work structure should do. Then zoom out to 25% and look for one focal point
    per screenful.
-8. **Tap targets and focus.** Tab through: every control needs a visible focus ring at 3:1 and no
-   keyboard trap. Controls want 44–48px; WCAG 2.2's 24px is the legal floor, not the target.
+8. **Tap targets, focus and labels.** Tab through: every control needs a visible focus ring at 3:1
+   and no keyboard trap. Controls want 44–48px; WCAG 2.2's 24px is the legal floor, not the target.
+   The script checks the one part of this that needs no browser — every `ContactForm` field carries
+   a real `label`, because an unlabelled input is unannounced and its text is not clickable
+   (WCAG 3.3.2). A label names the thing being asked for, and is never a placeholder in disguise.
 9. **Nothing hidden at rest.** A section that only becomes readable after a scroll reveal is one
    observer failure away from being blank.
 
@@ -86,7 +109,7 @@ unlocks once every picture is in. So the honest order is:
 3. **Then** put the five questions below to them, against the live address. Publishing returns the
    `domain` but no URL, so give them the address yourself: their own domain if it is attached, and
    otherwise the Pages one, which is the domain with dots turned to dashes —
-   `sterlingcoldchain.com.my` serves at `sterlingcoldchain-com-my.pages.dev`.
+   `john.com.my` serves at `john-com-my.pages.dev`.
 4. Anything they report is a patch and a re-publish — cheap, and the normal path, not a setback.
 
 Telling a client "everything passed" before step 3 is claiming four checks nobody could have run.
@@ -120,11 +143,11 @@ this" are three different states that all read as a tick in prose:
 1  Contrast           me      FAIL     accent on inverse 2.45:1 (needs 4.5)
 2  Content extremes   me      PASS     9-item list, 1-item list, no-image card
 3  Slop tells         me      PASS     radius varies, accent is green not indigo
-4  Images off         me      PASS
+4  Images off + alt    me      FAIL     3 images have no alt; 1 alt is the filename
 5  Direction audit    me      WARN     "precise" carried by nothing
-6  Four widths        client  FAIL     nav wraps into itself on the phone
+6  Widths + 200% zoom client  FAIL     nav wraps into itself on the phone
 7  Greyscale/squint   —       NOT RUN  needs a browser; not asked yet
-8  Targets and focus  client  PASS     "things light up as I tab"
+8  Targets/focus/label me+cl   PASS     labels ok (script); "things light up as I tab"
 9  Hidden at rest     client  PASS     "everything appeared"
 ```
 

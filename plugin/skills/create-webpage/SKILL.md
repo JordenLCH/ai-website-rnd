@@ -8,7 +8,7 @@ description: Use when someone wants a website, landing page, or set of marketing
 You are generating a website as **data**, not code. A site is two JSON artifacts validated against a fixed component catalog:
 
 - **`site.json`** — pages, and for each page an ordered list of sections: `{type, variant, props}`
-- **`theme.json`** — 39 core design tokens, 8 optional structural ones, plus a map of variant slugs → `{layout, tone, vars?}`
+- **`theme.json`** — 39 required design tokens, 43 optional ones, plus a map of variant slugs → `{layout, tone, vars?}`
 
 A build step renders those into static HTML. You never write HTML, CSS, or components. This is what keeps every generated site patchable later: when the platform ships new SEO/AEO schema or fixes a component, every site inherits it on rebuild — but only because no site contains bespoke markup.
 
@@ -27,14 +27,23 @@ Two words carry that through every stage below. **The mode** is the likeliest th
 
 ## Get the catalog from the platform, not from memory
 
-**Call `catalog_list` first, every time. If it fails, stop and say so — do not generate.**
+**Call `catalog_list` first, every time. If it fails, you may not compose a bundle.**
 
 Blocks ship weekly, so anything written into this skill is a snapshot that will eventually be wrong.
 Generating against a stale catalog does not fail loudly: it produces a bundle you believe is valid,
-that the client approves, and that is rejected at upload after all the work is done. When the MCP is
-unreachable the correct output is one sentence — "the block catalog is not reachable, so I can't
-generate against it; the server may be down" — and nothing else. Not a bundle from memory, and not
-one from `references/catalog.md`, which is documentation for people.
+that the client approves, and that is rejected at upload after all the work is done. So a catalog
+you cannot reach is never *substituted* — not from memory, and not from `references/catalog.md`.
+
+That file is a reading reference, not a second source of truth, and the distinction is exact: read it
+freely at stages 4–6 to remind yourself what a block takes, while a live catalog is what you are
+composing against. It cannot stand in for one, because it carries no `catalogVersion` build hash —
+and without that string the bundle you write cannot be drift-checked by the farm at all.
+
+**The stop is stage 4, not the session.** Stages 1–3 name no block and read no schema: intake is a
+conversation about a registration number, the inventory counts words, the theme is tokens. Run them.
+Stage 4 is where it bites — it maps roles to block types, needs the `catalogVersion` including the
+build hash, and calls `fleet_siblings`. Say plainly which stage you reached and which tool you are
+waiting on, so the human knows what restarting the server unblocks.
 
 Then call `catalog_get` for only the blocks you intend to use — pulling all of them wastes the
 context you need for composition.
@@ -85,7 +94,7 @@ below produces something small enough to review in seconds, and you stop and wai
 2  content inventory  (you)    what copy exists and what it breaks — prep, no gate
 3  theme              (you)    3 proposed, shown as style tiles
 4  sitemap            (you)    pages + section roles, sampled, plus a skeleton of the home page
-                                                                   ▸ human decides or revises  (3 + 4)
+                                                                   ▸ human decides or revises (2+3+4)
 5  first pages        (you)    home + the two densest, real copy    ▸ human decides or revises
 6  remaining pages    (you)    applying the corrections
 7  design QA          (you)    breakpoints, states, contrast        ▸ human sees the list
@@ -96,9 +105,10 @@ below produces something small enough to review in seconds, and you stop and wai
 Everything after the upload — SEO/AEO/GEO artifacts, hosting, scheduled refresh — happens on the
 platform. See "After you hand off".
 
-**Stages 3 and 4 share one checkpoint.** Show the style tiles and the sitemap together and ask once:
-they are the two halves of the same question — what this site is and what it looks like — and
-splitting them costs a round trip for nothing.
+**Stages 2, 3 and 4 share one checkpoint**, at the end of stage 4. Show the gap list, the style tiles
+and the sitemap together and ask once: the look and the structure are two halves of the same question
+— what this site is and what it looks like — and stage 2's unanswered gaps are what the human needs
+in front of them to answer it. Splitting them costs round trips for nothing.
 
 The risk in choosing the look before the structure is real and worth naming: three independent runs
 of one brief that picked art direction first produced three palettes and *one* page structure,
@@ -184,8 +194,9 @@ the lot into the chat, read every one, and only then ask about what is actually 
 usually four or five things instead of sixteen. A person retyping their own phone number out of
 their own PDF is the skill doing its extraction work for it, badly.
 
-The facts go into `content/<client>/org.json`. They never appear in marketing copy, cannot be
-inferred, and must not be invented — a fabricated registration number is worse than a missing one,
+The facts become `org.json` — the third artifact of the bundle, sent with `bundle_put` on the chat
+path and written to `content/<client>/org.json` in a checkout. They never appear in marketing copy,
+cannot be inferred, and must not be invented — a fabricated registration number is worse than a missing one,
 so cite where each extracted value came from and let the human correct it in one pass.
 
 **Both wordings — the "send me your files" opener and the follow-up gap list — are in
@@ -196,14 +207,27 @@ The human-facing text carries **no schema jargon** — not `sameAs`, not `areaSe
 number. Ask for "links to your company anywhere else online"; do the mapping to field names
 yourself.
 
-The blockers are: registration number, legal name, phone/email, and the **logo file** (raster —
-WebP/JPEG/PNG/AVIF; flag now if it's only available as SVG, see `references/live-preview.md`).
+The blockers are five: registration number, legal name, phone/email, the **domain** the site will
+live at, and the **logo file** (raster — WebP/JPEG/PNG/AVIF; flag now if it's only available as SVG,
+see `references/live-preview.md`). A provisional domain is fine and a wrong one is cheap to fix with
+`bundle_discard` — but it is needed before stage 5 publishes, so it is asked for here.
+`references/intake.md` has why.
+
 Everything else either shapes the site (buyer, goal, scope, sections, tone) or strengthens
 it (`sameAs`, certifications, named people) without blocking the build — `references/intake.md` has
 the full breakdown and why each item is where it is.
 
-**Deliberately not asked: "how many directions do you want to see".** Stages 3 and 4 always sample
-and always drop the mode; letting the human dial that down to one hands them the mode.
+**Look at the logo, don't just accept the file.** Two things decide theme decisions three stages
+later, so establish them here. **Its contrast against white**: a gold, pale or thin-stroked wordmark
+on a transparent ground can measure under 3:1 on paper, which means every direction you propose has
+to put the header on a dark band — a constraint, not a preference, and much cheaper to know now than
+at stage 7. And **its actual colours**: sample the file rather than trusting the brief. A brand sheet
+saying `#D4AF37` over a wordmark that is really `#CFB66F` is a question for the client, not a
+discrepancy for you to silently resolve either way.
+
+**Deliberately not asked: "how many directions do you want to see".** Stage 3 always proposes three,
+one per objective; stage 4 always samples orderings and drops the mode. Letting the human dial either
+down to one hands them the mode.
 
 **Section photography is not an intake question; the logo is.** Bulk photos wait for stage 8, after
 the layout exists and you know which images it actually needs. The logo is the exception: one fixed
@@ -245,13 +269,33 @@ survive:
 | Topics with no usable photo | 3 of 7 services — those sections must work type-only, or take stock at stage 8 |
 | Mandatory text | licence number and disclaimer must appear on every page |
 | Uneven lists | product range is 9 items, accreditations are 2 |
+| Supplied photographs that are stock | 10 images arrived, all Unsplash — none of the client, the place or the people |
+| What the client may not legally say | regulated profession: no outcome claims, no testimonials |
 
 This table is the input to stage 7's content-extreme pass — without it that pass invents its own
 extremes and tests the layout against content the client will never have.
 
+**Photographs that arrived with the brief are not automatically assets.** A folder of stock the
+client already chose looks like a solved problem and often is not — it validates, it looks plausible,
+and nothing downstream ever questions it. Open every one and say what is actually in the frame, not
+what the filename claims. Three failure kinds, all seen on real briefs: a **recognisable place**
+standing in for the client's own (a famous library captioned as their office); **third-party
+branding** in shot, which is stage 8's check arriving five stages early; and an object that is simply
+**wrong for the jurisdiction or trade** — a gavel on a Malaysian or any Commonwealth legal site,
+where courts do not use them. Identifiable faces are their own problem: stock models placed near
+"our team" read as staff who do not exist. A stock image the client picked is a row on the gap list,
+not a row filled.
+
+**Ask whether the category is regulated, because it constrains copy more than any validator does.**
+Law, medicine, dentistry, financial advice and education all sit under publicity rules that restrict
+outcome claims, superlatives and testimonials — and the brief's own marketing adjectives are usually
+the first casualty, so they cannot be lifted into headlines verbatim. You are not the one who decides
+what is permitted: name the constraint, say which sections it removes (`Testimonials` and any
+results-based `Stats` are the usual two), and put the wording question to the client. Discovering it
+at stage 5 means rewriting copy that was already approved.
+
 Anything missing here is a question for stage 4's checkpoint, not a stop of its own — carry the
 gap list forward and ask once.
-
 
 **Done when** the words-available column is totalled, the extremes table has a row for every
 constraint you found, and you have said out loud whether the total supports the scope asked for at
@@ -473,6 +517,11 @@ to open distinctly, so a four-page site carries four hero slugs — `hero/home`,
 **REQUIRED SUB-SKILL:** use `check-webpage`. It owns the nine checks, the script that computes
 contrast and theme coverage, and the report format.
 
+**If that skill is not available**, you are running this one on its own — `package-plugin.sh`
+builds a standalone `.skill` per skill, and a single-skill upload carries no sibling. Say so
+rather than improvising the pass: name what is not being done and, if the human wants it,
+point them at installing the full `website-create` plugin.
+
 Two things carry over from here that it cannot know: stage 2's content-extremes table is the input
 to its check 2, and `theme.direction` from stage 3 is what its check 5 audits the tokens against. A
 theme with no `direction` block fails that check for want of anything to compare to — write it at
@@ -515,7 +564,7 @@ before seeing the pixels is correct: you are not describing a photo, you are spe
 shape exactly, and a `src` of `"hero-workshop.jpg"` or `"images/hero.jpg"` is silently dropped: the
 upload page never asks for it, `bundle_status` never reports it missing, and the image is
 permanently blank with no error anywhere. So `hero-workshop.jpg` in the table below means
-`"src": "/img/sterling/hero-workshop.jpg"` in the props.
+`"src": "/img/john/hero-workshop.jpg"` in the props.
 
 Name each file for what it shows before you hand the list over; `image-1.jpg` leaves them no way to
 tell which is which.
@@ -579,6 +628,11 @@ type-only, and the `unverified` list is empty.
 **REQUIRED SUB-SKILL:** use `sourcing-stock-photos` for anything on the gap list. It carries the
 search procedure, the licence terms and the reject list.
 
+**If that skill is not available**, you are running this one on its own — `package-plugin.sh`
+builds a standalone `.skill` per skill, and a single-skill upload carries no sibling. Say so
+rather than improvising the pass: name what is not being done and, if the human wants it,
+point them at installing the full `website-create` plugin.
+
 Stock is scaffolding for a slot the client cannot fill today. A section that stage 2 marked as
 having no usable photo is allowed to work type-only, and often should: one or two stock images
 placed deliberately read as considered, a full set reads as generated. Say which is which when you
@@ -611,6 +665,21 @@ improvise a substitute route for the pictures or describe the site as finished.
 **The upload wording lives at stage 8** — hand over that script, not a shorter improvised version.
 If they have already had it, do not re-explain: say the link is the same one and their uploads are
 still there.
+
+**When it goes live, give them the real address and name the last step.** The site publishes to a
+`.pages.dev` address built from their domain, with every dot turned into a hyphen — so `john.com.my`
+is live at `john-com-my.pages.dev`. That is a complete, working, shareable site. Their own web
+address is pointed at it separately, by whoever manages that domain:
+
+> Your site is live: **john-com-my.pages.dev** — that address works right now, you can send it to
+> anyone.
+>
+> If you'd rather people reached it at **john.com.my**, that's one step outside this: whoever looks
+> after your domain needs to point it at the site. Send them the address above and they'll know what
+> to do. Same site, same pages — just your own name in front of it.
+
+Do not describe the custom address as broken or pending while that handover has not happened. The
+site is finished; the name is somebody else's job.
 
 Say plainly why photos go through a browser and not the chat — a transcript re-sends every picture
 on every later turn, so one site's photography would cost more than the site. Not "the bundle awaits
@@ -677,7 +746,6 @@ Read these when the stage that needs them arrives — not upfront.
 | `references/composing-sections.md` | stage 5 — `FreeSection` and the six typed sections |
 | `references/density.md` | stage 5 — hitting density, and marking `unverified` |
 | `references/house-rules.md` | stages 5–6 — validation gates and known pitfalls |
-
 | `references/live-preview.md` | stages 5–9 — draft/patch ops, uploading pictures early |
 | `references/after-handoff.md` | stage 9 — what the platform derives, honestly |
 | `references/local-path.md` | only in a checkout — servers, folder layout, QA scripts |

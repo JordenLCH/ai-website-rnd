@@ -30,7 +30,10 @@ done. If you find yourself about to rewrite a whole page or a whole `theme.json`
    create-webpage ends with. An edit session can just... end, once the preview looks right.
 
 If any step here is unfamiliar, `create-webpage/references/live-preview.md` has the full
-draft/patch/preview mechanics and the reasoning for why patching beats resending. That same file
+draft/patch/preview mechanics and the reasoning for why patching beats resending — **that path
+exists only when the whole `website-create` plugin is installed.** Uploaded as a standalone
+`.skill`, this skill has no sibling directory and the file will not be there; the mechanics below
+are enough to work from, so carry on rather than stopping, and say the reference was unavailable. That same file
 covers uploading a picture: once the site has been `bundle_publish`ed at least once, dropping a new
 file at the upload link and then calling `site_preview` shows it for real — no separate step needed
 here beyond telling the human to upload and re-checking the preview.

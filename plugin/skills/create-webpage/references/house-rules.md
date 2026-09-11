@@ -2,6 +2,8 @@
 
 Four independent gates run over generated JSON. The first two are ordinary validation; the third is
 the one that actually protects design quality, and the fourth is the one with a statute behind it.
+Between Gate 0 and Gate 1 sits the microcopy section — rules nothing enforces, which is exactly why
+they are the ones that slip.
 
 ## Gate 0 — density and provenance
 
@@ -23,6 +25,40 @@ says nothing still reads as a free template.
   price, date or testimonial you did not get from the brief needs `"unverified": true` on the block,
   which excludes it from JSON-LD and llms.txt and blocks publish until a human clears it. Identity
   facts in `org.json` are never invented. See the tier table in SKILL.md.
+
+## Microcopy — the labels a generator writes without thinking
+
+Not a gate; nothing rejects these. That is the problem. Every `action.label` in the catalog has a
+default the model reaches for, the defaults are the same across every brief, and a page of them is
+how a bespoke site starts reading like a template even when the layout does not.
+
+- **Plain and conventional beats clever.** `Contact us`, `Get started`, `Get in touch` are fine and
+  usually right: a visitor has seen them a thousand times and does not have to decode them.
+  Familiarity is doing real work, so do not spend it to look original. The failure this rule guards
+  against is the opposite one — straining for a distinctive label and landing on something stiff.
+  "Enquire about a matter" on a law firm's nav is not more precise than "Contact us", it is just
+  more awkward, and it was repeated six times on one site before anyone noticed.
+  Reach for a specific label only where it genuinely tells the visitor something the generic one
+  does not — "Download the spec sheet", "Book a site visit", "Request a quote" all name an outcome
+  worth naming. Still avoid `Submit` (names the mechanism, not the outcome), `Click here`, and a
+  bare `Read more` with nothing to say what is being read.
+- **`Hero.actions` takes two, and they must not be synonyms.** Primary names the commitment, ghost
+  names the cheaper way in — "Request a quote" / "Browse the range", not "Get in touch" / "Contact
+  us". Two labels meaning the same thing is a decision the visitor now has to make for no reason.
+- **One term per thing, site-wide.** If the nav says "Range", the hero does not say "Catalogue" and
+  the footer does not say "Products". Pick the client's own word from the brief and use only it.
+  This is the cheapest consistency win available and the easiest to lose across nine sections.
+- **`ContactForm.note` is where the form stops being a void.** Say what happens next and when — "We
+  reply within one working day" — because a send button with no stated consequence is the single
+  most common reason a form is abandoned. Left out, the visitor submits into silence.
+- **`ContactForm.fields[].label` names the real-world thing asked for**, never a placeholder in
+  disguise. "Company name", not "Enter your company". The label is announced to a screen reader and
+  its text is the click target; a placeholder is neither, and disappears the moment typing starts.
+- **`FAQ` questions are written the way a visitor would ask them**, in their words and first person
+  — "Do you ship outside Malaysia?" — not as headings ("Shipping"). The block exists because the
+  question is the content; flattening it into a topic label throws that away.
+- **`Notice` and empty-ish states say what, why, and the way out.** A band announcing a factory
+  shutdown needs the dates and who to contact meanwhile, or it is an apology with no action in it.
 
 ## Gate 1 — schema
 Every block's props parse against its schema: required fields present, arrays within min/max,
@@ -65,6 +101,11 @@ they are skipped in preview and first fail at publish.
   the footer because it is the only element on every page.
   Missing `org.registration` or `org.legalName` fails too: the fix is to ask the client. A guessed
   registration number is a legal problem, not a formatting one.
+  **The gate keys on country, but the statute binds companies.** A Malaysian professional practice —
+  law, medicine, architecture, accountancy — is often a partnership or sole proprietorship with no
+  SSM company number, and it trips this gate with nothing that can satisfy it. Ask for the number
+  the client prints on their letterhead and use that; if none exists, report that the line cannot be
+  written rather than inventing one. See `references/intake.md`.
 
 ## Chrome — checked separately, because it is on every page
 

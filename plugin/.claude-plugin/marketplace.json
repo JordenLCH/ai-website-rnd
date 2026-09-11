@@ -6,7 +6,7 @@
     {
       "name": "website-create",
       "source": "./",
-      "description": "Website create plugin — the create-webpage and edit-webpage skills plus the catalog MCP that serves block schemas, the token contract and the existing fleet."
+      "description": "Website create plugin — the create-webpage, edit-webpage, check-webpage and sourcing-stock-photos skills plus the catalog MCP that serves block schemas, the token contract and the existing fleet."
     }
   ]
 }

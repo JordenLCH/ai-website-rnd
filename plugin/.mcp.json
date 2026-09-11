@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "blackdash-catalog": {
+      "type": "http",
+      "url": "https://catalog.blackdash.my/mcp",
+      "headers": {
+        "x-api-key": "${CATALOG_TOKEN}"
+      }
+    }
+  }
+}

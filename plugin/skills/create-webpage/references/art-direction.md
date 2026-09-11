@@ -4,7 +4,7 @@
 
 ```jsonc
 { "name": "acme-industrial",
-  "tokens": { "--color-bg": "...", "--font-display": "...", ... },   // 39 core + 8 structural
+  "tokens": { "--color-bg": "...", "--font-display": "...", ... },   // 39 required + 43 optional
   "sectionStyles": {                                                 // slug -> resolution
     "hero/home": { "layout": "overlay-fullbleed", "tone": "inverse" },
     "hero/statement": { "layout": "centered-poster", "tone": "default",
@@ -92,14 +92,18 @@ why so many generated sites look alike. Mode collapse is measurable, and the che
 **verbalized sampling**: produce several candidates *with self-assessed probabilities*, then choose
 deliberately from the tail.
 
-Do this:
+**The procedure for stage 3 is not here — it is in `references/proposing-themes.md`.** Sampling
+four candidates from one generator and dropping the likeliest was the old mechanism, and it was
+weak: all four come out of one distribution, so rejecting the top one shifts the centre without
+guaranteeing spread. Three blind runs of one brief produced three names for the same look. Themes
+now come from **three objectives that pull apart by construction** — Measured, Fit, Spark. Read that
+file before proposing anything.
 
-1. Write **four** directions, one line each, with a rough probability you'd have produced it by default.
-2. Discard the highest-probability one on principle — that's the template.
-3. Pick from the tail whichever genuinely suits the client's category, buyers and assets.
-4. State the four and your pick in one short paragraph, so the choice is reviewable.
+What is still worth having from the old method is the *habit*: name the mode explicitly before you
+choose, so that rejecting it is a decision rather than an accident. Stage 4 does the same thing to
+home-page orderings, and SKILL.md carries that step inline.
 
-Worked example, furniture manufacturer:
+Recognising the mode is the part that transfers. For a furniture manufacturer it looks like this:
 
 | Direction | Self-assessed | Verdict |
 |---|---|---|

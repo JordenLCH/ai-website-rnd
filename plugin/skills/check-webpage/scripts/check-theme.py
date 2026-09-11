@@ -7,9 +7,15 @@ reads theme.json and answers two of the five bundle-only checks outright.
 
     python3 scripts/check-theme.py theme.json [site.json]
 
-Pass site.json too and it adds the coverage check: every variant slug the pages actually use must
-exist in theme.sectionStyles. A slug the theme never defines renders unstyled, and nothing else in
-the pipeline notices — the page is valid, it just silently isn't the design anyone approved.
+Pass site.json too and it adds two more, both reading the content rather than the colours:
+
+  * coverage — every variant slug the pages actually use must exist in theme.sectionStyles. A slug
+    the theme never defines renders unstyled, and nothing else in the pipeline notices: the page is
+    valid, it just silently isn't the design anyone approved.
+  * alt text and form labels — WCAG 1.1.1 and 3.3.2. Seven blocks (Hero, Features, Team, PostList,
+    Locations, Promo, LogoWall) declare `imageAlt` optional next to a required-if-present `image`
+    and render `alt=""` when it is missing, so a page full of products, faces and client logos can
+    validate clean and be entirely invisible to a screen reader. Nothing else in the pipeline looks.
 
 Exit 0 = every pairing clears its threshold. Exit 1 = at least one FAIL. stdlib only.
 """
@@ -73,16 +79,53 @@ def hue(colour):
     else:         deg = (r - g) / d + 4
     return deg * 60
 
+def _oklab(rgb):
+    """linear sRGB -> OKLab. Needed because the renderer lifts the accent on dark tones with
+    color-mix(in oklab, ...), so a ratio computed on the raw accent is a colour nothing paints."""
+    r, g, b = (srgb_to_lin(c) for c in rgb)
+    l = (0.4122214708*r + 0.5363325363*g + 0.0514459929*b) ** (1/3)
+    m = (0.2119034982*r + 0.6806995451*g + 0.1073969566*b) ** (1/3)
+    s = (0.0883024619*r + 0.2817188376*g + 0.6299787005*b) ** (1/3)
+    return (0.2104542553*l + 0.7936177850*m - 0.0040720468*s,
+            1.9779984951*l - 2.4285922050*m + 0.4505937099*s,
+            0.0259040371*l + 0.7827717662*m - 0.8086757660*s)
+
+
+def _un_oklab(lab):
+    L, A, B = lab
+    l = (L + 0.3963377774*A + 0.2158037573*B) ** 3
+    m = (L - 0.1055613458*A - 0.0638541728*B) ** 3
+    s = (L - 0.0894841775*A - 1.2914855480*B) ** 3
+    lin = (+4.0767416621*l - 3.3077115913*m + 0.2309699292*s,
+           -1.2684380046*l + 2.6097574011*m - 0.3413193965*s,
+           -0.0041960863*l - 0.7034186147*m + 1.7076147010*s)
+    out = []
+    for c in lin:
+        c = max(0.0, min(1.0, c))
+        out.append(round(255 * (12.92*c if c <= 0.0031308 else 1.055*c**(1/2.4) - 0.055)))
+    return tuple(out)
+
+
+def mix_oklab(a, b, pct):
+    """color-mix(in oklab, a pct%, b) -> '#rrggbb', or None if either side won't parse."""
+    ca, cb = parse(a), parse(b)
+    if not ca or not cb:
+        return None
+    la, lb = _oklab(ca[:3]), _oklab(cb[:3])
+    t = pct / 100
+    return '#%02x%02x%02x' % _un_oklab(tuple(x*t + y*(1-t) for x, y in zip(la, lb)))
+
+
 # (label, foreground token, background token, minimum ratio)
 PAIRS = [
     ('body on default',        '--color-ink',            '--color-bg',          4.5),
     ('muted on default',       '--color-muted',          '--color-bg',          4.5),
-    ('accent text on default', '--color-accent',         '--color-bg',          4.5),
+    ('accent text on default', '@accent-fg-light',       '--color-bg',          4.5),
     ('body on surface',        '--color-ink',            '--color-surface',     4.5),
     ('muted on surface',       '--color-muted',          '--color-surface',     4.5),
     ('body on inverse',        '--color-inverse-ink',    '--color-inverse-bg',  4.5),
     ('muted on inverse',       '--color-inverse-muted',  '--color-inverse-bg',  4.5),
-    ('accent text on inverse', '--color-accent',         '--color-inverse-bg',  4.5),
+    ('accent text on inverse', '@accent-fg-inverse',     '--color-inverse-bg',  4.5),
     ('text on accent',         '--color-on-accent',      '--color-accent',      4.5),
     # Hairlines are decorative separators, not UI controls: WCAG 1.4.11 does not reach them, and
     # palette.md mandates 0.12-0.16 alpha, which cannot reach 3:1 on any ground. Reported, not failed.
@@ -108,10 +151,101 @@ def coverage(theme, site):
     return missing, used, tones
 
 
+IMG_EXT = re.compile(r'\.(jpe?g|png|webp|avif|gif|svg)$', re.I)
+# "Photo of a chair" — a screen reader already announces the element as an image, so the first two
+# words are dead air on every single one.
+ALT_NOISE = re.compile(r'^(an?\s+)?(image|photo|photograph|picture|graphic|screenshot|logo|icon)\b'
+                       r'(\s*(of|showing|for|:)\b|\s*$)', re.I)
+NEIGHBOURS = ('title', 'name', 'caption', 'label', 'eyebrow')
+
+
+def _alt_problems(where, src, alt, sibling):
+    """One image's alt, judged. Returns (level, message) pairs."""
+    if alt is None or not str(alt).strip():
+        # The catalog has no way to declare an image decorative — a missing imageAlt means both
+        # "this is a spacer" and "I forgot", and the renderer resolves both to alt="". Every image
+        # slot in this catalog is content (a product, a face, a client's logo), so treat the
+        # ambiguity as the failure it usually is. If one genuinely is decorative, that is a gap in
+        # the catalog to raise, not an alt to leave blank.
+        return [('FAIL', f'{where} — image with no alt text ({src}); renders alt="" and is '
+                         f'invisible to a screen reader')]
+    a = str(alt).strip()
+    if a == src or IMG_EXT.search(a):
+        return [('WARN', f'{where} — alt is the filename ("{a}")')]
+    if ALT_NOISE.match(a):
+        return [('WARN', f'{where} — alt opens with "{a.split()[0]}"; the element is already '
+                         f'announced as an image')]
+    for n in sibling:
+        if n and str(n).strip().lower() == a.lower():
+            return [('WARN', f'{where} — alt repeats the adjacent text verbatim; it is read twice')]
+    return []
+
+
+def _images(node, where, out):
+    """Walk any props tree and judge every image it carries, whatever shape declares it."""
+    if isinstance(node, list):
+        for i, v in enumerate(node):
+            _images(v, f'{where}[{i}]', out)
+        return
+    if not isinstance(node, dict):
+        return
+
+    sibling = [node.get(k) for k in NEIGHBOURS]
+    # Three shapes carry an image in this catalog: block props and items use image/imageAlt, the
+    # Img helper uses src/alt, and a FreeSection node uses el:"Image" with src/alt.
+    if isinstance(node.get('image'), str) and node['image'].strip():
+        out += _alt_problems(where, node['image'], node.get('imageAlt'), sibling)
+    src = node.get('src')
+    if isinstance(src, str) and src.strip() and ('alt' in node or node.get('el') == 'Image'):
+        out += _alt_problems(where, src, node.get('alt'), sibling)
+
+    for k, v in node.items():
+        if isinstance(v, (dict, list)):
+            _images(v, f'{where}.{k}', out)
+
+
+def content_a11y(site):
+    """WCAG 1.1.1 (alt text) and 3.3.2 (form labels), read straight off the bundle."""
+    out, seen = [], 0
+
+    def block(b, where):
+        nonlocal seen
+        if not isinstance(b, dict):
+            return
+        seen += 1
+        label = f'{where} {b.get("type", "?")}'
+        _images(b.get('props') or {}, label, out)
+        if b.get('type') == 'ContactForm':
+            for i, f in enumerate((b.get('props') or {}).get('fields') or []):
+                if not str((f or {}).get('label', '')).strip():
+                    out.append(('FAIL', f'{label}.fields[{i}] — field with no label; the input is '
+                                        f'unannounced and unclickable (WCAG 3.3.2)'))
+
+    for key, page in (site.get('pages') or {}).items():
+        for i, b in enumerate(page.get('blocks') or []):
+            block(b, f'{key}/blocks[{i}]')
+    for slot in ('header', 'footer'):
+        block((site.get('chrome') or {}).get(slot), f'chrome.{slot}')
+    return out, seen
+
+
 def main(path, site_path=None):
     theme = json.load(open(path))
     tok = theme.get('tokens', {})
     rows, failed, skipped = [], 0, []
+
+    # What the stylesheet actually paints for accent-as-text, per tone:
+    #   light tones  --accent-fg: var(--color-accent-ink, var(--color-accent))
+    #   inverse tone --accent-fg: color-mix(in oklab, var(--color-accent) 45%, var(--color-inverse-ink))
+    # Reading --color-accent straight off the theme fails a correctly-built theme and passes a
+    # broken one, so resolve both the way the CSS does.
+    tok = dict(tok)
+    if '--color-accent' in tok:
+        tok['@accent-fg-light'] = tok.get('--color-accent-ink') or tok['--color-accent']
+        if '--color-inverse-ink' in tok:
+            mixed = mix_oklab(tok['--color-accent'], tok['--color-inverse-ink'], 45)
+            if mixed:
+                tok['@accent-fg-inverse'] = mixed
 
     for label, fg, bg, need in PAIRS:
         if fg not in tok or bg not in tok:
@@ -151,7 +285,8 @@ def main(path, site_path=None):
     print('\n'.join('  ' + t for t in tells) if tells else '  none')
 
     if site_path:
-        missing, used, tones = coverage(theme, json.load(open(site_path)))
+        site = json.load(open(site_path))
+        missing, used, tones = coverage(theme, site)
         print('\nTheme coverage — every slug a page uses must exist in the theme')
         if missing:
             for v, pages in sorted(missing.items()):
@@ -162,13 +297,25 @@ def main(path, site_path=None):
             if t not in tones:
                 print(f'  WARN  no slug resolves to tone "{t}" — a page asking for that band has nowhere to land')
 
+        problems, seen = content_a11y(site)
+        fails = [m for lvl, m in problems if lvl == 'FAIL']
+        warns = [m for lvl, m in problems if lvl == 'WARN']
+        failed += len(fails)
+        print('\nAlt text and form labels — checks 4 and 8, the half that needs no browser')
+        if not problems:
+            print(f'  PASS  every image across {seen} blocks carries usable alt text; every field is labelled')
+        for m in fails:
+            print(f'  FAIL  {m}')
+        for m in warns:
+            print(f'  WARN  {m}')
+
     if 'direction' not in theme:
         print('\n  theme.direction is missing — check 5 has nothing to audit against')
     if skipped:
         print('\nNot computed:')
         print('\n'.join('  ' + s for s in skipped))
 
-    print(f'\n{failed} contrast failure(s).')
+    print(f'\n{failed} failure(s).')
     return 1 if failed else 0
 
 if __name__ == '__main__':

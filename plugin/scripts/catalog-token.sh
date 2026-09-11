@@ -11,7 +11,21 @@
 set -euo pipefail
 
 SETTINGS="$HOME/.claude/settings.json"
-URL="${CATALOG_URL:-https://tools.cod3r.men}"
+
+# The catalog URL is NOT a second constant. Read it from the plugin's own .mcp.json — the file
+# Claude Code actually connects through. A hardcoded default here meant `setup` could validate a
+# token against one deployment while the MCP authenticated against another, and print a tick for a
+# token the server then rejected: precisely the unexplained auth failure this script exists to
+# prevent. One value, one place.
+MCP_JSON="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.mcp.json"
+URL="${CATALOG_URL:-$(node -e '
+  try {
+    const u = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))
+      .mcpServers["blackdash-catalog"].url
+    process.stdout.write(u.replace(/\/mcp\/?$/, ""))
+  } catch {}
+' "$MCP_JSON")}"
+[ -z "$URL" ] && { echo "✗ could not read the catalog URL from $MCP_JSON" >&2; exit 2; }
 ACTION="${1:-show}"
 TOKEN="${2:-}"
 

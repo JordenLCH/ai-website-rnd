@@ -1,6 +1,6 @@
 # Proposing three themes
 
-Stage 3 currently samples four directions, discards the likeliest as "the mode", and presents the
+Stage 3 used to sample four directions, discard the likeliest as "the mode", and present the
 remaining three. The intent is right and the mechanism is weak: all four candidates come out of one
 generator with one objective, so rejecting the top one shifts the centre without guaranteeing spread.
 The skill's own notes record the result — three blind runs of one brief produced three names for the
@@ -39,7 +39,14 @@ Three levers decide whether two themes read as different directions or one direc
 2. **type class** — grotesk / condensed sans / serif
 3. **rhythm** — even / soft / hard
 
-**Two proposals matching on two of those three is a collapse.** Regenerate one. This is a comparison
+**Two proposals matching on two of those three is a collapse.** Regenerate one.
+
+**Know the ceiling on the type-class lever: of the fourteen served families, exactly one is a
+serif — Fraunces.** So for any category whose prototypical shape is a serif (law, accountancy,
+medicine, heritage, publishing), Fit has one possible answer and cannot really be sampled. Two
+candidates that both want a serif collapse by construction, not by carelessness. Spend the
+divergence on polarity and rhythm there, and say in your notes that the lever was unavailable
+rather than reporting a spread you did not get. This is a comparison
 between your own three candidates, not against the fleet, so it costs nothing to run and it catches
 the failure the current sampling step cannot see.
 
@@ -91,44 +98,6 @@ against the live token contract and layout vocabulary.
 
 ---
 
-## The families that actually render
-
-Public Sans · Space Grotesk
-```
-
-There is no error and no validator message — the page just renders in the system font and looks
-unstyled for reasons nobody can see. So the tile must use the **same family string** you will put in
-`--font-display` and `--font-body`. Do not assume a family renders just because you named it
-correctly. A tile drawn in Georgia while the prose promises Fraunces is a
-different design being approved under the wrong name, and the substitution surfaces two stages later
-as "the theme looks nothing like the tile".
-
-Name the typeface decision *against its alternatives*. "Inter" is not a bad font; **Inter unchosen is
-the tell** — it signals nobody made a typography decision. The same is now true of monospace for
-small labels and numerals: it reads as structured and technical, which is exactly why every generator
-reaches for it, and it is on track to be as telling as an indigo gradient. Use it if you can say what
-it does here that a small-caps sans would not.
-
-**Build the tile, not a page.** A style tile is what a studio shows at this point — deliberately
-*not* a mocked page with lorem in it, because a human shown a fake page judges the fake copy and the
-
-## The style tile — all six elements
-
-                   showing its own text colour on its own ground
-3  a button        the real --btn-radius, --btn-pad and --btn-weight, not a browser default
-4  a rule          the real --border and --color-line, at the weight the theme uses
-5  a caption       smallest text, in --color-muted, on the default ground
-6  a table row     a label and a value, because specification content is where type breaks
-```
-
-**The tone bands are the ones that get dropped, and they are the ones that matter most.** Which
-sections go inverse or accent carries more brand identity than the colour values do, so three tiles
-without tone bands read as three fonts on one background — and the human, correctly, says they all
-look the same. If you draw only one element, draw those.
-
-Use the client's real words for the sample strings — a product name, a real figure. Not lorem, and
-not "The quick brown fox": the tile has to survive the words it will actually hold.
-
 **Motion is part of the direction, so set it here.** Four tokens carry it — `--motion-duration`,
 `--motion-ease`, `--motion-state`, `--motion-distance` — plus per-section reveals, with
 `prefers-reduced-motion` honoured for you. Default to subtle scroll reveals: a ~620ms ease on
@@ -157,6 +126,12 @@ The style tile must use the **same family string** you will put in `--font-displ
 `--font-body`. A tile drawn in Georgia while the prose promises Fraunces is a different design
 approved under the wrong name, and the substitution surfaces two stages later as "the theme looks
 nothing like the tile".
+
+Name the typeface decision *against its alternatives*. "Inter" is not a bad font; **Inter unchosen is
+the tell** — it signals nobody made a typography decision. The same is now true of monospace for
+small labels and numerals: it reads as structured and technical, which is exactly why every generator
+reaches for it, and it is on track to be as telling as an indigo gradient. Use it if you can say what
+it does here that a small-caps sans would not.
 
 ## The style tile — all six elements
 

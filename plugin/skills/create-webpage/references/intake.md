@@ -43,6 +43,17 @@ on every page, and a compliance line on the home page is a line missing from the
            "links": [{ "label": "Privacy", "page": "privacy" }] }
 ```
 
+**Not every Malaysian client is a company, and the gate does not know that.** It fires on
+`address.country == MY` alone, but s.30(2) binds *companies* — a law firm, clinic, architecture or
+accountancy practice is typically a partnership, sole proprietorship or LLP registered under a
+different regime (and in Sarawak, under Sarawak's own ordinances), and may hold no SSM company
+number at all. The gate still demands both halves of `legal.line`, so a professional practice can
+reach publish with nothing that satisfies it. **Ask for the identifier the client already prints on
+their letterhead** — a business registration number, a practice or firm number — and use that,
+rather than citing the statute at someone it does not govern. If they genuinely have none, that is a
+finding to report, not a number to invent: say the compliance line cannot be written and let them
+take it to whoever registered the practice.
+
 Use the number exactly as SSM issued it — the 12-digit form with the old `1234567-X` number in
 brackets, if the client gave both. `validate` fails the bundle when the footer is missing either
 half, so collect `registration` and `legalName` at intake or the site cannot ship.
@@ -111,10 +122,10 @@ STILL NEED THESE — I can't ship a site without them
   3. The phone number and email you want on the site
   4. The logo file                                (PNG, JPG or WebP — if you only have an SVG I'll
                                                    need it converted before it can go up)
-  5. What web address will this live at?          (yoursite.com.my — if you haven't bought one yet
-                                                   just tell me the name you're leaning towards;
-                                                   I only need something to file the draft under
-                                                   and it can be changed later)
+  5. What web address will this live at?          (yoursite.com.my — if you haven't bought it yet,
+                                                   tell me the one you intend to buy. It becomes
+                                                   the site's address, so it's worth deciding
+                                                   rather than guessing)
 
 ABOUT THE SITE — a sentence each is plenty
   6. Your brand colour                            (the exact code if you know it — "#1B4D3E" or a
@@ -161,7 +172,8 @@ anything; having no brand colour is a real answer and stage 3 proposes instead. 
 is the only wrong move.
 
 **Deliberately not on this list: "how many directions do you want to see".** Stage 3 always
-samples four and discards the likeliest, stage 4 always samples the tail of home-page orderings —
+proposes three, one from each of three objectives that pull apart, and stage 4 always samples the
+tail of home-page orderings —
 that sampling is what keeps sites from converging on the training-data default, and letting the
 human dial it down to one undoes the reason it exists. Recommend one, show the sampling; don't ask
 how many to generate.
@@ -189,8 +201,19 @@ pictures. `bundle_publish` takes a domain, publishing is what mints the upload l
 link is the **only** route a photograph has into the site. No domain, no link, no pictures: you reach
 stage 8 holding a list of images with no way to deliver any of them.
 
-So ask at intake, and make it cheap to answer. Publishing creates a *draft*, never a live site, so
-the domain is just the key the draft is filed under — `sterlingcoldchain.com.my` works whether or not
-they own it yet. If it turns out wrong, `bundle_discard` withdraws the draft and you publish again
-under the right one. What you must not do is wait: a client who "will sort the domain later" has
-also, without knowing it, postponed every photograph on their site.
+So ask at intake. While the site is still a draft the domain is only the key it is filed under, and
+`bundle_discard` lets you refile it — so a client who does not yet own the name is not blocked, and
+you must not let them postpone it: "we'll sort the domain later" silently postpones every photograph
+on the site.
+
+**But it names the live site.** The domain becomes the hosting project name — lowercased, every dot
+and anything else non-alphanumeric turned into a hyphen — and that is the address the site actually
+goes live on: `john.com.my` publishes to **`john-com-my.pages.dev`**. Changing it afterwards does not
+rename anything; it builds a second site at a second address and leaves the first standing. So a provisional answer is fine at intake, and **confirm it before the publish that
+goes live** — "this is the address it will have, still right?"
+
+**Their own domain is pointed at that site afterwards, by a person, not by this pipeline.** The site
+is live and complete at the `.pages.dev` address; getting their own name to reach it is a separate
+handover — the client asks whoever manages their domain to point it at the published site. Say that when you hand the site over, so nobody sits waiting for their own address to
+start working on its own. It is not a missing step or a failure; it is where this pipeline ends and
+somebody with access to their DNS begins.
