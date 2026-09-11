@@ -93,6 +93,25 @@ Two rules that matter:
   `platform/` stay manually-pinned submodules for local dev/testing before that push — they are not
   what `update.sh` reads.
 
+**A pre-push hook checks the pins** — [`.githooks/pre-push`](.githooks/pre-push), shared logic in
+[`scripts/check-submodules.sh`](scripts/check-submodules.sh), also installed in `site-hosting`.
+Hooks are not cloned, so a fresh checkout needs `git config core.hooksPath .githooks` once (in
+site-hosting `npm install` does it, via its `prepare` script). It always refuses a pin naming a
+commit on no remote branch — the pushed-the-parent-forgot-the-submodule case, which resolves only on
+your laptop. Being *behind* `origin/main` is a warning here and a refusal in site-hosting
+(`--strict`), because that repo's `update.sh` deploys from `origin/main` while this one is
+deliberately hand-pinned. Override with `git push --no-verify`.
+
+That guards what gets committed. What is *running* is the other half, and the one that actually
+bit us on 2026-09-11: the catalog MCP served `0.5.0+1d3ed8ff…` while this checkout was
+`0.5.0+1ed25a77…` — same hand-typed semver, six commits of schema change apart, nothing saying so.
+`site-hosting/mcp/tunnel.sh` now prints the fingerprint it is about to serve and warns when either
+farm submodule is behind. Compare it against your own checkout:
+
+```bash
+cd renderer && npx tsx -e "import {CATALOG_VERSION} from './src/catalog-version'; console.log(CATALOG_VERSION)"
+```
+
 Never import the renderer by relative path — `../../renderer/src/…` is what made it unmovable, and
 `mcp` had four of them. Import by package name, the way `platform` already did.
 

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Verify submodule pins before pushing. Logic lives in scripts/check-submodules.sh so this repo and
+# site-hosting run the same check; no --strict here, because renderer/ and platform/ are deliberately
+# hand-pinned for local dev (prod tracks origin/main from site-hosting, not from this repo).
+#
+# Hooks are not cloned. Enable in a fresh checkout with:  git config core.hooksPath .githooks
+exec "$(git rev-parse --show-toplevel)/scripts/check-submodules.sh"
