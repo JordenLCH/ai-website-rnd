@@ -1,6 +1,6 @@
 # Chat path: drafts, patches, and real pictures in the preview
 
-Referenced from `SKILL.md`'s "Two ways to run this" section. Applies only to the chat/connector
+Referenced from `SKILL.md`'s "The chat path is the default" section. Applies only to the chat/connector
 path — the local path has a filesystem and none of this exists.
 
 ## Hold a draft, patch it — don't resend the whole bundle
@@ -11,7 +11,9 @@ edit — which is most of why editing feels slow once a draft is real. There's a
 1. `bundle_put(site, theme, org)` **once**, the first time a draft is real JSON (in practice, right
    after stage 5's home page) → get back a `draftId`. Held server-side for 2h of inactivity; if a
    later call says the id is unknown, the hold expired — `bundle_put` again.
-2. Every edit after that is `bundle_patch(draftId, ops)` — RFC-6902-style ops, JSON Pointer paths:
+2. Every edit after that is `bundle_patch(draftId, target, ops)` — `target` is `site`, `theme` or `org` and
+   defaults to `site`, so a theme edit must say so or the ops are applied to the pages and fail on a
+   path that isn't there. RFC-6902-style ops, JSON Pointer paths:
    `{op:"replace", path:"/pages/home/blocks/2/props/headline", value:"..."}`. A one-line copy fix
    costs ~100 bytes instead of resending 25 KB, and the reply is the same compact verdict
    `site_preview` gives, so you know immediately whether the edit was legal — no separate validate
@@ -50,9 +52,9 @@ verbatim — anything tidier you invent points at a file that is not there.
 publishing upserts onto it, keeps the code and keeps every file, and the page then shows the
 pictures the site references, with anything left over listed underneath as spares. Late arrivals are
 still accepted — a client who finds more photographs at stage 7 can still drop them in, and they land
-as spares for you to place. An unplaced photograph never blocks publishing, and each one has a
-`replace` and a `remove` control, so a wrong or corrected picture is fixed on the page rather than
-through you.
+as spares for you to place. An unplaced photograph never blocks publishing. Every row on that page —
+checklist slot or spare — carries `replace` and `remove`, so a wrong or corrected picture is fixed on
+the page rather than through you.
 
 Two ceilings worth knowing before promising anything: **150 pictures or 500 MB per site**, and a
 single file over 40 MB is refused. No real brief comes close, but "drop in everything you have" is
@@ -102,7 +104,9 @@ shows the real file and the blob fallback is no longer needed for that image.
 
 ## Pictures must be raster — no SVG
 
-The upload endpoint accepts only WebP, JPEG, PNG or AVIF. This is deliberate, not a gap: an SVG can
+Anything a camera, phone, drone or generator produces is decoded and re-encoded on arrival — JPEG,
+PNG, WebP, AVIF, HEIC, TIFF and GIF — so nobody needs to convert anything first. The one exclusion is
+SVG, and it is deliberate, not a gap: an SVG can
 carry a `<script>`, and the file would be served from the site's own origin — accepting one would
 let an uploaded "picture" execute in the context of the client's site. If a client's logo file is
 only available as an SVG, convert it to PNG or WebP before upload (a transparent-background PNG for

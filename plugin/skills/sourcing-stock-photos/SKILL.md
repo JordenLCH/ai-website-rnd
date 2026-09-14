@@ -149,32 +149,33 @@ pointing at nothing:
 | Chat, code execution on | you can fetch and look, but there is no `assets/` folder the site reads from — the file reaches the site through the browser upload link |
 | Chat, no code execution | hand over the shortlist; the human downloads and uploads |
 
-On both chat rows the upload page is the delivery mechanism, and it asks for files **by the name the
-prop uses**. So the shortlist you hand over is not a list of links — it is a set of delivery
-instructions, one per gap, and each one carries the filename:
+On both chat rows the upload page is the delivery mechanism, and **the filename is no longer the
+human's problem**: whatever they drop in is stored, and a file that matches no slot is kept as a
+spare for you to place. So the shortlist is a list of pictures with a reason each, not a set of
+renaming instructions:
 
 ```
-1.  hero-workshop.jpg    ← save it under exactly this name
-    https://www.pexels.com/photo/12345678/
+1.  https://www.pexels.com/photo/12345678/
     Pexels · "Interior of an auto repair workshop" (the contributor's title, not mine —
     I have not seen this image)
-    Hit the free download, choose Large, rename it to exactly that, drop it on your upload page.
-    No need to convert or resize it — the server does both.
+    For: the top of the home page.
+    Hit the free download, choose Large, drop it on your photo page. Any filename, and no
+    need to convert or resize it — the server does both.
 ```
 
-Three things make that work and are easy to drop: the **exact filename**, the provider's own title
-marked as theirs, and the sentence saying you have not seen it. A shortlist missing the filename
-produces files the upload page cannot match, and the human cannot tell why nothing appeared.
+Two things make that work and are easy to drop: the provider's own title marked as theirs, and the
+sentence saying you have not seen it. The third — "For:" — is what lets you match the arrival back to
+a slot, since you chose neither the file nor its name.
 
-Then ask them to tell you when the files are up, and check `bundle_status(domain)` — it is keyed by
-the site's domain, so if you are running standalone and don't have one, ask for it rather than
-trusting the answer — a photo saved as `pexels-photo-12345678.jpg` is invisible to the matcher even though it is
-sitting right there on the page.
+Then ask them to tell you when the files are up, and read `assets_list(domain)` (or `bundle_status`'s
+`extras` — both are keyed by the domain, so if you are running standalone and don't have one, ask
+rather than trusting the answer). A stock photo saved as `pexels-photo-12345678.jpg` arrives as
+`pexels-photo-12345678.webp` and sits in the spares list: look at it with `assets_view`, confirm it is
+the picture you asked for, then patch that slot's `src` to the stored name and re-publish.
 
-**Nothing requires `.webp`.** The `src` prop is a plain string and the build resolves any path
-matching `/img/<client>/<file>` whatever the extension. The fleet is all `.webp` because the humans
-who supplied those photographs had already optimised them — optimisation is the build farm's job,
-past the upload, where the toolchain is known.
+**Every file the pool names for itself is `.webp`.** A slot name *you* chose can carry any served
+extension and the build resolves it, but a spare is re-encoded on arrival — at upload, not at build —
+and always lands as `.webp`. So never guess the stored name: read it.
 
 `alt` and `imageKind` are written from the pixels once step 3 has run — `environment` for a scene
 with depth, `cutout` for a product on a plain ground, `detail` for a close crop. The validator

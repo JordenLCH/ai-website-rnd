@@ -31,9 +31,29 @@ done. If you find yourself about to rewrite a whole page or a whole `theme.json`
 
 If any step here is unfamiliar, `create-webpage/references/live-preview.md` has the full
 draft/patch/preview mechanics and the reasoning for why patching beats resending. That same file
-covers uploading a picture: once the site has been `bundle_publish`ed at least once, dropping a new
-file at the upload link and then calling `site_preview` shows it for real — no separate step needed
-here beyond telling the human to upload and re-checking the preview.
+covers the photo pool, which is where an image edit actually happens — see below.
+
+## Swapping an image
+
+"Use a different photo here" is not one action, and doing only half of it is the common failure:
+telling the human to drop a file in and then calling `site_preview` shows nothing changed, because a
+dropped file only lands *in that slot* if its name equals the `src` the site already uses. Any other
+name is stored as a spare. So:
+
+1. `assets_list(domain)` — every picture already uploaded, by its stored name. The one they want is
+   often already there; the pool holds everything they sent at intake.
+2. `assets_view(domain, [name])` — look at it before you place it. This is also where `alt` and
+   `imageKind` come from; a `cutout` under `overlay-fullbleed` is refused by the validator.
+3. `bundle_patch(draftId, "site", [...])` the slot's `src` to `/img/<client>/<stored name>`.
+4. `bundle_publish` to refresh the page's checklist, then `site_preview` to see it.
+
+If the picture is not in the pool yet, the human drops it on their existing photo page under any
+filename, and you pick it up from `assets_list` (or `bundle_status`'s `extras`) at step 1. The page's
+own *replace* control is the other route: it overwrites one stored name in place, so the site keeps
+pointing at it and no patch is needed.
+
+**A published site takes no uploads.** Its page answers "this site is published; re-publish from the
+conversation to change it" — so on a live site, publish the edit first, then collect the picture.
 
 ## Common edits
 

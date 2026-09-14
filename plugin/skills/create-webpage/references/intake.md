@@ -227,7 +227,7 @@ So ask at intake, and open the pool in the same turn — but read the domain bac
 so a typo caught after the client has spent an evening uploading costs them that evening. The client
 slug comes from the domain (`merryfair.com` → `merryfair`) and is frozen once the pool is open: it
 becomes the public `/img/<client>/` path, and a second `assets_open` with a different slug is
-ignored rather than honoured. While the site is still a draft the domain is only the key it is filed under, and
+refused, naming the one already recorded. While the site is still a draft the domain is only the key it is filed under, and
 `bundle_discard` lets you refile it — so a client who does not yet own the name is not blocked, and
 you must not let them postpone it: "we'll sort the domain later" silently postpones every photograph
 on the site.

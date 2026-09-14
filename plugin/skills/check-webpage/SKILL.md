@@ -98,10 +98,12 @@ itself a QA pass is worse than one that admits it checked five things.
 **These four need eyes on a rendered page.** In a checkout you run them yourself; on the chat path
 nobody can — **including the human, until the site is actually live.**
 
-That timing catches people out, so state it plainly. The upload link is a dropzone — it shows a
-filename checklist and a Publish button, it does not render the site and does not link to one. A
-browsable page exists only after the human presses **"Publish the site"** on that page, which only
-unlocks once every picture is in. So the honest order is:
+That timing catches people out, so state it plainly. The upload link is a dropzone — it does not
+render the site and does not link to one. Before the first `bundle_publish` it is a plain "drop in
+everything you have" page with no checklist and, deliberately, no Publish button: there is no bundle
+to build. The checklist and the button appear once a bundle has been published to it, and the button
+only unlocks when every picture the pages ask for is in. A browsable page exists only after the human
+presses **"Publish the site"** there. So the honest order is:
 
 1. Run the five bundle checks now and fix what they find. Say which four are still outstanding.
 2. Pictures go up; the human presses Publish; the site builds and goes live.

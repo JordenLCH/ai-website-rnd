@@ -55,7 +55,7 @@ context you need for composition.
 | Photographs | `assets_open` at stage 1, then `assets_list` / `assets_view` | the files are already on disk — see `references/local-path.md` |
 | Validate | `bundle_validate` | `npm run validate -- <client>` |
 | Preview | `site_preview` — renders in the conversation | `npm run dev`, port 5183 |
-| Publish | `bundle_publish` — returns a link for the pictures | `./package.sh <client>`, upload the zip |
+| Publish | `bundle_publish` — returns the *same* photo link `assets_open` minted, now with a checklist | `./package.sh <client>`, upload the zip |
 
 Both validators are the same module the build farm imports, so a bundle passing on either cannot
 fail at upload for schema reasons; wanting a friendlier second opinion is a bug. Publish the SOURCE
@@ -251,7 +251,8 @@ re-upload from scratch. **Read the domain back to them before calling `assets_op
 is filed under merryfair.com, yes?" — and take the client slug from it (the domain's own name,
 lowercased, letters, numbers and hyphens: `merryfair.com` → `merryfair`). The slug is frozen once the
 pool is open: it becomes the public `/img/<client>/` path, and a second `assets_open` with a
-different one is ignored rather than honoured. `references/intake.md` has why the domain is asked
+different one is **refused**, with an error naming the slug already recorded — use that one, or
+`bundle_discard` and start the pool again. `references/intake.md` has why the domain is asked
 for here at all.
 
 Everything else either shapes the site (buyer, goal, scope, sections, tone) or strengthens
@@ -652,8 +653,9 @@ called is now invisible to the client. Whatever name their file arrives under, t
 the pool and you point the slot at it. Keep the column in your own notes so you know which arrival
 answers which row; do not put it in front of them.
 
-**`alt` is written twice, and the validator polices neither.** While composing you have no pixels, so
-write the alt the picture list *specifies* — "the cold store, down an aisle, racking either side" —
+**For the pictures in this stage's table `alt` is written twice, and the validator polices neither.**
+These are the ones nobody has taken yet, so — unlike everything in the pool, which you can look at —
+you have no pixels here. Write the alt the list *specifies* — "the cold store, down an aisle, racking either side" —
 never the filename. Then when the photograph is actually up and you can see it in the preview,
 correct any alt the real image contradicts. An empty `alt` string validates cleanly and ships, so
 nothing will catch it for you.
@@ -689,7 +691,8 @@ surprised by, so it belongs in the words they read rather than in a note to your
 >
 > - **Just drop them in.** Any filename is fine; I'll put each one where it belongs. **Don't convert
 >   or resize anything** — straight off your phone in whatever format they are.
-> - **Something wrong?** Each picture on the page has *replace* and *remove* beside it.
+> - **Something wrong?** Every picture on the page has *replace* and *remove* beside it — replace
+>   swaps the file and keeps its place on the site.
 > - You can close the page and come back — it remembers what's already in.
 > - Nothing is public while you do this.
 >
@@ -733,6 +736,11 @@ Check every image for **third-party branding** — a competitor's logo on a work
 problem no validator catches.
 
 
+**Spares are not a mess to tidy.** A client told to send everything will send more than the site
+uses, and those pictures are what a later page, a second language or a re-theme is composed from.
+They never block publishing. Leave them, and mention them only if the pool is near its ceiling (150
+files or 500 MB), where the page's *remove* control is the answer.
+
 **Done when** `bundle_status` reports no missing files, every remaining slot is deliberately
 type-only, and the `unverified` list is empty.
 
@@ -763,10 +771,11 @@ here rather than at upload. The client has had the upload link since stage 1, so
 re-publishes the finished JSON to that *same* link; say so, rather than handing over what looks like
 a second, different one.
 
-**If publishing fails, say so and stop there.** Hosting being down is not something to work around:
-the upload link is the only route a photograph has into the site, so there is no partial version of
-this stage. Tell them plainly — "the hosting service isn't reachable right now, so I can't generate
-your upload link; let's try again shortly" — and keep the draft. Nothing is lost: the bundle is
+**If publishing fails, say so and stop there.** Hosting being down is not something to work around.
+Tell them plainly — "I can't push the finished pages to hosting right now. Your photo page and
+everything you've uploaded are untouched; I'll re-publish shortly" — and keep the draft. (The "I
+can't generate your upload link" wording belongs at stage 1, where an `assets_open` failure really
+does leave a photograph with no route into the site.) Nothing is lost: the bundle is
 still held, and re-running `bundle_publish` later picks up exactly here. What you must not do is
 improvise a substitute route for the pictures or describe the site as finished.
 
