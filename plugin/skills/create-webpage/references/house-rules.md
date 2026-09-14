@@ -60,6 +60,27 @@ how a bespoke site starts reading like a template even when the layout does not.
 - **`Notice` and empty-ish states say what, why, and the way out.** A band announcing a factory
   shutdown needs the dates and who to contact meanwhile, or it is an apology with no action in it.
 
+## The eyebrow is a page label, not a section one
+
+**A warning fires when more than two sections on a page open with an eyebrow.**
+
+This is the one house rule with a measurement behind it rather than an opinion. On 2026-09-14 four
+production sites in this catalog's own territory — hermanmiller.com, steelcase.com, humanscale.com
+and stripe.com — were measured with `getComputedStyle`: **zero eyebrows across 48 headings between
+them**. A second sweep of Stripe for *any* short text at or under 15px that is uppercase or
+wide-tracked, anywhere on the page, also found none. This pipeline's own fleet, measured the same
+way, had put one on **85 of 144 sections** — 57%, 65% and 80% on individual sites.
+
+The published guidance agrees with the measurement rather than with the pipeline. CFPB's design
+system defines an eyebrow as *"an additional label that can be used to support the main H1 heading
+on a page"* — it belongs to the page opener and section use is not contemplated at all.
+
+So: **at most one, on the page opener.** The threshold is two only because a rule that fires at the
+first departure from a style guide is a rule people learn to ignore. A section that genuinely needs
+marking can take a rule, a number, a colour shift or a sentence-case label — and most of the time
+the headline is enough on its own. Repeated over every band, an eyebrow stops labelling anything
+and becomes the clearest tell that nobody chose it.
+
 ## Gate 1 — schema
 Every block's props parse against its schema: required fields present, arrays within min/max,
 enums legal. Unknown block types are rejected.

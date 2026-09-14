@@ -35,6 +35,20 @@ part that bites, not the whole contract.
 
 Referenced from `SKILL.md` stages 5-7. Read before writing the first page.
 
+## One eyebrow per page, on the opener
+
+`Eyebrow` is the single most over-reached-for primitive in this catalog, and the habit is
+measurable: across four production sites — hermanmiller.com, steelcase.com, humanscale.com,
+stripe.com — there are **no eyebrows at all** over 48 headings, while this pipeline's own fleet put
+one on **85 of 144 sections**. An eyebrow labels the *page*, above its opening headline, the way a
+kicker sits over an article title. It does not label every band inside the page.
+
+Use one on the page opener if the headline needs orienting, and then stop. The validator warns past
+two on a page. A section that really does need marking has better options that cost nothing and
+repeat well: a `Divider` above it, a `Marker` with a number, a tone change in the theme, or a
+sentence-case `Caption`. Most often the headline alone is enough — if a section needs a label to be
+comprehensible, the headline is usually the thing to fix.
+
 ## Composing sections: reach for `FreeSection` first
 
 Twenty-four blocks, two or three layouts each, and every site in the fleet drawing from the same
