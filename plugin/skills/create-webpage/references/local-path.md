@@ -68,6 +68,11 @@ Start `npm run dev`, then evaluate the file's contents in the page — a browser
 script" call, or the devtools console. Both read `.stage`, so scroll **that element**, not the
 window, and reset any `zoom` on it to `1` first or the intersection maths is wrong.
 
+`design-qa.js` returns an `unknown` list beside `contrast`. Those are elements whose background it
+cannot compute — text over a photograph, which is every `overlay-fullbleed` hero. They are not
+passes. Look at each one and say whether the copy reads, because that is the one contrast case no
+arithmetic here can settle and the one where a dark headline on a dark photo hides.
+
 **Scroll the whole page in small steps before judging anything.** Reveal animations fire on
 intersection; a jump-scrolled page reports sections as hidden that a human would have seen.
 

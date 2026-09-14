@@ -129,11 +129,13 @@ composition decisions, not defects.
 
 `tools/design-qa.js` is the companion: overflow, clipped text, per-tone contrast. **Run both.**
 
-> **`design-qa.js` has a known flaw — fix it before trusting it.** It measures text against the
-> *section's* background, but a button and an accent CTA panel paint their own, so it reports
-> `1.00:1` false positives on both. It also cannot see the real ground under an overlay hero (a
-> photograph), which is why it would have missed the dark-on-dark hero in §1. It should walk up to
-> the nearest ancestor with a non-transparent background.
+> **`design-qa.js`'s ground flaw is fixed (2026-09-14).** It measured text against the *section's*
+> background, but a button and an accent CTA panel paint their own. It now walks up to the nearest
+> ancestor that actually paints, compositing translucent layers on a canvas, and reports anything it
+> cannot compute — text over a photograph, which is every `overlay-fullbleed` hero — in a new
+> `unknown` list rather than as a ratio. Measured across all 36 site×theme combinations: 3 false
+> `1.03:1` findings became 0, and an injected dark-on-dark panel the old version passed in silence
+> is now caught at 1.08:1. **`unknown` entries are not passes.** Look at each one.
 
 ### Four lessons that cost real time
 
@@ -257,8 +259,6 @@ a script they can run" is not an option for the generation path.
 
 ## 5. Also open
 
-- **`design-qa.js`'s section-background flaw** (§2). Small, and it currently produces false
-  `1.00:1` reports on every button.
 - **The 21 block `check()` rules have no drift guard either**, and `catalog.md` documents prop
   schemas rather than composition rules — so FreeSection's width-share rules are documented only in
   `house-rules.md`. Same refactor covers them.
