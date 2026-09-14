@@ -200,15 +200,11 @@ Three rules for running this list:
   Writing `ISO 9001` because it is the common one is inventing a credential.
 - **Never fill a blocker to keep moving.** A wrong registration number is a legal problem, not a
   formatting one. Stop and ask, or ship with the field absent and say so.
-- **Ask for the photographs here, and ask for all of them.** This reverses the old rule, which held
-  bulk photos back to stage 9 on the grounds that asking early gets you a folder of whatever the
-  client had to hand. It does — and that folder is worth more than a tidy list arriving after the
-  pages are written. Open the pool with `assets_open(domain, client)`, hand over the link, and say
-  names don't matter and spares are useful. You then *look* at what arrives (`assets_view`) and
-  compose the pages around it, instead of specifying pictures nobody has taken. The precise,
-  shot-by-shot request list still exists — it is stage 9, and it now covers only the gaps the pool
-  never filled. The logo is simply the first thing on that page, and the one to chase, because
-  stage 3's contrast reading depends on it.
+- **Ask for the photographs here, and ask for all of them.** Open the pool with
+  `assets_open(domain, client)`, hand over the link, and say that names do not matter and spares are
+  useful. You then look at what arrives with `assets_view` and compose the pages around it, instead
+  of specifying pictures nobody has taken. Stage 9 covers only the gaps the pool never filled. Chase
+  the logo first: stage 3's contrast reading depends on it.
 
 Nothing about hosting, SEO or refresh belongs in intake either. Those are derived server-side after
 upload and need nothing from the creator — see "After you hand off" in `SKILL.md`.

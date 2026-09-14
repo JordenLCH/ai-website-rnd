@@ -79,11 +79,8 @@ the CDN answers `200` regardless. Judge the URL by the CDN check in step 2, neve
 | A portrait file for a wide slot | `object-fit: cover` crops it silently — the page renders showing a third of the picture |
 
 Expect to discard most of what you fetch, and expect the titles to have warned you about none of it.
-A three-photo set chosen from search titles alone, for a Malaysian workshop, lost two on sight: a
-"car repair shop" was a US tuning bay holding a BMW M4 with the roundel legible on the wheel, a
-Porsche behind it and a `BENDPAK` lift post down one edge; an "interior of auto repair workshop" was
-a Chinese yard with 严禁站人 safety signage on the pillar — and was portrait, for a wide slot. Both
-were defensible from their titles. Neither survived being looked at.
+Expect to discard most of what you fetch. A title warns you about none of these: the frame, the
+branding in it, the jurisdiction it was shot in, or its orientation.
 
 Shortlist by title, then look at three or four. Each `Read` costs real tokens, so do not page
 through twenty.

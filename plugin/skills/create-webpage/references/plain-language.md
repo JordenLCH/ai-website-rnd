@@ -25,3 +25,85 @@ Two more that catch people out:
 
 The test: could they answer from knowing their own business? If answering needs them to know how the
 site is stored, the sentence is wrong.
+
+## The scripts
+
+Use these rather than an improvised version. They carry facts clients are surprised by, so the
+wording belongs in what they read. Adapt the details, keep the substance.
+
+### Stage 1 — handing over the photo page
+
+> **Your photo page:** <link>
+> Drop in every photograph you have: logo, products, the team, the premises, anything from an old
+> site. Names don't matter, and spares are useful. I'll fit them to the pages as I write them.
+> Come back to the same link whenever you find more, right up until the site goes live.
+
+**Three answers to have ready.** Each comes up and none is in the mechanism:
+
+- **Nothing has arrived by stage 2.** Ask once, and say what it costs: *"No photos yet. Nothing's
+  blocked, but two things need them: the logo decides the colours I propose next, and any page
+  without a picture has to be written to work without one. Even phone snaps of the premises help."*
+  Then carry on; do not stall stages 3–5 for uploads.
+- **"Can you take the photos off my old website?"** Not automatically, and not without asking whose
+  they are. If the client owns them, they download and drop them in like any other file. If a
+  photographer or a previous agency shot them, the licence may not have come with the site. That is
+  a question for the client, not an assumption to make.
+- **"What happens to my photos if we don't go ahead?"** They are deleted with the draft, and nothing
+  else keeps a copy. Say so rather than letting them assume either an archive or an exposure.
+
+### Stage 9 — asking for the pictures that are still missing
+
+> **Same photo page as before:** <upload link>
+>
+> Everything you've already sent is still there. Nothing to re-send, nothing to rename. These are
+> the pictures the site still doesn't have anywhere:
+>
+> [the list]
+>
+> - **Just drop them in.** Any filename is fine; I'll put each one where it belongs. **Don't convert
+>   or resize anything.** Straight off your phone, in whatever format they are.
+> - **Something wrong?** Every picture on the page has *replace* and *remove* beside it. Replace
+>   swaps the file and keeps its place on the site.
+> - You can close the page and come back. It remembers what's already in.
+> - Nothing is public while you do this.
+>
+> When the last photo is in, a **"Publish the site"** button on that page comes alive. Pressing it
+> is what puts the site live. It does not happen on its own.
+>
+> Worth knowing now: **once you publish, that page stops accepting photos.** If you want to swap one
+> later, come back to me and I'll reopen it. The link isn't broken, it's finished.
+
+Why those lines are there: hosting decodes JPEG, PNG, WebP, AVIF, HEIC, TIFF and GIF, so converting
+first is work the server already does. Filenames are not the client's problem: anything that matches
+no slot is stored as a spare under a derived name, and wiring it to the right section is your job
+(read the new name from `assets_list`, look at it with `assets_view`, patch the slot's `src`). After
+publishing, uploads answer "this site is published; re-publish from the conversation to change it",
+and a client who was not told that concludes the link is broken.
+
+**Limits, if they come up:** 40 MB a file, 2400px on the longest edge (everything is resized on
+arrival), 150 pictures or 500 MB per site, and no SVG, so a logo needs PNG or WebP. Photo metadata is
+dropped on re-encode, which matters to anyone who assumes their copyright EXIF travels with the file.
+If they mention having hundreds of photographs, say the ceiling before they meet it: *"Send the best
+of them rather than all of them. The page holds 150 pictures, and a site this size uses maybe
+twenty."*
+
+### Stage 10 — the address
+
+When the publish response says `deploying` is true:
+
+> Your site is live: **john-com-my.pages.dev**. That address works right now, you can send it to
+> anyone. It's on the upload page too, once the build finishes.
+
+When `deploying` is false, the build succeeded but no address exists:
+
+> The site is built and everything is in place. It isn't on a public address yet: that's a step on
+> our side, and the team will sort it and send you the link.
+
+Either way, for their own domain:
+
+> Want it on **john.com.my** instead? Talk to the Blackdash team and we'll take you through the next
+> step. Same site, same pages, with your own name in front.
+
+Never give a DNS instruction, and never promise there is nothing for them to do: connecting a domain
+needs access we may not have, so it is a conversation the team has. Do not describe the custom address
+as broken or pending.

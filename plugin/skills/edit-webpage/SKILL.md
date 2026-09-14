@@ -15,9 +15,9 @@ done. If you find yourself about to rewrite a whole page or a whole `theme.json`
 1. **Get the bundle held as a draft**, if it isn't already:
    - Already have a `draftId` from earlier in this conversation? Reuse it — don't `bundle_put` again.
    - Local path: read `content/<client>/site.json` + `theme.json` (+ `org.json`), `bundle_put` them.
-   - Chat path with no draft yet: ask for the domain/client name, then either the person pastes the
-     bundle or you resume it from wherever it's held (there is no "fetch by domain" tool — the
-     bundle lives in the conversation or the filesystem, never fetched fresh from hosting).
+   - Chat path with no draft yet: `bundle_resume(domain)` fetches back what hosting stored at the
+     last `bundle_publish` and returns a `draftId` with the photographs still attached. Ask for the
+     domain if you do not have it. See "When you don't have a draft to patch" below.
 2. **Write the ops.** One `bundle_patch(draftId, target, ops)` call, `ops` as RFC-6902-style
    `{op, path, value}` — see "Common edits" below for the exact shapes. Batch every op for one
    logical change into a single `bundle_patch` call; don't make five calls to add one page.

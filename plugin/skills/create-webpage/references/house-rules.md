@@ -64,18 +64,13 @@ how a bespoke site starts reading like a template even when the layout does not.
 
 **A warning fires when more than two sections on a page open with an eyebrow.**
 
-This is the one house rule with a measurement behind it rather than an opinion. On 2026-09-14 four
-production sites in this catalog's own territory — hermanmiller.com, steelcase.com, humanscale.com
-and stripe.com — were measured with `getComputedStyle`: **zero eyebrows across 48 headings between
-them**. A second sweep of Stripe for *any* short text at or under 15px that is uppercase or
-wide-tracked, anywhere on the page, also found none. This pipeline's own fleet, measured the same
-way, had put one on **85 of 144 sections** — 57%, 65% and 80% on individual sites.
+An eyebrow labels the page, above its opening headline. It does not label each section. Production
+sites in this category use none at all: four measured with `getComputedStyle` carried zero across 48
+headings, while this pipeline's own fleet had put one on 85 of 144 sections. CFPB's design system
+defines it as "an additional label that can be used to support the main H1 heading on a page";
+section use is not contemplated.
 
-The published guidance agrees with the measurement rather than with the pipeline. CFPB's design
-system defines an eyebrow as *"an additional label that can be used to support the main H1 heading
-on a page"* — it belongs to the page opener and section use is not contemplated at all.
-
-So: **at most one, on the page opener.** The threshold is two only because a rule that fires at the
+**At most one, on the page opener.** The threshold is two only because a rule that fires at the
 first departure from a style guide is a rule people learn to ignore. A section that genuinely needs
 marking can take a rule, a number, a colour shift or a sentence-case label — and most of the time
 the headline is enough on its own. Repeated over every band, an eyebrow stops labelling anything
@@ -182,3 +177,29 @@ the content tree you hand over. Writing JSON-LD, meta tags or keyword-padded cop
 with that generator and loses. Choose the semantically right block instead — `FAQ` over questions
 buried in `RichText`, `Locations` over an address in a paragraph — because the block type is what the
 schema generator reads.
+
+## Photographs supplied with the brief
+
+A folder of stock the client already chose validates and looks plausible, so nothing downstream
+questions it. Open every one and say what is in the frame, not what the filename claims. Three
+failure kinds:
+
+- a **recognisable place** standing in for the client's own, such as a famous library captioned as
+  their office
+- **third-party branding** in shot, which is the stage 9 check arriving early
+- an object that is **wrong for the jurisdiction or trade**: a gavel on a Malaysian or any
+  Commonwealth legal site, where courts do not use them
+
+Identifiable faces are their own problem: stock models placed near "our team" read as staff who do
+not exist. A stock image the client picked is a row on the gap list, not a row filled.
+
+## Regulated categories
+
+Ask at stage 2 whether the category is regulated. Law, medicine, dentistry, financial advice and
+education sit under publicity rules restricting outcome claims, superlatives and testimonials, and
+the brief's own marketing adjectives are usually the first casualty, so they cannot be lifted into
+headlines verbatim.
+
+You do not decide what is permitted. Name the constraint, say which sections it removes
+(`Testimonials` and results-based `Stats` are the usual two), and put the wording question to the
+client. Discovering this at stage 5 means rewriting approved copy.

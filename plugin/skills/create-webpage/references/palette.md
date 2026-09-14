@@ -1,26 +1,20 @@
 # Palette — building the eleven colour tokens on purpose
 
-`art-direction.md` ranks colour **last** among the things that create difference. That ranking is
-correct and it is also how every generated palette in this system went wrong: *last* got read as
-*don't think about it*, and an unthought colour decision is not a neutral one — it is the model's
-prior, emitted verbatim. This file is the positive procedure that was missing. Use it after the
-layout map and tone rhythm are settled, and before you write `theme.json`.
+Referenced from `SKILL.md` stage 3. How to choose the neutral family, the hue and chroma budget, the
+accent budget and the contrast bands. Read after the layout map and tone rhythm are settled, and
+before writing `theme.json`.
 
-## The failure this exists to stop
+`art-direction.md` ranks colour last among the things that create difference. Last is not "don't
+think about it": an unthought colour decision is the model's prior emitted verbatim. Two facts about
+that prior are worth holding while you work.
 
-Three things compound into the same output every time.
+**Warm off-white is the default.** "Premium", "considered", "editorial" and "craft" all resolve to a
+cream ground (`#FBFAF7`, `#F7F5F1`, `#E7E4DB`) with a near-black ink carrying a trace of yellow.
+Choose it deliberately or not at all.
 
-1. **Warm off-white is the prior.** "Premium", "considered", "editorial" and "craft" all resolve to a
-   cream ground (`#FBFAF7`, `#F7F5F1`, `#E7E4DB`) with a near-black ink carrying a trace of yellow.
-   It is the most common register in the design work a model has read, and it is the house style of
-   the tool generating it. It arrives without being chosen.
-2. **The slop list is negative, and negative constraints get satisfied by the nearest neighbour.**
-   `art-direction.md` bans `#F4F1EA` with `#D97757`. A model satisfies that by moving eight degrees
-   of hue and two points of chroma, not by picking a different family. The ban removes one address,
-   not the neighbourhood.
-3. **Enforcement is asymmetric.** `slopTells()` flags the *cool* tell — an indigo accent — and has no
-   check at all on a warm ground. So the only mechanically-punished direction is the cool one, and
-   every run drifts to the unpunished side.
+**The validator's silence is not approval.** `slopTells()` flags an indigo accent and has no check on
+a warm ground, so the only mechanically-punished direction is the cool one. Banning one hex also
+moves the output a few degrees, not into another family.
 
 The fix is not "use cool colours". It is: **select a ramp, don't generate one**, and be able to say
 which of four families you took and why this client is in it.
@@ -97,7 +91,7 @@ top of the range matters too.
 | `--color-accent-ink` on `--color-bg` | **≥ 4.5:1** | Accent as link and emphasis text |
 | `--color-inverse-muted` on `--color-inverse-bg` | **≥ 4.5:1** | The pair most often skipped; inverse muted is where dark sections fail |
 
-Check all five before writing the file. `design-qa` catches the failures at stage 8, but by then the
+Check all five before writing the file. `check-webpage` catches these at stage 8, but by then the
 palette is load-bearing across sixty sections and moving it is a rewrite.
 
 ## Step 5 — say what you chose

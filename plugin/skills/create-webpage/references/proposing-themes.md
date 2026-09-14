@@ -1,13 +1,12 @@
 # Proposing three themes
 
-Stage 3 used to sample four directions, discard the likeliest as "the mode", and present the
-remaining three. The intent is right and the mechanism is weak: all four candidates come out of one
-generator with one objective, so rejecting the top one shifts the centre without guaranteeing spread.
-The skill's own notes record the result — three blind runs of one brief produced three names for the
-same look.
+Referenced from `SKILL.md` stage 3. The three-objective proposal protocol, the divergence check, the
+served font families, the six style-tile elements, and the worked pitch. Read before proposing.
 
-**Propose from three different objectives instead.** Candidates drawn from objectives that genuinely
-pull apart cannot collapse into each other, which is a structural guarantee rather than a hope.
+**Propose from three different objectives.** Sampling four candidates from one generator and
+discarding the likeliest shifts the centre without guaranteeing spread: three samples of one
+distribution share its mode, and produce three names for the same look. Objectives that genuinely
+pull apart cannot collapse into each other.
 
 | | optimises | what it is for |
 |---|---|---|
@@ -172,3 +171,29 @@ the tokens against, and what the next agent reads instead of re-deriving the dir
   "why": "they sell on tolerance figures; restraint reads as confidence in the numbers"
 }
 ```
+
+## The pitch, worked
+
+Fix each candidate's specification for yourself, then pitch in two lines: what it reads like, and
+what it costs. Keep the JSON for the winner only.
+
+> **A. Product catalogue.** Dense and precise, everything aligned to a grid, almost no decoration.
+> Reads like a specification sheet in the best way. Costs you warmth: it will never feel friendly.
+>
+> **B. Magazine.** Large headlines, lots of white space, fewer things per screen. Good if people
+> arrive to browse. Costs you speed: a buyer comparing numbers has to scroll further.
+>
+> **C. Technical.** Crisp and light, colour only on the figures that matter. Costs you
+> distinctiveness: it is the most familiar of the three.
+>
+> I'd pick **A**: you sell on tolerances, and this says so before anyone reads a word.
+
+## Typography in the pitch
+
+Do not name the typeface: it asks for an opinion about a word the client has never seen set in type.
+Keep it in your notes, named against its alternatives.
+
+Do not default to Inter. It is not a bad font, but unchosen it signals that nobody made a typography
+decision. The same goes for monospace on small labels: it reads structured and technical, which is
+why every generator reaches for it. Use it only if you can say what it does here that small-caps sans
+would not.
