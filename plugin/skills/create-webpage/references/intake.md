@@ -222,7 +222,12 @@ no link, no pictures — and now the cost lands at stage 1 rather than stage 9, 
 of opening the pool early is that the client uploads while the site is still being written. Answer it
 late and every picture arrives late with it.
 
-So ask at intake, and open the pool in the same turn. While the site is still a draft the domain is only the key it is filed under, and
+So ask at intake, and open the pool in the same turn — but read the domain back before you do.
+`bundle_discard` still refiles a wrong one, and it now deletes the photographs uploaded against it,
+so a typo caught after the client has spent an evening uploading costs them that evening. The client
+slug comes from the domain (`merryfair.com` → `merryfair`) and is frozen once the pool is open: it
+becomes the public `/img/<client>/` path, and a second `assets_open` with a different slug is
+ignored rather than honoured. While the site is still a draft the domain is only the key it is filed under, and
 `bundle_discard` lets you refile it — so a client who does not yet own the name is not blocked, and
 you must not let them postpone it: "we'll sort the domain later" silently postpones every photograph
 on the site.

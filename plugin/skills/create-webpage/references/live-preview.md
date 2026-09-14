@@ -48,15 +48,22 @@ verbatim — anything tidier you invent points at a file that is not there.
 
 **After the first `bundle_publish` the same page gains its checklist.** The pool does not go away:
 publishing upserts onto it, keeps the code and keeps every file, and the page then shows the
-pictures the site references, with anything left over listed underneath as spares. An unplaced
-photograph never blocks publishing.
+pictures the site references, with anything left over listed underneath as spares. Late arrivals are
+still accepted — a client who finds more photographs at stage 7 can still drop them in, and they land
+as spares for you to place. An unplaced photograph never blocks publishing, and each one has a
+`replace` and a `remove` control, so a wrong or corrected picture is fixed on the page rather than
+through you.
 
-## Uploading pictures early — the preview shows the real file, live
+Two ceilings worth knowing before promising anything: **150 pictures or 500 MB per site**, and a
+single file over 40 MB is refused. No real brief comes close, but "drop in everything you have" is
+the instruction that eventually meets one.
 
-`bundle_publish` does two things: it stores the JSON on the hosting side (as a **draft**, not a
-live site — see "What publishing here does and does not do" below), and it returns a browser link
-where pictures get uploaded. Historically the advice was to call this once, at hand-off, after
-everything else was done. That is no longer the only good time to call it.
+## The first publish — what it adds to a pool that already exists
+
+`bundle_publish` does two things: it stores the JSON on the hosting side (as a **draft**, not a live
+site — see "What publishing here does and does not do" below), and it upserts onto the pool
+`assets_open` created, returning the same link. The link is not news to the client by then; two other
+things are.
 
 **Once a draftId has been published at least once, `site_preview(draftId)` automatically points
 every `<img>` at the real uploaded file instead of the site's own unresolvable `/img/<client>/...`
@@ -73,12 +80,11 @@ pages — do not appear on it until you call `bundle_publish` again. Re-publish 
 stage that adds one. It keeps the code, keeps the uploads, and is the difference between a human who
 can upload as the site is written and one who gets a wall of twenty requests at hand-off.
 
-Practically, this means: **as soon as you have a domain and a draftId with real pages, call
-`bundle_publish` and hand the human the link — tell them "upload now, it'll show up in the preview
-live."** They don't have to wait for the whole site to be finished, and you don't have to re-explain
-the upload step later. Re-publishing (calling `bundle_publish` again after more edits) is safe and
-expected — it keeps the same code and keeps whatever was already uploaded (see the `site-hosting`
-side note below); it does not go live on its own.
+Practically, this means: **publish as soon as stage 5's home page is real.** That is the call that
+makes the preview show photographs the client uploaded days earlier — until it, every `<img>` is
+blank however full the pool is, because nothing has told `site_preview` which hosting draft this
+`draftId` belongs to. Re-publishing after more edits is safe and expected: same code, same uploads,
+no deploy.
 
 **What publishing here does and does not do.** `bundle_publish` always creates or updates a
 *draft* on the hosting side — it never triggers a real deploy. Only an explicit, separate,

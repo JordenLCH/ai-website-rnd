@@ -138,6 +138,11 @@ rhythm and type all change while content stays untouched.
 cd renderer && CONTENT_DIR=<path-to-site-hosting>/content npm run dev         # :5183
 cd renderer && npm run validate -- <path-to-site-hosting>/content/<client>/site.json <path-to-site-hosting>/content/<client>/theme.json
 
+# hostile inputs — see "Checking the catalog against inputs nobody has written yet" below
+cd renderer && npm run fuzz                            # 200 seeds: generate + validate + render
+cd renderer && npm run fuzz -- --seed 7 --out ../dev/fuzz   # write one for the preview
+#   then CONTENT_DIR=../dev/fuzz npm run dev, and run tools/layout-qa.js in the page
+
 # creator side lives in the site-starter repo, which installs the renderer from git
 #   npm run dev / npm run validate / npm run package
 
@@ -161,6 +166,18 @@ A creator on the chat path ends at `bundle_publish`. That sends the validated JS
 **`site-hosting`**, which stores it, serves the browser page where the photographs are added
 (`/upload/<code>`), and then builds the site by invoking *this* repo's build farm as a child
 process. Nothing is rendered twice: hosting hosts, the farm renders.
+
+**But that page now opens at the *start* of the conversation, not the end** (2026-09-14).
+`assets_open(domain, client)` mints it from a domain and a client slug with no bundle behind it, so
+the client uploads photographs while the sitemap is still being discussed, and `assets_list` /
+`assets_view` let the model read and *see* them — which is the only moment anything in this pipeline
+knows what a picture is of, and so where `alt`, `imageKind` and the art direction stop being guesses.
+`bundle_publish` upserts onto that pool: same link, same files, and from then on the page also
+carries the checklist. Two consequences that bite: a pooled picture's stored name is derived
+server-side (`Showroom Front.JPG` → `showroom-front.webp`), so `src` must be copied from
+`assets_list` rather than invented; and the preview only points `<img>` at uploaded files after the
+first `bundle_publish`, so stage 5 publishes as soon as the home page is real. Design:
+[`docs/superpowers/specs/2026-09-14-assets-first-upload-design.md`](docs/superpowers/specs/2026-09-14-assets-first-upload-design.md).
 
 The pictures never travel through the conversation — base64 in a transcript is several times the
 file size and is re-sent every turn, so one site's photography would cost more than the site. The
@@ -316,6 +333,47 @@ client does not control. Collect these at intake.
 
 Nothing in a bundle should contain schema markup or hand-written meta. The lever at generation time
 is choosing the semantically correct block, because block type is what the generator reads.
+
+## Checking the catalog against inputs nobody has written yet
+
+The section below says not to reason from the stored bundles. That leaves a gap: if the fleet
+cannot tell you the layout holds, something has to. Two tools, and they are halves of one check —
+neither is sufficient, and the split is not arbitrary.
+
+**`renderer/tools/fuzz.ts`** (`npm run fuzz`) generates bundles from a seeded RNG across the whole
+permitted range — `Grid cols` 2–12 at every nesting depth, every gap and pad step, carousels of
+every `perView`, *and* random theme token values, which is the axis the fleet's seven themes
+cannot cover. It asserts only what is wrong under every intent: generation, validation and render
+must not throw, and a bundle the validator calls valid must then render. It cannot see a box, so
+it cannot see a box 16 777 216px wide.
+
+**`renderer/tools/layout-qa.js`** is the half that needs a layout engine. Paste it into the
+preview console or hand it to `evaluate_script`; it returns JSON listing CSS-infinity boxes,
+elements laid out off the page, tracks that collapsed while holding content, squeezed copy,
+over-tall heroes and broken carousels. `tools/design-qa.js` is its companion and does not overlap:
+overflow, clipped text and per-tone contrast. Run both.
+
+Three rules learned the hard way on 2026-09-14, when both tools were written:
+
+- **Run the auditor against the real bundles before trusting a finding.** Its first version
+  reported 8–12 collapsed elements per real page, all false — `display: contents` wrappers,
+  `<option>`s, and the descendants of a hidden nav. The fleet is useless as a specification and
+  invaluable as a false-positive corpus.
+- **Never tune a threshold to make the fleet pass.** Those bundles are generated, so their passing
+  proves nothing. `HERO_MAX_SCREENS` is argued from what a hero *is*, not from what the six sites
+  happened to measure.
+- **Sweep every site against every theme, not each site against its own.** The two real defects
+  found that day — a hero at 2.1 screens, and the `.p-kv__row` value track resolving to 0px —
+  appeared only under a *swapped* theme, which is precisely what the variant indirection promises
+  and what a per-site eyeball never covers.
+
+And one trap that will recur, because it is invisible: **a container query measures the nearest
+ancestor container, not the element**. Every `@container (max-width: …)` rule in `styles.css` is
+therefore a statement about the viewport, and none of them fire for a primitive that is 44px wide
+inside a wide page. A nested layout has to be self-adjusting — `flex-wrap` with a percentage
+basis, or `auto-fit` with a `min()` floor — not breakpointed. Adding `container-type` to a
+primitive to fix this is not the answer either: it would reroute all 30 of the stylesheet's `cqi`
+type sizes to that element's width.
 
 ## Every bundle and theme in this repo is AI output. Never reason from them as evidence
 

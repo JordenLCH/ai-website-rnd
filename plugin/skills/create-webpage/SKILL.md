@@ -52,7 +52,7 @@ context you need for composition.
 
 | | chat (default) | in a checkout |
 |---|---|---|
-| Photographs | `assets_open` at stage 1, then `assets_list` / `assets_view` | drop files into `content/<client>/assets/` |
+| Photographs | `assets_open` at stage 1, then `assets_list` / `assets_view` | the files are already on disk — see `references/local-path.md` |
 | Validate | `bundle_validate` | `npm run validate -- <client>` |
 | Preview | `site_preview` — renders in the conversation | `npm run dev`, port 5183 |
 | Publish | `bundle_publish` — returns a link for the pictures | `./package.sh <client>`, upload the zip |
@@ -73,8 +73,10 @@ and `site_preview(draftId)` draws the result. `references/live-preview.md` has t
 **The pictures come first now.** `assets_open(domain, client)` at stage 1 mints the browser upload
 page before any bundle exists, so the client is dropping photographs while you are still discussing
 the sitemap — and `assets_list` / `assets_view` let you read and *look at* what arrived. Write those
-stored filenames into your props and the first `site_preview` of the home page already has real
-pictures in it, rather than the page of empty frames this flow used to start with.
+stored filenames into your props and the first `site_preview` **after the first `bundle_publish`**
+has real pictures in it, rather than the page of empty frames this flow used to start with. That
+publish is the step that points the preview at the uploaded files — before it, every `<img>` is still
+blank however full the pool is, so stage 5 publishes as soon as the home page is real.
 
 **Publish early too, once you have a draftId.** Publishing only ever creates a draft, never a live
 deploy, so it is safe to call early or repeatedly, and it upserts onto the same pool: same link, same
@@ -89,9 +91,11 @@ everything already uploaded, so this costs one call. After it, `site_preview(dra
 file they have dropped in so far, at the real crop — which is how the site fills with real pictures
 while it is still being written, instead of arriving blank at hand-off.
 
-**Reference the path the human actually uploaded**, verbatim, including its capitalisation
-(`uploads/OPTIMISED/LOGO/logo.svg`). A tidier path you invented is a broken image nobody sees until
-the site is live.
+**Reference the name the file is actually stored under, verbatim.** On the chat path that is the
+name `assets_list` reports — the pool sanitises what the client dropped and re-encodes it, so
+`Showroom Front.JPG` is `showroom-front.webp` and an SVG is refused outright. In a checkout it is the
+path on disk, capitalisation included (`uploads/OPTIMISED/LOGO/logo.svg`). Either way a tidier name
+you invented is a broken image nobody sees until the site is live.
 
 You can *see* the photographs, which is the one moment anything in this pipeline knows what a
 picture is of. So write `alt` from the image and never from the filename, and set `imageKind` from
@@ -107,8 +111,8 @@ below produces something small enough to review in seconds, and you stop and wai
 1  intake             (human)  drop the documents first, you read them, then ask what's left
                               — including the brand colour, which stage 3 is built from,
                               and the photo link, so the pictures arrive while you work
-2  content inventory  (both)   what copy exists and what it breaks, and what photographs
-                              actually turned up — prep, no gate
+2  content inventory  (you)    what copy exists and what it breaks, and what photographs
+                              turned up while you worked — prep, no gate
 3  theme              (you)    3 proposed, shown as style tiles
 4  sitemap            (you)    pages + section roles, sampled, plus a skeleton of the home page
                                                                    ▸ human decides or revises (2+3+4)
@@ -241,9 +245,14 @@ yourself.
 
 The blockers are five: registration number, legal name, phone/email, the **domain** the site will
 live at, and the **logo file** (raster — WebP/JPEG/PNG/AVIF; flag now if it's only available as SVG,
-see `references/live-preview.md`). A provisional domain is fine and a wrong one is cheap to fix with
-`bundle_discard` — but it is needed before stage 5 publishes, so it is asked for here.
-`references/intake.md` has why.
+see `references/live-preview.md`). A provisional domain is fine, but it is no longer cheap to get wrong: it is the key the photo pool
+is filed under, so `bundle_discard` now takes the client's uploaded photographs with it and they
+re-upload from scratch. **Read the domain back to them before calling `assets_open`** — "so the site
+is filed under merryfair.com, yes?" — and take the client slug from it (the domain's own name,
+lowercased, letters, numbers and hyphens: `merryfair.com` → `merryfair`). The slug is frozen once the
+pool is open: it becomes the public `/img/<client>/` path, and a second `assets_open` with a
+different one is ignored rather than honoured. `references/intake.md` has why the domain is asked
+for here at all.
 
 Everything else either shapes the site (buyer, goal, scope, sections, tone) or strengthens
 it (`sameAs`, certifications, named people) without blocking the build — `references/intake.md` has
@@ -323,11 +332,17 @@ extremes and tests the layout against content the client will never have.
 
 **Read the photo pool before anything else in this stage.** `assets_list(domain)` says what turned
 up, under the names it is stored as; `assets_view(domain, names)` shows you up to eight of them at a
-time, small. Look at them — this is the only moment anything in this pipeline knows what a picture is
+time, small (pass `max` up to 768 for a closer look at one logo). Look at them — this is the only moment anything in this pipeline knows what a picture is
 *of*, and three later decisions are made from it: `alt` written from the image rather than the
 filename, `imageKind` (`environment` / `cutout` / `detail`, which the validator checks against
 `overlay-fullbleed` and can only check against what you declared), and stage 3's direction, which
 should answer the client's real photography instead of imagining it.
+
+**An empty pool is an answer, not a wait.** If nothing has arrived yet, say so at the stage 4
+checkpoint and keep going: propose the direction and the sitemap on the assumption that photography
+will exist, mark which section roles depend on it, and chase the logo specifically, because stage 3's
+contrast reading needs it. Do not stall stages 3–5 for uploads — the pool accepts them the whole way
+through, and the pages are re-previewed as they land.
 
 Add what you saw to the inventory: one row per picture — the stored name, what is actually in frame,
 and which section role it could carry. That list is also the honest version of the gap question at
@@ -524,17 +539,23 @@ Headlines must carry a concrete noun from the brief that a competitor could not 
 faster. Ship smarter." is a slop tell independent of any visual choice: if the headline would still
 be true with the client's name swapped for a rival's, it is decoration, not copy.
 
-**Publish here, before the corrections.** You have a real page and you took the domain at intake, so
-`bundle_publish` now and hand over the upload link — this is the moment the site gains any route at
-all for a photograph, and every later stage assumes the link is already in their hands. It creates a
-draft, never a live site, and re-publishing keeps both the link and anything already uploaded. Tell
-them plainly: "that page lists the photos the site is asking for, by name — rename yours to match
-and drop them in whenever you like. They'll appear as they land, and nothing is public until we say
-so."
+**Write `src` from the pool, not from your imagination.** Every picture already uploaded has a
+stored name; `assets_list` gives it plus `srcPrefix`, and the prop is the two joined —
+`"src": "/img/merryfair/showroom-front.webp"`. The pool stores everything as `.webp` under a
+sanitised name, so a tidier one you invented points at nothing: the upload page never asks for it,
+`bundle_status` never reports it missing, and the image is permanently blank with no error anywhere.
+Only pictures that do not exist yet get names you choose, and those are stage 9's table.
 
-The page derives that checklist from the `src` values already in the bundle, so it works from here
-on. Stage 9 is where you turn it into a brief they can act on — what each picture has to *show* —
-but a client who wants to start now is not blocked.
+**Publish here, before the corrections.** `bundle_publish` upserts onto the pool the client has been
+filling since stage 1: same link, same photographs, nothing lost. Two things change at this call, and
+both matter. The preview starts showing the real uploaded files instead of blank frames — which is
+why this publish happens now rather than at hand-off. And the upload page gains its checklist, so the
+client can see which pictures the site is still short of.
+
+Tell them plainly: "your photo page now also lists what the site is still missing — same link as
+before, everything you've already sent is still there. Nothing is public until we say so." Do **not**
+tell them to rename files to match: that was the old flow, and names in the pool are ours to derive.
+Stage 9 is where the remaining gaps become a brief they can act on — what each picture has to *show*.
 
 ▸ Take the corrections before writing anything else. This gate settles what generalises: tone of
 voice, how much detail a section carries, what terminology the client uses for their own products,
@@ -644,11 +665,8 @@ upload page never asks for it, `bundle_status` never reports it missing, and the
 permanently blank with no error anywhere. So `hero-workshop.jpg` in the table below means
 `"src": "/img/john/hero-workshop.jpg"` in the props.
 
-**For a picture already in the pool, the filename is not yours to choose.** Copy it verbatim from
-`assets_list` — the pool stores everything as `.webp` under a name derived from what the client
-dropped, so `Showroom Front.JPG` is on disk as `showroom-front.webp` and a tidier name you invented
-points at nothing. `assets_list` returns `srcPrefix` for exactly this: prefix + stored name, nothing
-in between. Only the *new* requests in this stage's table get names you pick.
+**For a picture already in the pool the filename is not yours to choose** — copy it verbatim from
+`assets_list`, as stage 5 says. Only the *new* requests in this stage's table get names you pick.
 
 Name each file for what it shows before you hand the list over; `image-1.jpg` leaves them no way to
 tell which is which.
@@ -730,8 +748,8 @@ Two things the sub-skill cannot know, because they are this pipeline's:
 ### 10. Hand off
 Validate, preview one last time, then `bundle_publish` — the domain, the bundle, and `org.json`,
 which is required because the entity graph is built from it alone and a site without one is refused
-here rather than at upload. If you already sent the upload link at stage 5 or 9, this call
-re-publishes the finished JSON to the *same* link; say so, rather than handing over what looks like
+here rather than at upload. The client has had the upload link since stage 1, so this call
+re-publishes the finished JSON to that *same* link; say so, rather than handing over what looks like
 a second, different one.
 
 **If publishing fails, say so and stop there.** Hosting being down is not something to work around:
@@ -838,7 +856,7 @@ Read these when the stage that needs them arrives — not upfront.
 | `references/composing-sections.md` | stages 5-7 — `FreeSection` and the six typed sections |
 | `references/density.md` | stages 5-7 — hitting density, and marking `unverified` |
 | `references/house-rules.md` | stages 5–6 — validation gates and known pitfalls |
-| `references/live-preview.md` | stages 5–9 — draft/patch ops, uploading pictures early |
+| `references/live-preview.md` | stages 1–9 — the photo pool and its tools, draft/patch ops, pictures in the preview |
 | `references/after-handoff.md` | stage 10 — what the platform derives, honestly |
 | `references/local-path.md` | only in a checkout — servers, folder layout, QA scripts |
 
