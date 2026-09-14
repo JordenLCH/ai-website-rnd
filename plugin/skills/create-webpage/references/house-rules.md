@@ -1,13 +1,33 @@
 # House rules
 
-Four independent gates run over generated JSON. The first two are ordinary validation; the third is
-the one that actually protects design quality, and the fourth is the one with a statute behind it.
-Between Gate 0 and Gate 1 sits the microcopy section — rules nothing enforces, which is exactly why
-they are the ones that slip.
+Every rule the validator can report, and why each one exists. Gates 0-4 are the ordered validation
+passes. The sections after them are checks that belong to no gate: chrome, because it is on every
+page; page order, because it is a property of the whole site; and the theme checks, which read
+`theme.json` with nothing rendered. The last five sections are enforced by nothing and say so.
 
-The `[rule:…]` markers are the validator's own names for these rules. They appear in its output, and
-`npm run house-rules` in the renderer fails if this file describes a rule that does not exist or
-leaves out one that does. Ignore them while reading; quote one when reporting a problem.
+| | |
+|---|---|
+| [Gate 0 — density and provenance](#gate-0--density-and-provenance) | is the page saying anything |
+| [Microcopy](#microcopy--the-labels-a-generator-writes-without-thinking) | unchecked — which is why it slips |
+| [The eyebrow](#the-eyebrow-is-a-page-label-not-a-section-one) | one per page, not one per section |
+| [Gate 1 — schema](#gate-1--schema) | props parse; see `catalog.md` for the schemas |
+| [Gate 2 — theme coverage](#gate-2--theme-coverage) | every slug and token resolves |
+| [Gate 3 — content suits the layout](#gate-3--content-suits-the-layout) | valid data, wrong-looking section |
+| ↳ [FreeSection rules](#freesection-rules) | the widest failure surface in the catalog |
+| [Gate 4 — jurisdiction](#gate-4--jurisdiction) | reads `org.json`; skipped without it |
+| [Chrome](#chrome--checked-separately-because-it-is-on-every-page) | a weakness repeated on every page |
+| [Page order and site-wide rhythm](#page-order-and-site-wide-rhythm) | validates, renders, reads as assembled |
+| [The theme, without rendering](#the-theme-checked-without-rendering-anything) | defaults that read as defaults |
+| [Pitfalls with non-obvious causes](#pitfalls-with-non-obvious-causes) | unchecked — misleading symptoms |
+| [What to check by eye](#what-to-check-by-eye-after-validation-passes) | unchecked — what no rule can see |
+| [Not your responsibility](#what-you-are-not-responsible-for) | unchecked — what the platform derives |
+| [Supplied photographs](#photographs-supplied-with-the-brief) | unchecked — stock the client chose |
+| [Regulated categories](#regulated-categories) | unchecked — ask at stage 2 |
+
+The `[rule:…]` markers are the validator's own names. They appear in its output, and
+`npm run house-rules` in the renderer fails if this file describes a rule that does not exist,
+leaves out one that does, or quotes a threshold the code has since changed. Read past them; quote
+one when reporting a problem.
 
 ## Gate 0 — density and provenance
 
@@ -21,11 +41,11 @@ says nothing still reads as a free template.
   `Badge` before writing more prose — specificity is what raises density, length is not.
   [rule:density/section-empty] [rule:density/section-thin] [rule:density/section-under-filled]
   [rule:density/page-words] [rule:density/page-images]
-- **Imagery.** A `cutout` image in an inverse-tone section disappears against the dark ground — the
-  section has pictures and still looks empty. [rule:image/cutout-on-inverse] And no photograph
-  should carry four sections: one image placed 4 or more times across a site, or appearing on 3
-  separate pages, is what makes two sites from one asset folder look like the same site.
-  [rule:image/overused] [rule:variation/image-across-pages]
+- **Imagery — a cutout on an inverse tone.** It disappears against the dark ground, so the section
+  has pictures and still looks empty. [rule:image/cutout-on-inverse]
+- **Imagery — one photograph carrying the site.** An image placed 4 or more times across a site, or
+  appearing on 3 separate pages, is what makes two sites from one asset folder look like the same
+  site. [rule:image/overused] [rule:variation/image-across-pages]
 - **Type.** Monospace on `--font-eyebrow` / `--font-numeral` is flagged. Those two tokens feed ~20
   call sites, so choosing mono once sets 30-45 elements on a page in it, captions included.
   [rule:type/mono-labels]
@@ -295,13 +315,18 @@ shrinks because areas don't shrink. Headers and footers should be flex rows with
 
 ## What to check by eye after validation passes
 
-Validation proves the data is legal, not that the page is good. Look at the preview and ask:
+Validation proves the data is legal, not that the page is good. Repeated shape, tone runs and
+shared page rhythm are rules now — the sections above catch those and this list does not repeat
+them. What is left is what no rule can reach, because each needs a judgement about a photograph or
+about meaning:
 
-- Does the hero photo actually support the text on top of it?
-- Do consecutive sections use different layouts, or does the page read as one repeated shape?
-- Is the accent colour used as punctuation, or has it become the background of half the page?
-- At a narrow width, does anything overlap or overflow?
-- Does every page share a rhythm, or does one page feel like a different site?
+- **Does the hero photo actually support the text on top of it?** `design-qa.js` returns these as
+  `unknown` rather than as a ratio: no arithmetic settles text over a photograph. This is the one
+  contrast case that is yours.
+- **Is the accent colour punctuation, or has it become the background of half the page?** The
+  validator counts tones per section; it cannot see that the accent stopped meaning anything.
+- **At a narrow width, does anything overlap or overflow?** `layout-qa.js` in the preview answers
+  this; the validator never renders, so it cannot.
 
 ## What you are not responsible for
 
