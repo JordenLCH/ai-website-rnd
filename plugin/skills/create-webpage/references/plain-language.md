@@ -96,6 +96,11 @@ an easy request into a conversation about infrastructure.
 >
 > When the last photo is in, a **"Publish the site"** button on that page comes alive. Pressing it
 > is what puts the site live. It does not happen on its own.
+
+Only send that second paragraph once a bundle has actually been published onto the pool — before
+that the page carries no button, and promising one makes the person hunt for something that is not
+on their screen. Check with `bundle_status` rather than assuming; and whenever you point at the page,
+paste the link itself, not the words "the upload page".
 >
 > Worth knowing now: **once you publish, that page stops accepting photos.** If you want to swap one
 > later, come back to me and I'll reopen it. The link isn't broken, it's finished.

@@ -475,11 +475,17 @@ name points at nothing — the upload page never asks for it, `bundle_status` ne
 and the image is permanently blank. Only pictures that do not exist yet get names you choose, and
 those are stage 9's table.
 
-**Publish here, before the corrections.** `bundle_publish` upserts onto the pool the client has been
-filling since stage 1: same link, same photographs. The preview starts showing the real uploaded
-files, and the upload page gains its checklist. Tell them the link is the same one and everything they
-sent is still there. Do not ask them to rename files to match the checklist; pool names are derived
-server-side.
+**Publish before you preview, and preview before you show anyone.** In that order, every time.
+`bundle_publish` upserts onto the pool the client has been filling since stage 1: same link, same
+photographs. Only then does `site_preview` point `<img>` at the uploaded files; before it, the props
+still name `/img/<client>/…`, which is a path nothing serves.
+
+**A preview built too early does not fail — it renders.** The pages come out complete and every
+photograph is blank, with no error in the tool result and nothing in the preview saying why. Sending
+that to a human costs you the one thing stage 5 exists to get: a correction on the real page.
+
+Tell them the link is the same one and everything they sent is still there. Do not ask them to rename
+files to match the checklist; pool names are derived server-side.
 
 ▸ Take the corrections before writing anything else. This gate settles what generalises: tone of
 voice, how much detail a section carries, what terminology the client uses, what claims are
@@ -624,9 +630,19 @@ uploaded photographs still attached. It reads the **last published** bundle, whi
 to publish at stage 5 and after every stage that changes anything.
 
 Validate, preview one last time, then `bundle_publish` with the domain, the bundle, and `org.json`,
-which is required because the entity graph is built from it alone. The client has had the upload link
-since stage 1, so this republishes to that same link; say so, rather than handing over what looks like
-a second one.
+which is required because the entity graph is built from it alone.
+
+**Paste the link. Every time, in full, even though they have had it since stage 1.** It republishes
+to that same link, so name it as the same one — "same page as before, nothing you uploaded has
+moved" — but a sentence telling someone to go and open a page, with no page in it, sends them to
+scroll back through a conversation to find one. Saying "the upload page" is not giving a link.
+
+**Never describe what they will see there. Read it.** "The button should be live" is a guess about
+state you did not check, and it is wrong in the two cases that matter: before any bundle has been
+published onto the pool the page has no button at all, only a line saying there is nothing to publish
+yet; and once the site is live the button reads *Published* and does nothing. `bundle_status` reports
+which of those it is. If for any reason you cannot read it, describe what you did and let them tell
+you what they see, rather than narrating a page you are imagining.
 
 **If publishing fails, say so and stop there.** Do not improvise a substitute route for the pictures
 or describe the site as finished. Tell them the pages could not be pushed to hosting, that their photo
