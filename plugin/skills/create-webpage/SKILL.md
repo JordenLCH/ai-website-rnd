@@ -143,17 +143,16 @@ independently — not as the arrangement that suits the tile you just drew.
 
 **At every ▸ you call `AskUserQuestion` and end your turn.** Not "here are three options, I picked
 A, moving on" — that is a generation with a commentary track, and it is the failure this workflow
-exists to prevent. The human is the client's proxy; they are the only one who knows which of two
-defensible choices is the one they will have to live with.
+exists to prevent. The human is the one who will have to live with the site, or answer to the
+customer who does; they are the only one who knows which of two defensible choices is right.
 
-**Establish at the first exchange whether that human *is* the client.** Both happen: the business
-owner themselves, or somebody at Blackdash building it for them. It changes what every blockquote in
-this skill is for. A line addressed to "you" — the photo page, the picture list, the live address —
-is written to be **forwarded to the client verbatim**, so when they are not in the chat, say who each
-message is for ("here's the wording to send them, with their photo link in it"). Everything else here
-— the gap lists, the direction trade-offs, the QA report — is for the person in front of you. Asking
-once costs a sentence; guessing wrong sends a client a message about themselves in the third person,
-or leaves them waiting for a link that was handed to somebody else.
+**The person in the chat is also the person who uploads the photographs.** There is one human here,
+not two: they read your messages, they open the photo page, they drop the files in. The upload page
+exists because a picture dropped into *this* conversation never reaches the server — the chat carries
+text, the browser carries bytes — and not because somebody else is doing the uploading. So the photo
+link goes to the person you are already talking to, and the blockquotes addressed to "you" are either
+for them directly or wording they will relay to their own customer. Never write as though the reader
+of that page is a stranger who needs telling what it is.
 
 The rule that catches the common self-deception: **if your message contains the words "I picked" or
 "I'll go with", it should have been an `AskUserQuestion` instead.** Recommending is fine and
