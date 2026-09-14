@@ -72,7 +72,7 @@ person:
 > Send me whatever you already have about the company. Drag the files straight into this chat:
 >
 > - company profile, brief, deck, brochure, product catalogue. PDF, Word, slides, all fine
-> - the logo (PNG, JPG or WebP, not SVG, which won't upload)
+> - the logo as a picture file — PNG, JPG or WebP. If all you have is an SVG, say so and we'll sort it out
 > - brand guidelines, if there are any
 > - a link to your current website, and to any competitor worth reacting to
 >

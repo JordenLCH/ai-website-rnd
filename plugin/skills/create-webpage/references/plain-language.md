@@ -31,6 +31,11 @@ site is stored, the sentence is wrong.
 Use these rather than an improvised version. They carry facts clients are surprised by, so the
 wording belongs in what they read. Adapt the details, keep the substance.
 
+**Send a script with nothing in front of it.** No "Stage 1 of 10", no "here's what happens next", no
+tool or artefact name. The stage numbering is how you and the operator track the run; to the person
+reading it, it says they are an item being processed. Every word in a script has to be one they could
+have heard from a person who does this for a living.
+
 ### Stage 1 — handing over the photo page
 
 > **Your photo page:** <link>
@@ -92,11 +97,11 @@ twenty."*
 When the publish response says `deploying` is true:
 
 > Your site is live: **john-com-my.pages.dev**. That address works right now, you can send it to
-> anyone. It's on the upload page too, once the build finishes.
+> anyone. It's on your photo page too.
 
 When `deploying` is false, the build succeeded but no address exists:
 
-> The site is built and everything is in place. It isn't on a public address yet: that's a step on
+> Your site is finished and everything is in place. It isn't on a public address yet: that's a step on
 > our side, and the team will sort it and send you the link.
 
 Either way, for their own domain:

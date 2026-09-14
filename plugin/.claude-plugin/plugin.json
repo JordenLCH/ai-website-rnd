@@ -1,7 +1,7 @@
 {
   "name": "website-create",
   "description": "Website create plugin \u2014 generate a marketing site as validated JSON (content + design tokens), never hand-written HTML. Ships the create-webpage, edit-webpage, check-webpage and sourcing-stock-photos skills and the Blackdash catalog MCP they read block schemas from.",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "author": {
     "name": "Blackdash"
   },

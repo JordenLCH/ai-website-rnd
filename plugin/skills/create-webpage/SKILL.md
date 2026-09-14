@@ -152,6 +152,14 @@ reaches the server, not because a second person is doing the uploading.
 nothing to look at. **Open each stage with one line naming it and what it will produce** — "Stage 3
 of 10 — three looks to choose from, coming up" — then do the work. One line, not a preamble.
 
+**That line is bookkeeping between you and the operator. It never touches a script.** Several stages
+hand over wording meant to go straight to the client — the document request, the photo page, the
+address at handoff. Those are quoted blocks, and **nothing is prepended to one**: no stage number, no
+count of what comes next, no tool name, no "then I'll do X". "Stage 1 of 10 — intake" sitting above
+a request for someone's brochures tells them they are an item in a workflow, which is the one thing
+the plain language was there to avoid. Put the stage line in its own paragraph before the block, or
+leave it out of that turn.
+
 **Emit each stage's artifact as it finishes, not batched at the gate**, so the human can start
 reading each one as it exists. The question is still asked once, at the end of stage 4.
 
