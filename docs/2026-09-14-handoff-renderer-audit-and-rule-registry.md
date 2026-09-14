@@ -2,14 +2,21 @@
 
 Written 2026-09-14 by the agent that did the work (`cc-free`), for whoever picks it up next.
 
-Two things are in here, and they are different in kind:
+> **Status, 2026-09-14 16:10 (`cc-rules`): everything in here is done and pushed.** The layout work
+> is `renderer` `2cf8c1b`; the registry and the drift guard are `69b5e3f` + `d845d7b`, with
+> `21d349b` + `078a390` in this repo. `website-renderer` `main` and `ai-website-rnd` `main` both
+> carry them, so they ship on the next prod deploy. The document is kept for its reasoning, not as
+> a task list — every section below records why a decision was made, and §4 is the specification
+> the registry was built from. What is genuinely still open is at the bottom of §5.
 
-1. **Work that is finished and verified but *not committed*** — 25 changed files plus 3 new ones in
-   the `renderer` submodule, and 2 in this repo. Read [§1](#1-uncommitted-work) before you touch
-   anything, because a stray `git checkout` in `renderer/` destroys a day's work.
+Two things were in here, and they were different in kind:
+
+1. **Work that was finished and verified but *not committed*** — 25 changed files plus 3 new ones in
+   the `renderer` submodule, and 2 in this repo. Committed as `2cf8c1b` / `6e40ecc`; §1 stays as the
+   record of what changed and why.
 2. **One open task with a real design behind it** — making the validator's rules enumerable so
    `house-rules.md` can be drift-guarded the way `catalog.md` already is. [§4](#4-the-open-task)
-   is the specification. This is the part that was handed off.
+   is the specification. **Done**, with two amendments recorded there.
 
 ---
 
@@ -182,9 +189,37 @@ Closed at both ends, which is the pattern to copy:
 
 ---
 
-## 4. The open task
+## 4. The task that was handed off — done
 
 **Make the validator's rules enumerable, then drift-guard `house-rules.md`.**
+
+> **Built as specified, with two amendments and one finding that changed the urgency.**
+> `renderer/src/rules.ts` is the registry (95 rules), `tools/house-rules-drift.ts` the guard
+> (`npm run house-rules`), and `house-rules.md` carries a `[rule:…]` tag per documented rule.
+>
+> The finding first: the drift below was described as a future risk, and it had already happened in
+> *both* directions. The doc stated four Gate 3 rules that exist nowhere in the renderer — "mosaic
+> galleries need >= 5 images" against a `.min(3).max(9)` schema whose check Gallery's own source
+> says was deliberately deleted; "single-large takes exactly one quote" against `.min(1).max(6)`;
+> short quotes for `quote-row`; landscape images for `wide-list`, which belongs to CatalogGrid and
+> has no `check()` at all. Meanwhile eleven rules that do fire were documented nowhere.
+>
+> **Amendment 1 — `rule` is required, not added.** The scope note below ("must be finished in one
+> pass") is solved by the type rather than by discipline: making `rule` required on `Issue`, and
+> removing the bare-string form of a `check()` result, means a half-migrated registry does not
+> compile. The compiler enumerated the call sites instead of a checklist.
+>
+> **Amendment 2 — `teach` decides what the doc owes.** Demanding doc coverage for all 95 ids would
+> have forced ~35 self-explanatory rules into the prose and made the doc worse. 62 are marked as
+> needing to be known *before* composing; the reverse check (a tag naming a rule that does not
+> exist) applies to all of them, since that is the direction the four invented rules were.
+>
+> Step 5's threshold check was worth doing and is narrower than proposed: it searches the tagged
+> bullet, not the paragraph, because in a list of a dozen rules a paragraph-wide number search
+> passes by coincidence. The **alternative** below (serve the rules over MCP, delete the doc) was
+> measured and declined: ~92 of the file's 205 lines mirror enumerable rules and ~113 are editorial
+> — the same split `catalog-doc-drift.ts` records for `catalog.md` (44/97), where the decision was
+> also keep-and-guard.
 
 ### The problem
 
@@ -259,9 +294,6 @@ a script they can run" is not an option for the generation path.
 
 ## 5. Also open
 
-- **The 21 block `check()` rules have no drift guard either**, and `catalog.md` documents prop
-  schemas rather than composition rules — so FreeSection's width-share rules are documented only in
-  `house-rules.md`. Same refactor covers them.
 - **`dev/preview-nocturne/` and `dev/themes/nocturne/`** are scratch from a theme-generation request
   (`nocturne-press`, a dark theme covering all 43 fleet slugs). `dev/` is gitignored; delete freely.
 
