@@ -132,6 +132,11 @@ sixteen questions reads as though they are.
 > 3. The logo file — PNG, JPG or WebP (an SVG needs converting first)
 > 4. What web address this will live at — if you haven't bought it yet, the one you intend to buy
 >
+> Once I have the web address I'll send you a photo page. Drop **every** photograph you have into
+> it — logo, products, the team, the premises, anything from an old site. Names don't matter and
+> extras are useful; I'll fit them to the pages as I write them, and you'll see them in the site
+> straight away.
+>
 > **A sentence each is plenty:**
 >
 > 5. Your brand colour — a code if you have one, otherwise just name it, or I'll read it off the
@@ -194,11 +199,15 @@ Three rules for running this list:
   Writing `ISO 9001` because it is the common one is inventing a credential.
 - **Never fill a blocker to keep moving.** A wrong registration number is a legal problem, not a
   formatting one. Stop and ask, or ship with the field absent and say so.
-- **Section photography is not an intake question; the logo is.** Bulk photos wait for stage 9,
-  after the layout exists and you know which images it actually needs — asking for those now gets
-  you a folder of whatever the client had to hand. The logo is the exception: it's one fixed file
-  whose header/footer role never depends on layout, so collect it now, the same turn as the legal
-  facts.
+- **Ask for the photographs here, and ask for all of them.** This reverses the old rule, which held
+  bulk photos back to stage 9 on the grounds that asking early gets you a folder of whatever the
+  client had to hand. It does — and that folder is worth more than a tidy list arriving after the
+  pages are written. Open the pool with `assets_open(domain, client)`, hand over the link, and say
+  names don't matter and spares are useful. You then *look* at what arrives (`assets_view`) and
+  compose the pages around it, instead of specifying pictures nobody has taken. The precise,
+  shot-by-shot request list still exists — it is stage 9, and it now covers only the gaps the pool
+  never filled. The logo is simply the first thing on that page, and the one to chase, because
+  stage 3's contrast reading depends on it.
 
 Nothing about hosting, SEO or refresh belongs in intake either. Those are derived server-side after
 upload and need nothing from the creator — see "After you hand off" in `SKILL.md`.
@@ -207,11 +216,13 @@ upload and need nothing from the creator — see "After you hand off" in `SKILL.
 ## Why the domain is a blocker, and why a provisional one is fine
 
 It looks like a launch detail, so it gets left to the end — and on the chat path that breaks the
-pictures. `bundle_publish` takes a domain, publishing is what mints the upload link, and the upload
-link is the **only** route a photograph has into the site. No domain, no link, no pictures: you reach
-stage 9 holding a list of images with no way to deliver any of them.
+pictures. The domain is the key the photo pool is filed under: `assets_open(domain, client)` is what
+mints the upload link, and that link is the **only** route a photograph has into the site. No domain,
+no link, no pictures — and now the cost lands at stage 1 rather than stage 9, because the whole point
+of opening the pool early is that the client uploads while the site is still being written. Answer it
+late and every picture arrives late with it.
 
-So ask at intake. While the site is still a draft the domain is only the key it is filed under, and
+So ask at intake, and open the pool in the same turn. While the site is still a draft the domain is only the key it is filed under, and
 `bundle_discard` lets you refile it — so a client who does not yet own the name is not blocked, and
 you must not let them postpone it: "we'll sort the domain later" silently postpones every photograph
 on the site.

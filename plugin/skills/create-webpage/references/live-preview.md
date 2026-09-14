@@ -26,6 +26,31 @@ edit — which is most of why editing feels slow once a draft is real. There's a
 Before a first draft exists — stages 2–4, nothing is real JSON yet — there is nothing to hold, so
 this doesn't apply; keep composing inline as usual until stage 5.
 
+## The photo pool — the upload page exists before the site does
+
+`assets_open(domain, client)` mints the browser upload link from nothing but a domain and a client
+slug. There is no bundle behind it yet, and that is the point: the photographs are the one thing
+only the client can supply, and collecting them last meant the pages were written around filenames
+nobody had seen, with the client's first view of their own site showing empty frames.
+
+Three tools, and the order matters:
+
+| Call | When | What it costs |
+|---|---|---|
+| `assets_open(domain, client)` | stage 1, the moment the domain is answered | one call; idempotent, so calling it again keeps the link and the files |
+| `assets_list(domain)` | stage 2, and again whenever they say they've added more | cheap — names, pixel dimensions, sizes, plus `srcPrefix` |
+| `assets_view(domain, names)` | stage 2, before writing any `alt` or `imageKind` | a thumbnail each, up to 8 a call — the only time you see the pictures |
+
+**The stored name is the server's, not the client's.** Everything in the pool is re-encoded to
+`.webp` under a sanitised name: `Showroom Front.JPG` becomes `showroom-front.webp`, two files that
+would collide are suffixed `-2`, `-3`. So `src` is `srcPrefix` + the name `assets_list` gave you,
+verbatim — anything tidier you invent points at a file that is not there.
+
+**After the first `bundle_publish` the same page gains its checklist.** The pool does not go away:
+publishing upserts onto it, keeps the code and keeps every file, and the page then shows the
+pictures the site references, with anything left over listed underneath as spares. An unplaced
+photograph never blocks publishing.
+
 ## Uploading pictures early — the preview shows the real file, live
 
 `bundle_publish` does two things: it stores the JSON on the hosting side (as a **draft**, not a

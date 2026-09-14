@@ -52,6 +52,7 @@ context you need for composition.
 
 | | chat (default) | in a checkout |
 |---|---|---|
+| Photographs | `assets_open` at stage 1, then `assets_list` / `assets_view` | drop files into `content/<client>/assets/` |
 | Validate | `bundle_validate` | `npm run validate -- <client>` |
 | Preview | `site_preview` — renders in the conversation | `npm run dev`, port 5183 |
 | Publish | `bundle_publish` — returns a link for the pictures | `./package.sh <client>`, upload the zip |
@@ -69,10 +70,16 @@ fail on a path that isn't there —
 and `site_preview(draftId)` draws the result. `references/live-preview.md` has the op shapes and the
 2h hold.
 
-**Publish early, once you have a domain and a draftId.** Publishing only ever creates a draft, never
-a live deploy, so it is safe to call early or repeatedly — and until pictures are uploaded every
-`<img>` in the preview is blank, logo included. Hand over the upload link at stage 5 and say
-"upload now, it'll show up in the preview live."
+**The pictures come first now.** `assets_open(domain, client)` at stage 1 mints the browser upload
+page before any bundle exists, so the client is dropping photographs while you are still discussing
+the sitemap — and `assets_list` / `assets_view` let you read and *look at* what arrived. Write those
+stored filenames into your props and the first `site_preview` of the home page already has real
+pictures in it, rather than the page of empty frames this flow used to start with.
+
+**Publish early too, once you have a draftId.** Publishing only ever creates a draft, never a live
+deploy, so it is safe to call early or repeatedly, and it upserts onto the same pool: same link, same
+uploads, nothing lost. What it adds is the checklist — from that point the upload page also names the
+pictures the site still wants.
 
 **Then re-publish at the end of every stage that adds an image.** The upload page derives its
 checklist from the *published* bundle, so a picture added at stage 6 or 7 is invisible on that page
@@ -98,8 +105,10 @@ below produces something small enough to review in seconds, and you stop and wai
 
 ```
 1  intake             (human)  drop the documents first, you read them, then ask what's left
-                              — including the brand colour, which stage 3 is built from
-2  content inventory  (you)    what copy exists and what it breaks — prep, no gate
+                              — including the brand colour, which stage 3 is built from,
+                              and the photo link, so the pictures arrive while you work
+2  content inventory  (both)   what copy exists and what it breaks, and what photographs
+                              actually turned up — prep, no gate
 3  theme              (you)    3 proposed, shown as style tiles
 4  sitemap            (you)    pages + section roles, sampled, plus a skeleton of the home page
                                                                    ▸ human decides or revises (2+3+4)
@@ -107,7 +116,7 @@ below produces something small enough to review in seconds, and you stop and wai
 6  proof pages        (you)    the two densest, corrections applied ▸ human decides or revises
 7  remaining pages    (you)    the rest, if any
 8  design QA          (you)    breakpoints, states, contrast        ▸ human sees the list
-9  assets & facts     (both)   real photos, verified numbers — you source stock for the gaps
+9  assets & facts     (both)   the gaps only — stock for what the pool never had, verified numbers
 10 hand off           (you)    validate, publish, hand over the upload link
 ```
 
@@ -252,10 +261,24 @@ discrepancy for you to silently resolve either way.
 one per objective; stage 4 always samples orderings and drops the mode. Letting the human dial either
 down to one hands them the mode.
 
-**Section photography is not an intake question; the logo is.** Bulk photos wait for stage 9, after
-the layout exists and you know which images it actually needs. The logo is the exception: one fixed
-file whose header/footer role never depends on layout, so collect it now, the same turn as the legal
-facts.
+**Open the photo page in this same turn, and ask for everything.** As soon as you have the domain
+and the client slug, call `assets_open(domain, client)` and hand over the link it returns:
+
+> **Your photo page:** <link>
+> Drop in every photograph you have — logo, products, the team, the premises, anything from an old
+> site. Names don't matter and spares are useful; I'll fit them to the pages as I write them. The
+> link keeps working, so come back whenever you find more.
+
+This used to be a stage 9 question, and putting it last was the mistake: the pages got written
+around filenames that existed nowhere, the client's first sight of their own site was a page of
+empty frames, and the one thing only they can supply was collected after everything built on it.
+Now the photographs arrive while stages 2–4 are still being discussed, and the **first** preview of
+the home page has real pictures in it.
+
+Two things follow from opening it here. The domain is a genuine blocker at stage 1 rather than a
+stage 5 one — `assets_open` files the pool under it. And the logo is no longer a special case: it is
+simply the first thing on the photo page, and the one to chase if nothing else arrives, because
+stage 3's contrast reading depends on it.
 
 **Done when** every blocker carries a value or an explicit "they don't have one", and every fact
 you filled in from a document cites the document it came from, so the human can correct it in one
@@ -298,6 +321,19 @@ survive:
 This table is the input to stage 8's content-extreme pass — without it that pass invents its own
 extremes and tests the layout against content the client will never have.
 
+**Read the photo pool before anything else in this stage.** `assets_list(domain)` says what turned
+up, under the names it is stored as; `assets_view(domain, names)` shows you up to eight of them at a
+time, small. Look at them — this is the only moment anything in this pipeline knows what a picture is
+*of*, and three later decisions are made from it: `alt` written from the image rather than the
+filename, `imageKind` (`environment` / `cutout` / `detail`, which the validator checks against
+`overlay-fullbleed` and can only check against what you declared), and stage 3's direction, which
+should answer the client's real photography instead of imagining it.
+
+Add what you saw to the inventory: one row per picture — the stored name, what is actually in frame,
+and which section role it could carry. That list is also the honest version of the gap question at
+stage 4's checkpoint: "the pages I'm proposing need a picture of X and there isn't one" is something
+the client can act on while there is still time, which is the entire reason this moved to stage 1.
+
 **Photographs that arrived with the brief are not automatically assets.** A folder of stock the
 client already chose looks like a solved problem and often is not — it validates, it looks plausible,
 and nothing downstream ever questions it. Open every one and say what is actually in the frame, not
@@ -321,8 +357,8 @@ Anything missing here is a question for stage 4's checkpoint, not a stop of its 
 gap list forward and ask once.
 
 **Done when** the words-available column is totalled, the extremes table has a row for every
-constraint you found, and you have said out loud whether the total supports the scope asked for at
-intake.
+constraint you found, every photograph in the pool has been looked at and described, and you have
+said out loud whether the total supports the scope asked for at intake.
 
 ### 3. Theme — the look on one sheet, not a fake page
 Now, and not before, choose the visual direction. The first direction you think of is the mode, which
@@ -571,10 +607,14 @@ call** — never as nine rows of ratios they cannot verify.
 **Done when** `check-webpage` reports all nine rows with a Who and a Result, and its browser-only
 questions have been put to the human.
 
-### 9. Assets and facts — name every picture the site needs
-The layout now exists, so you know exactly which images it wants and what each one has to be. Turn
-that into a list and hand it over — a human asked "send me some photos" sends whatever is on their
-phone; a human asked for "your workshop, wide, showing the bays in use" sends that.
+### 9. Assets and facts — the gaps the pool never filled
+Most of the photography arrived at stage 1 and is already placed, so this stage is now about the
+difference: slots the pool has nothing for. Run `assets_list` once more first — clients keep
+uploading after the conversation moves on — and only then write the request list.
+
+The layout now exists, so you know exactly which images are still wanted and what each one has to
+be. Turn that into a list and hand it over — a human asked "send me some photos" sends whatever is on
+their phone; a human asked for "your workshop, wide, showing the bays in use" sends that.
 
 **Produce the picture list first**, one row per image slot the bundle references. **The filename
 column is the point** — the upload page matches dropped files by name against the `src` in your
@@ -603,6 +643,12 @@ shape exactly, and a `src` of `"hero-workshop.jpg"` or `"images/hero.jpg"` is si
 upload page never asks for it, `bundle_status` never reports it missing, and the image is
 permanently blank with no error anywhere. So `hero-workshop.jpg` in the table below means
 `"src": "/img/john/hero-workshop.jpg"` in the props.
+
+**For a picture already in the pool, the filename is not yours to choose.** Copy it verbatim from
+`assets_list` — the pool stores everything as `.webp` under a name derived from what the client
+dropped, so `Showroom Front.JPG` is on disk as `showroom-front.webp` and a tidier name you invented
+points at nothing. `assets_list` returns `srcPrefix` for exactly this: prefix + stored name, nothing
+in between. Only the *new* requests in this stage's table get names you pick.
 
 Name each file for what it shows before you hand the list over; `image-1.jpg` leaves them no way to
 tell which is which.
