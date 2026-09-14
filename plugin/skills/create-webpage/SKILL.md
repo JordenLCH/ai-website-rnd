@@ -637,15 +637,20 @@ The layout now exists, so you know exactly which images are still wanted and wha
 be. Turn that into a list and hand it over — a human asked "send me some photos" sends whatever is on
 their phone; a human asked for "your workshop, wide, showing the bays in use" sends that.
 
-**Produce the picture list first**, one row per image slot the bundle references. **The filename
-column is the point** — the upload page matches dropped files by name against the `src` in your
-props, so a row without the exact filename is a row the human cannot deliver:
+**Produce the list first**, one row per slot still empty. **The description column is the point** —
+what the picture has to show is the only part the client can act on, and the difference between
+"send me some photos" and a photograph you can actually use:
 
-| Save it as | Where it goes | What it has to show | Shape |
+| What to send | Where it goes | Shape | (your slot name) |
 |---|---|---|---|
-| `hero-workshop.jpg` | top of the home page | the workshop with bays in use, room at the top for the headline | wide |
-| `cfm-backrest.jpg` | products, third card | the backrest alone on a plain ground | square |
-| `founder-portrait.jpg` | about page | the founder, waist-up | portrait |
+| the workshop with bays in use, room at the top for the headline | top of the home page | wide | `hero-workshop.webp` |
+| the backrest alone on a plain ground | products, third card | square | `cfm-backrest.webp` |
+| the founder, waist-up | about page | portrait | `founder-portrait.webp` |
+
+The last column is **yours, not theirs** — it is the `src` you already wrote, and what a slot is
+called is now invisible to the client. Whatever name their file arrives under, the picture lands in
+the pool and you point the slot at it. Keep the column in your own notes so you know which arrival
+answers which row; do not put it in front of them.
 
 **`alt` is written twice, and the validator polices neither.** While composing you have no pixels, so
 write the alt the picture list *specifies* — "the cold store, down an aisle, racking either side" —
@@ -662,28 +667,29 @@ before seeing the pixels is correct: you are not describing a photo, you are spe
 **The `src` you write must be `/img/<client>/<filename>`** — hosting matches uploads against that
 shape exactly, and a `src` of `"hero-workshop.jpg"` or `"images/hero.jpg"` is silently dropped: the
 upload page never asks for it, `bundle_status` never reports it missing, and the image is
-permanently blank with no error anywhere. So `hero-workshop.jpg` in the table below means
-`"src": "/img/john/hero-workshop.jpg"` in the props.
+permanently blank with no error anywhere. So `hero-workshop.webp` in the table above means
+`"src": "/img/john/hero-workshop.webp"` in the props.
 
 **For a picture already in the pool the filename is not yours to choose** — copy it verbatim from
 `assets_list`, as stage 5 says. Only the *new* requests in this stage's table get names you pick.
 
-Name each file for what it shows before you hand the list over; `image-1.jpg` leaves them no way to
-tell which is which.
+Name each slot for what it shows — `image-1.webp` leaves *you* no way to tell which arrival answers
+which row, which is the only thing slot names are now for.
 
 **Hand over the list with this, adapted.** Everything in it is something clients hit and are
 surprised by, so it belongs in the words they read rather than in a note to yourself to mention it:
 
-> **Your photo page:** <upload link>
 >
-> It lists every photo the site is waiting for, by name. Open it in a browser — your phone is fine,
-> that's where the pictures are.
+> **Same photo page as before:** <upload link>
 >
-> - **Rename each photo to the name on the list, then drop it in.** That's how the page knows which
->   picture goes where. **Don't convert or resize anything** — send them straight off your phone in
->   whatever format they are, and the site sorts that out.
-> - **Dropped the wrong one somewhere?** Delete it on that page, or just drop the right one in under
->   the same name. Nothing to start over.
+> Everything you've already sent is still there — nothing to re-send, nothing to rename. These are
+> the pictures the site still doesn't have anywhere:
+>
+> [the list]
+>
+> - **Just drop them in.** Any filename is fine; I'll put each one where it belongs. **Don't convert
+>   or resize anything** — straight off your phone in whatever format they are.
+> - **Something wrong?** Each picture on the page has *replace* and *remove* beside it.
 > - You can close the page and come back — it remembers what's already in.
 > - Nothing is public while you do this.
 >
@@ -693,25 +699,30 @@ surprised by, so it belongs in the words they read rather than in a note to your
 > Worth knowing now: **once you publish, that page stops accepting photos.** If you want to swap one
 > later, come back to me and I'll reopen it. The link isn't broken, it's finished.
 
-Why each line is there: hosting decodes JPEG, PNG, WebP, AVIF, **HEIC**, TIFF and GIF and re-encodes
-to the format the *name* says, so "convert it first" is work the server already does and an iPhone
-photo goes up as it came off the phone. A wrong name is refused with the full list of names it
-wanted, which reads as an error rather than as guidance. And after publishing, uploads answer "this
-site is published; re-publish from the conversation to change it" — a client who was not told that
-concludes the link died.
+Why each line is there: hosting decodes JPEG, PNG, WebP, AVIF, **HEIC**, TIFF and GIF, so "convert
+it first" is work the server already does and an iPhone photo goes up as it came off the phone.
+Filenames are not the client's problem any more — anything that does not match a slot is stored as a
+spare under a name the server derives, and **wiring it to the right section is your job**: read the
+new names from `assets_list`, look at them with `assets_view`, and patch the `src` of the slot each
+one belongs to. And after publishing, uploads answer "this site is published; re-publish from the
+conversation to change it" — a client who was not told that concludes the link died.
 
 Three limits, if they come up: **40 MB** a file, **2400px** on the longest edge (everything is
 resized down on arrival, so a print-resolution original is not what gets served), and **no SVG** —
 a logo needs PNG or WebP. Photo metadata is dropped in re-encoding, which matters to anyone who
 assumes their copyright EXIF travels with the file.
 
-Ask for their own photographs first — they almost always have more than they think, and a real
-picture of the actual place beats anything you can source. Rows that come back empty are the gap
-list, and only the gap list goes to stock.
+Their own photographs were asked for at stage 1 and most of them are already placed, so do not run
+that request again — this list is only what the pool never had. Chase it once; a real picture of the
+actual place beats anything you can source. Rows still empty after that are the gap list, and only
+the gap list goes to stock.
 
-**`bundle_status(domain)` is the loop's exit condition** — it is keyed by the domain, not the draftId. It reports exactly which expected files are still
-missing, so work it until it is empty rather than asking "did you upload them?" — the human often
-believes they did, and a file that landed under the wrong name is invisible to both of you.
+**`bundle_status(domain)` is the loop's exit condition** — it is keyed by the domain, not the
+draftId. It reports exactly which expected files are still missing, so work it until it is empty
+rather than asking "did you upload them?" — the human often believes they did. Check `extras` in the
+same breath: a picture that arrived under a name no slot uses is sitting in the pool, invisible to
+the checklist, and it is usually the very photograph you asked for. Look at it, patch the slot's
+`src` to that name, and re-publish.
 
 **Then work the `unverified` checklist**: every marked section is confirmed, corrected, or removed.
 Until it is empty the build farm refuses to publish. Verify every number and claim while you are
