@@ -92,6 +92,7 @@ Each stage produces something small enough to review in seconds. Stop and wait a
 1  intake             (human)  drop the documents first, you read them, then ask what's left
                               — including the brand colour, which stage 3 is built from,
                               and the photo link, so the pictures arrive while you work
+                                                                   ▸ human corrects the blocker table
 2  content inventory  (you)    what copy exists and what it breaks, and what photographs
                               turned up while you worked — prep, no gate
 3  theme              (you)    3 proposed, shown as style tiles
@@ -108,7 +109,12 @@ Each stage produces something small enough to review in seconds. Stop and wait a
 Everything after the upload — SEO/AEO/GEO artifacts, hosting, scheduled refresh — happens on the
 platform. See "After you hand off".
 
-**Stages 2, 3 and 4 share one checkpoint**, at the end of stage 4: show the gap list, the style
+**Stage 1 ends at its own checkpoint** — the five-row blocker table, corrected by the human. It is
+the only stage whose output is otherwise a conversation, which is what made it the one that got
+skipped: the run to the stage-4 gate passes straight through it and nothing is missing from the
+screen afterwards.
+
+**Stages 2, 3 and 4 then share one checkpoint**, at the end of stage 4: show the gap list, the style
 tiles and the sitemap together and ask once. Do the content inventory before the theme, and sample
 the sitemap independently — a structure chosen after the look is fitted to it, and the safe structure
 fits every look.
@@ -120,6 +126,11 @@ the site, or answer to the customer who does.
 
 **If your message contains the words "I picked" or "I'll go with", it should have been an
 `AskUserQuestion` instead.** Recommend, don't decide.
+
+**If you are about to propose a theme and have not seen the logo file, stop and ask for it.** A pale,
+gold or thin-stroked wordmark measures under 3:1 on white and forces every direction onto a dark
+header band. Three directions proposed without that reading are three that may all have to be
+redrawn, and the human will have approved one of them by then.
 
 | At a ▸ | Do |
 |---|---|
@@ -195,6 +206,16 @@ The facts become `org.json`, the third artifact of the bundle, sent with `bundle
 path and written to `content/<client>/org.json` in a checkout. Never invent them: cite the source
 document for each extracted value so the human can correct it in one pass.
 
+**Only the client is a source.** A fact you remember, a fact from a previous build for this client,
+and a fact from their live website are all **provisional**: name that origin in the table below and
+read it back for confirmation. None of them closes a gap. Their website is what they published, not
+what they have approved for this one; a registration number you recall is one you cannot cite; and
+the POC you built last year was working from a brief that has since changed.
+
+This is the failure that looks least like one. Research and memory make the gap list short, a short
+gap list reads as a footnote rather than as a blocker, and nothing downstream can tell a fact the
+client confirmed from a fact you found. Fill the cells from anywhere you like — then ask.
+
 **The opener and the follow-up gap list are in `references/intake.md`**, with the `org.json` schema
 and the Malaysia registration-number rule. Use them verbatim, as markdown in the chat, never inside a
 code block. Cut every item the documents already answered. Client-facing text carries no schema
@@ -228,8 +249,32 @@ if we don't go ahead", are in `references/plain-language.md`.
 
 Chase the logo first if nothing arrives: stage 3's contrast reading depends on it.
 
-**Done when** every blocker carries a value or an explicit "they don't have one", and every fact you
-filled in from a document cites that document.
+**Emit the blocker table before going on — all five rows, every cell filled:**
+
+| Blocker | Value | Where it came from |
+|---|---|---|
+| Legal name | Merryfair Chair System Sdn Bhd | company profile p.1 |
+| Registration number | 86276-A | **their website — unconfirmed** |
+| Phone / email | +60 3 3176 2288 / none found | brochure p.4; no email anywhere |
+| Domain | merryfair.com | they said so, read back |
+| Logo file | **not supplied** | asked; chasing |
+
+"They don't have one" is a filled cell. "Not supplied" is a filled cell. An empty cell is not, and
+neither is one whose only origin is your own memory — that one gets the word **unconfirmed** next to
+it and goes to the human as a question.
+
+▸ **Put the table up and ask them to correct it**, before the content inventory. Stages 2, 3 and 4
+each end in something visible, so skipping one of those shows. Stage 1 ends in a conversation, and an
+unenforced stage that produces no artifact is the one that gets compressed when you are heading for
+the first checkpoint. The table is what makes it visible, and this gate is what makes it a stage.
+
+You will reach stage 3 with an empty logo cell otherwise, and stage 3 cannot be done without it.
+
+**A returning client is a new build, not a continuation.** Nothing carries over on its own. Every
+fact is re-confirmed at this table regardless of how sure you are, because the thing that changed
+since the last build is exactly what nobody will think to mention. And a new domain is a new photo
+pool — `assets_open` keys on the domain, so the previous site's uploads are not in it and the client
+uploads again. Say that in the first message rather than when they ask where their pictures went.
 
 Nothing about hosting, SEO or refresh belongs in intake. Those are derived server-side after upload.
 
@@ -288,6 +333,12 @@ constraint, every photograph in the pool has been looked at and described, and y
 the total supports the scope asked for at intake.
 
 ### 3. Theme — the look on one sheet, not a fake page
+
+**Open by stating the logo's contrast ratio against white**, measured from the file, not from the
+brief. It is an input to this stage, not a note left behind in stage 1: under 3:1 every direction you
+propose needs a dark header band, and that is a decision about all three candidates rather than a
+detail of one. If the file never arrived, say so in the same breath and propose only directions that
+survive either answer — then chase it before stage 5, where the header gets built.
 
 **Propose three, each from a different objective**: Measured (processing fluency), Fit
 (prototypicality for the category), Spark (novelty inside the same measured floor). Three samples of

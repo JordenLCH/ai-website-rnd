@@ -194,8 +194,12 @@ that sampling is what keeps sites from converging on the training-data default, 
 human dial it down to one undoes the reason it exists. Recommend one, show the sampling; don't ask
 how many to generate.
 
-Three rules for running this list:
+Four rules for running this list:
 
+- **A source that is not the client is provisional.** Their live website, a previous build, your own
+  recollection — each goes on the list with that origin named and an `unconfirmed` marker, and each
+  still has to be read back. Researching the client is worth doing and closes nothing: it makes the
+  list short, and a short list stops reading like a blocker. See the blocker table in `SKILL.md`.
 - **A vague answer is a missing answer.** "ISO standards" is not a certification; ask which one.
   Writing `ISO 9001` because it is the common one is inventing a credential.
 - **Never fill a blocker to keep moving.** A wrong registration number is a legal problem, not a
