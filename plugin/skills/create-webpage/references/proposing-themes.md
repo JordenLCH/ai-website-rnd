@@ -162,7 +162,7 @@ layout instead of the type and colour you want a decision on.
 
 ## The `direction` block
 
-Written at the top level of `theme.json` once the human picks. It is what stage 7's check 5 audits
+Written at the top level of `theme.json` once the human picks. It is what stage 8's check 5 audits
 the tokens against, and what the next agent reads instead of re-deriving the direction from values.
 
 ```json

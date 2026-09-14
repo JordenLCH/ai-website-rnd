@@ -74,6 +74,14 @@ a live deploy, so it is safe to call early or repeatedly — and until pictures 
 `<img>` in the preview is blank, logo included. Hand over the upload link at stage 5 and say
 "upload now, it'll show up in the preview live."
 
+**Then re-publish at the end of every stage that adds an image.** The upload page derives its
+checklist from the *published* bundle, so a picture added at stage 6 or 7 is invisible on that page
+until the next `bundle_publish` — the human is looking at a list that stopped growing at the home
+page, with no way to upload the photograph you just asked for. Re-publishing keeps the same link and
+everything already uploaded, so this costs one call. After it, `site_preview(draftId)` shows every
+file they have dropped in so far, at the real crop — which is how the site fills with real pictures
+while it is still being written, instead of arriving blank at hand-off.
+
 **Reference the path the human actually uploaded**, verbatim, including its capitalisation
 (`uploads/OPTIMISED/LOGO/logo.svg`). A tidier path you invented is a broken image nobody sees until
 the site is live.
@@ -95,11 +103,12 @@ below produces something small enough to review in seconds, and you stop and wai
 3  theme              (you)    3 proposed, shown as style tiles
 4  sitemap            (you)    pages + section roles, sampled, plus a skeleton of the home page
                                                                    ▸ human decides or revises (2+3+4)
-5  first pages        (you)    home + the two densest, real copy    ▸ human decides or revises
-6  remaining pages    (you)    applying the corrections
-7  design QA          (you)    breakpoints, states, contrast        ▸ human sees the list
-8  assets & facts     (both)   real photos, verified numbers — you source stock for the gaps
-9  hand off           (you)    validate, publish, hand over the upload link
+5  home page          (you)    one page, real copy, published      ▸ human decides or revises
+6  proof pages        (you)    the two densest, corrections applied ▸ human decides or revises
+7  remaining pages    (you)    the rest, if any
+8  design QA          (you)    breakpoints, states, contrast        ▸ human sees the list
+9  assets & facts     (both)   real photos, verified numbers — you source stock for the gaps
+10 hand off           (you)    validate, publish, hand over the upload link
 ```
 
 Everything after the upload — SEO/AEO/GEO artifacts, hosting, scheduled refresh — happens on the
@@ -138,9 +147,20 @@ Three legitimate exceptions, and only these: the human said "don't ask, just bui
 as a subagent with no human attached; or a prior answer at this same checkpoint already covers the
 question. Say which one applies, once, rather than silently skipping.
 
-**Between ▸ marks, run straight through to the next one.** The nine stages are the checkpoints; a
+**Between ▸ marks, run straight through to the next one.** The ten stages are the checkpoints; a
 checkpoint every two paragraphs moves the work back onto the human, which is what the gates exist to
 prevent.
+
+**But never run silently.** Stages 2, 3 and 4 share one gate, so that stretch is three stages of work
+with nothing to look at — and a human watching a model generate for minutes with no sign of what it
+is doing cannot tell progress from a hang. **Open each stage with one line naming it and what it will
+produce** — "Stage 3 of 10 — three looks to choose from, coming up" — then do the work. One line, not
+a preamble; the deliverable is still the message.
+
+**Emit each stage's artifact as it finishes, not batched at the gate.** The content inventory table,
+the style tiles and the sitemap are three separate things the human can start reading the moment each
+exists. Holding all three back to arrive together triples the wait before anything appears on screen
+and buys nothing — the *question* is still asked once, at the end of stage 4.
 
 ### The person deciding is not a designer
 
@@ -191,7 +211,7 @@ a different design approved under the same name.
 **Open by asking for the files, not for the fields.** The client already has a company profile, a
 deck, a brochure and a logo; those documents contain most of what `org.json` needs. Ask them to drag
 the lot into the chat, read every one, and only then ask about what is actually still missing —
-usually four or five things instead of sixteen. A person retyping their own phone number out of
+usually four or five things instead of fifteen. A person retyping their own phone number out of
 their own PDF is the skill doing its extraction work for it, badly.
 
 The facts become `org.json` — the third artifact of the bundle, sent with `bundle_put` on the chat
@@ -201,7 +221,10 @@ so cite where each extracted value came from and let the human correct it in one
 
 **Both wordings — the "send me your files" opener and the follow-up gap list — are in
 `references/intake.md`, along with the `org.json` schema and the Malaysia registration-number rule.
-Use them verbatim.** Left to invent the wording, one model produces a tidy form and another files
+Use them verbatim, as markdown in the chat — never inside a code block, and never with hand-padded
+columns.** Fenced monospace reads as a printout rather than a message, and a client who has to work
+through seventeen aligned lines answers the first four. Cut every item the documents already
+answered: the list in the reference is the maximum, not a form to reproduce. Left to invent the wording, one model produces a tidy form and another files
 asset questions under a heading like "Platform details", and the difference lands on the client.
 The human-facing text carries **no schema jargon** — not `sameAs`, not `areaServed`, not a statute
 number. Ask for "links to your company anywhere else online"; do the mapping to field names
@@ -221,7 +244,7 @@ the full breakdown and why each item is where it is.
 later, so establish them here. **Its contrast against white**: a gold, pale or thin-stroked wordmark
 on a transparent ground can measure under 3:1 on paper, which means every direction you propose has
 to put the header on a dark band — a constraint, not a preference, and much cheaper to know now than
-at stage 7. And **its actual colours**: sample the file rather than trusting the brief. A brand sheet
+at stage 8. And **its actual colours**: sample the file rather than trusting the brief. A brand sheet
 saying `#D4AF37` over a wordmark that is really `#CFB66F` is a question for the client, not a
 discrepancy for you to silently resolve either way.
 
@@ -229,7 +252,7 @@ discrepancy for you to silently resolve either way.
 one per objective; stage 4 always samples orderings and drops the mode. Letting the human dial either
 down to one hands them the mode.
 
-**Section photography is not an intake question; the logo is.** Bulk photos wait for stage 8, after
+**Section photography is not an intake question; the logo is.** Bulk photos wait for stage 9, after
 the layout exists and you know which images it actually needs. The logo is the exception: one fixed
 file whose header/footer role never depends on layout, so collect it now, the same turn as the legal
 facts.
@@ -266,13 +289,13 @@ survive:
 |---|---|
 | Longest product/service name | "Constant Force Mechanism (CFM) backrest" — 39 chars, will wrap in a card title |
 | Longest / shortest headline | 9 words vs 3 — one type size cannot flatter both |
-| Topics with no usable photo | 3 of 7 services — those sections must work type-only, or take stock at stage 8 |
+| Topics with no usable photo | 3 of 7 services — those sections must work type-only, or take stock at stage 9 |
 | Mandatory text | licence number and disclaimer must appear on every page |
 | Uneven lists | product range is 9 items, accreditations are 2 |
 | Supplied photographs that are stock | 10 images arrived, all Unsplash — none of the client, the place or the people |
 | What the client may not legally say | regulated profession: no outcome claims, no testimonials |
 
-This table is the input to stage 7's content-extreme pass — without it that pass invents its own
+This table is the input to stage 8's content-extreme pass — without it that pass invents its own
 extremes and tests the layout against content the client will never have.
 
 **Photographs that arrived with the brief are not automatically assets.** A folder of stock the
@@ -280,7 +303,7 @@ client already chose looks like a solved problem and often is not — it validat
 and nothing downstream ever questions it. Open every one and say what is actually in the frame, not
 what the filename claims. Three failure kinds, all seen on real briefs: a **recognisable place**
 standing in for the client's own (a famous library captioned as their office); **third-party
-branding** in shot, which is stage 8's check arriving five stages early; and an object that is simply
+branding** in shot, which is stage 9's check arriving six stages early; and an object that is simply
 **wrong for the jurisdiction or trade** — a gavel on a Malaysian or any Commonwealth legal site,
 where courts do not use them. Identifiable faces are their own problem: stock models placed near
 "our team" read as staff who do not exist. A stock image the client picked is a row on the gap list,
@@ -345,7 +368,7 @@ contradiction is only visible if the word was written down. Pick adjectives a co
 uncomfortable — the discomfort is what stops the set collapsing into the words every site uses.
 Record what you rejected.
 
-Put it at `theme.direction`, top level — `references/proposing-themes.md` has the shape. At stage 7
+Put it at `theme.direction`, top level — `references/proposing-themes.md` has the shape. At stage 8
 it is what you audit the tokens against, including for the next agent, who otherwise re-derives the
 direction from the values and gets it wrong.
 
@@ -440,20 +463,16 @@ validation, and without the field nobody can tell which happened.
 **Done when** every option shows every page with its ordered roles *and* a skeleton, the do-not list
 is stated, and the human has picked a theme and a sitemap at the ▸.
 
-### 5. First pages — three of them, then stop
-Write **three pages fully: the home page, and the two that carry the most structured content** — the
-spec table, the price comparison, the nine-item catalogue, the form. Then stop.
+### 5. Home page — one page, then stop
+Write **the home page only**, at full density, and stop. Nothing else, no matter how ready the
+sitemap looks.
 
-Three, not one: a home page is a hero, a proof strip and a call to action, and almost any set of
-tokens survives it. The system only proves itself on the dense pages — which is why studios design
-the key screen and the hardest screen in the same sitting, and why layout defects concentrate on
-dense sections nothing has exercised yet. Two dense pages rather than one also catches the defect a single page cannot show: a slug that
-was quietly tuned to suit *that* page and breaks on the next one using it.
-
-**If the sitemap has three pages or fewer, this stage is the whole site** — say so, take the
-corrections, and stage 6 has nothing to do. Four or five pages: still write three. The point is to
-spend the correction round on the pages carrying the most structure, not to get closest to
-finishing.
+One page, not three: the home page exercises most of the range the rest of the site reuses — hero,
+proof, capability, story, call to action — so a correction here lands on nearly everything that
+follows. And it is the shortest possible distance between "approved a sitemap" and "looking at a real
+page". Writing three pages before the first gate is 2,000+ words of full-density copy composed
+against an unvalidated reading of the tone, which is a long wait to find out the voice is wrong and
+a costly one to redo.
 
 Write it **at full density**: **60+ words and 6+ content nodes per section**, **700+ words per
 page**, one image per two sections that can carry one. Hero, CTA, quote, nav and footer are exempt,
@@ -469,12 +488,7 @@ Headlines must carry a concrete noun from the brief that a competitor could not 
 faster. Ship smarter." is a slop tell independent of any visual choice: if the headline would still
 be true with the client's name swapped for a rival's, it is decoration, not copy.
 
-These three settle every question that generalises: tone of voice, how much detail a section
-carries, what terminology the client uses for their own products, what claims are off-limits. The
-home page in particular exercises most of the range — hero, proof, capability, story, call to
-action — so a correction there lands on most of what follows.
-
-**Publish here, before the corrections.** You have real pages and you took the domain at intake, so
+**Publish here, before the corrections.** You have a real page and you took the domain at intake, so
 `bundle_publish` now and hand over the upload link — this is the moment the site gains any route at
 all for a photograph, and every later stage assumes the link is already in their hands. It creates a
 draft, never a live site, and re-publishing keeps both the link and anything already uploaded. Tell
@@ -483,21 +497,50 @@ and drop them in whenever you like. They'll appear as they land, and nothing is 
 so."
 
 The page derives that checklist from the `src` values already in the bundle, so it works from here
-on. Stage 8 is where you turn it into a brief they can act on — what each picture has to *show* —
+on. Stage 9 is where you turn it into a brief they can act on — what each picture has to *show* —
 but a client who wants to start now is not blocked.
 
-▸ Take the corrections before writing anything else. Collected after the whole site exists, they mean
-rewriting the whole site; collected here, they cost three pages at most — and usually none, because
-a correction to tone or density is applied to stage 6's pages as they are written.
+▸ Take the corrections before writing anything else. This gate settles what generalises: tone of
+voice, how much detail a section carries, what terminology the client uses for their own products,
+what claims are off-limits. Collected after the whole site exists, those corrections mean rewriting
+the whole site; collected here, they cost one page.
 
+**Done when** one page carries real copy, every section on it is either off thin or on the exempt
+list — counted, not estimated — and the upload link is in their hands.
 
-**Done when** three pages carry real copy and every section on them is either off thin or on the
-exempt list — counted, not estimated.
+### 6. Proof pages — the two densest, with the corrections applied
+Now write **the two pages carrying the most structured content** — the spec table, the price
+comparison, the nine-item catalogue, the form — applying every correction from stage 5.
 
-### 6. Remaining pages
-Apply stage 5's corrections to every remaining page. If stage 5 covered the whole site, say that and
-move to stage 7 rather than inventing a page to fill this stage. If a correction contradicts something in
-the approved sitemap, raise it rather than quietly resolving it — the human knows which one they meant.
+These are the pages the *system* is proved on. A home page is a hero, a proof strip and a call to
+action, and almost any set of tokens survives it; layout defects concentrate on dense sections
+nothing has exercised yet. Two of them rather than one catches the defect a single page cannot show:
+a slug that was quietly tuned to suit *that* page and breaks on the next one using it.
+
+**If the sitemap has three pages or fewer, this stage finishes the site** — say so, take the
+corrections, and stage 7 has nothing to do. Four or five pages: still only these two. The point is
+to spend the correction rounds on the pages carrying the most structure, not to get closest to
+finishing.
+
+Same density floor as stage 5, and the same rule on headlines.
+
+▸ Take the corrections. This gate is narrower than stage 5's — tone is settled, so what surfaces
+here is structural: a table that is unreadable at the density you chose, a slug that works on one
+page and not the other. Those are cheap now and expensive once five more pages use the same slug.
+
+**Done when** both pages carry real copy at the density floor, and every slug they introduced
+resolves in `theme.json`.
+
+### 7. Remaining pages
+Apply both correction rounds to every remaining page. If stages 5 and 6 covered the whole site, say
+that and move to stage 8 rather than inventing a page to fill this stage. If a correction contradicts
+something in the approved sitemap, raise it rather than quietly resolving it — the human knows which
+one they meant.
+
+There is no gate here: the two rounds already settled voice, density and the slug system, so these
+pages are applying decisions rather than proposing them. **If more than about five pages remain,
+show the first one before writing the rest** — a long tail built on one approval is where drift
+reappears.
 
 When a page needs a look the theme has no slug for, **add the slug to `theme.json` and reuse it**, do
 not invent a one-off. Adding a bespoke treatment per page as you go is the junior habit that produces
@@ -513,14 +556,9 @@ to open distinctly, so a four-page site carries four hero slugs — `hero/home`,
 **Done when** every page in the approved sitemap exists, and every slug used resolves in
 `theme.json`. A slug a page invented and the theme never defined renders unstyled.
 
-### 7. Design QA — the pass that is not "does it validate"
+### 8. Design QA — the pass that is not "does it validate"
 **REQUIRED SUB-SKILL:** use `check-webpage`. It owns the nine checks, the script that computes
 contrast and theme coverage, and the report format.
-
-**If that skill is not available**, you are running this one on its own — `package-plugin.sh`
-builds a standalone `.skill` per skill, and a single-skill upload carries no sibling. Say so
-rather than improvising the pass: name what is not being done and, if the human wants it,
-point them at installing the full `website-create` plugin.
 
 Two things carry over from here that it cannot know: stage 2's content-extremes table is the input
 to its check 2, and `theme.direction` from stage 3 is what its check 5 audits the tokens against. A
@@ -533,7 +571,7 @@ call** — never as nine rows of ratios they cannot verify.
 **Done when** `check-webpage` reports all nine rows with a Who and a Result, and its browser-only
 questions have been put to the human.
 
-### 8. Assets and facts — name every picture the site needs
+### 9. Assets and facts — name every picture the site needs
 The layout now exists, so you know exactly which images it wants and what each one has to be. Turn
 that into a list and hand it over — a human asked "send me some photos" sends whatever is on their
 phone; a human asked for "your workshop, wide, showing the bays in use" sends that.
@@ -548,7 +586,7 @@ props, so a row without the exact filename is a row the human cannot deliver:
 | `cfm-backrest.jpg` | products, third card | the backrest alone on a plain ground | square |
 | `founder-portrait.jpg` | about page | the founder, waist-up | portrait |
 
-**`alt` is written twice, and the validator polices neither.** At stage 5 you have no pixels, so
+**`alt` is written twice, and the validator polices neither.** While composing you have no pixels, so
 write the alt the picture list *specifies* — "the cold store, down an aisle, racking either side" —
 never the filename. Then when the photograph is actually up and you can see it in the preview,
 correct any alt the real image contradicts. An empty `alt` string validates cleanly and ships, so
@@ -628,11 +666,6 @@ type-only, and the `unverified` list is empty.
 **REQUIRED SUB-SKILL:** use `sourcing-stock-photos` for anything on the gap list. It carries the
 search procedure, the licence terms and the reject list.
 
-**If that skill is not available**, you are running this one on its own — `package-plugin.sh`
-builds a standalone `.skill` per skill, and a single-skill upload carries no sibling. Say so
-rather than improvising the pass: name what is not being done and, if the human wants it,
-point them at installing the full `website-create` plugin.
-
 Stock is scaffolding for a slot the client cannot fill today. A section that stage 2 marked as
 having no usable photo is allowed to work type-only, and often should: one or two stock images
 placed deliberately read as considered, a full set reads as generated. Say which is which when you
@@ -648,10 +681,10 @@ Two things the sub-skill cannot know, because they are this pipeline's:
   download cannot happen, leave both empty and say why — a guessed `imageKind` defeats the one check
   the validator performs with it.
 
-### 9. Hand off
+### 10. Hand off
 Validate, preview one last time, then `bundle_publish` — the domain, the bundle, and `org.json`,
 which is required because the entity graph is built from it alone and a site without one is refused
-here rather than at upload. If you already sent the upload link at stage 5 or 8, this call
+here rather than at upload. If you already sent the upload link at stage 5 or 9, this call
 re-publishes the finished JSON to the *same* link; say so, rather than handing over what looks like
 a second, different one.
 
@@ -662,24 +695,37 @@ your upload link; let's try again shortly" — and keep the draft. Nothing is lo
 still held, and re-running `bundle_publish` later picks up exactly here. What you must not do is
 improvise a substitute route for the pictures or describe the site as finished.
 
-**The upload wording lives at stage 8** — hand over that script, not a shorter improvised version.
+**The upload wording lives at stage 9** — hand over that script, not a shorter improvised version.
 If they have already had it, do not re-explain: say the link is the same one and their uploads are
 still there.
 
 **When it goes live, give them the real address and name the last step.** The site publishes to a
 `.pages.dev` address built from their domain, with every dot turned into a hyphen — so `john.com.my`
 is live at `john-com-my.pages.dev`. That is a complete, working, shareable site. Their own web
-address is pointed at it separately, by whoever manages that domain:
+address is connected afterwards, **by the Blackdash team, not by them**:
 
-> Your site is live: **john-com-my.pages.dev** — that address works right now, you can send it to
-> anyone.
+> Your site is live: **john-com-my.pages.dev**. That address works right now, you can send it to
+> anyone. It's on the upload page too, once the build finishes.
 >
-> If you'd rather people reached it at **john.com.my**, that's one step outside this: whoever looks
-> after your domain needs to point it at the site. Send them the address above and they'll know what
-> to do. Same site, same pages — just your own name in front of it.
+> Want it on **john.com.my** instead? Talk to the Blackdash team and we'll take you through the next
+> step. Same site, same pages, with your own name in front.
 
-Do not describe the custom address as broken or pending while that handover has not happened. The
-site is finished; the name is somebody else's job.
+**Never hand them a DNS instruction.** Not "add a CNAME", not "ask whoever manages your domain to
+point it at the site", not the words Cloudflare or Pages. The person on the other end has no
+development machine and no reason to know what any of that means; an instruction they cannot act on
+produces a finished site nobody ever uses. Connecting a domain is our work — point them at us.
+
+Do not promise there is nothing for them to do either. A domain we have no access to cannot be
+connected, so at some point somebody with the registrar login is involved; that is a conversation
+the team has, not a step to spell out here. "Talk to us and we'll take you through it" is the whole
+message: true, and the reassurance they are actually looking for.
+
+**Write it the way a person writes.** No em dashes in anything you hand a client: they read as
+machine-written, and a site pitched to their customers is the worst place to sound like one. Two
+short sentences beat one with a dash in the middle.
+
+Do not describe the custom address as broken or pending while that connection has not happened. The
+site is finished; the name is a job we do next.
 
 Say plainly why photos go through a browser and not the chat — a transcript re-sends every picture
 on every later turn, so one site's photography would cost more than the site. Not "the bundle awaits
@@ -743,12 +789,12 @@ Read these when the stage that needs them arrives — not upfront.
 | `references/palette.md` | stage 3 — the eleven colour tokens, hue unity, accent budget |
 | `references/art-direction.md` | stages 3–4 — tokens, what drives distinctiveness, slop tells |
 | `references/catalog.md` | stages 4–6 — every block, variant, prop, and the primitives |
-| `references/composing-sections.md` | stage 5 — `FreeSection` and the six typed sections |
-| `references/density.md` | stage 5 — hitting density, and marking `unverified` |
+| `references/composing-sections.md` | stages 5-7 — `FreeSection` and the six typed sections |
+| `references/density.md` | stages 5-7 — hitting density, and marking `unverified` |
 | `references/house-rules.md` | stages 5–6 — validation gates and known pitfalls |
 | `references/live-preview.md` | stages 5–9 — draft/patch ops, uploading pictures early |
-| `references/after-handoff.md` | stage 9 — what the platform derives, honestly |
+| `references/after-handoff.md` | stage 10 — what the platform derives, honestly |
 | `references/local-path.md` | only in a checkout — servers, folder layout, QA scripts |
 
-Stage 7 lives in a skill of its own — `check-webpage` — because a finished site gets checked more
+Stage 8 lives in a skill of its own — `check-webpage` — because a finished site gets checked more
 often than it gets built, and `edit-webpage` needs the same pass after a token change.

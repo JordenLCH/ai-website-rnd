@@ -1,6 +1,6 @@
 # What the platform does after you hand off
 
-Referenced from `SKILL.md` stage 9. Read when a client asks what they are getting, or what
+Referenced from `SKILL.md` stage 10. Read when a client asks what they are getting, or what
 publishing buys them — most of it is not visible in the bundle you wrote.
 
 

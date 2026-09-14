@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stage 7, checks 1 and 3, computed instead of eyeballed.
+"""Stage 8, checks 1 and 3, computed instead of eyeballed.
 
 Every run of this skill otherwise re-derives the same WCAG arithmetic by hand across ~10 colour
 pairings, and hand-derived ratios are where "looks about right" gets written down as a pass. This

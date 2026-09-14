@@ -38,3 +38,4 @@ poc/mcp-app/.poc-token
 
 # built plugin archives — rebuild with ./package-plugin.sh
 dist-plugin/
+.probe-shots

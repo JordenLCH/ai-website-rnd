@@ -53,7 +53,7 @@ Both servers are `preview.mjs` in the starter — node builtins, no plugin, no i
 that depends on a plugin the creator has no other reason to have is a visual step that silently does
 not happen.
 
-## Stage 7 — the four checks that need a rendered page
+## Stage 8 — the four checks that need a rendered page
 
 On this path you run them yourself instead of asking the client. Two browser snippets ship inside
 the installed package — IIFEs that measure the live page and return a report, not node scripts,
@@ -71,4 +71,4 @@ window, and reset any `zoom` on it to `1` first or the intersection maths is wro
 **Scroll the whole page in small steps before judging anything.** Reveal animations fire on
 intersection; a jump-scrolled page reports sections as hidden that a human would have seen.
 
-Record these rows in the stage 7 table as `me`, not `client`.
+Record these rows in the stage 8 table as `me`, not `client`.

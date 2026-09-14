@@ -30,10 +30,7 @@ done. If you find yourself about to rewrite a whole page or a whole `theme.json`
    create-webpage ends with. An edit session can just... end, once the preview looks right.
 
 If any step here is unfamiliar, `create-webpage/references/live-preview.md` has the full
-draft/patch/preview mechanics and the reasoning for why patching beats resending — **that path
-exists only when the whole `website-create` plugin is installed.** Uploaded as a standalone
-`.skill`, this skill has no sibling directory and the file will not be there; the mechanics below
-are enough to work from, so carry on rather than stopping, and say the reference was unavailable. That same file
+draft/patch/preview mechanics and the reasoning for why patching beats resending. That same file
 covers uploading a picture: once the site has been `bundle_publish`ed at least once, dropping a new
 file at the upload link and then calling `site_preview` shows it for real — no separate step needed
 here beyond telling the human to upload and re-checking the preview.
@@ -58,7 +55,7 @@ at that key, then wire it into the nav (and footer, if the footer repeats nav li
 ```
 The new page needs real content, not a stub — if you don't have copy for it yet, say so and ask
 before adding a page that will validate but read as empty. A bare `Hero` with no body sections
-trips the same density warnings `create-webpage` stage 7 checks for; run `bundle_validate` (or read
+trips the same density warnings `create-webpage` stage 8 checks for; run `bundle_validate` (or read
 the patch verdict) after adding one.
 
 **Remove a page.** Remove the page itself and its nav entry — leaving the nav link means a 404 on
@@ -109,7 +106,7 @@ different," that's `create-webpage`'s re-theming path (a new `theme.json`), not 
   two pages", "the whole tone should shift" — say so and hand off to the stage that owns it, which
   is cheaper than improvising a smaller version of stage 4 or stage 3 here.
 - **Mark what you add the way a first draft would.** A stat or testimonial introduced by an edit
-  carries `unverified` exactly as it would at stage 5.
+  carries `unverified` exactly as it would while composing.
 - **Publishing stays an explicit act.** Patching a held draft touches nothing live; `bundle_publish`
   is the only thing that does.
 

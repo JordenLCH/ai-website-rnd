@@ -1,6 +1,6 @@
 # Density, and marking what you invented
 
-Referenced from `SKILL.md` stage 5. These two travel together: thin sections are what tempt you to
+Referenced from `SKILL.md` stages 5-7. These two travel together: thin sections are what tempt you to
 invent, and invented content is what makes a thin section look full.
 
 

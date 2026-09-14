@@ -9,7 +9,7 @@ Every tool that takes `site`/`theme` inline re-sends the whole bundle — tens o
 edit — which is most of why editing feels slow once a draft is real. There's a cheaper path:
 
 1. `bundle_put(site, theme, org)` **once**, the first time a draft is real JSON (in practice, right
-   after stage 5's first pages) → get back a `draftId`. Held server-side for 2h of inactivity; if a
+   after stage 5's home page) → get back a `draftId`. Held server-side for 2h of inactivity; if a
    later call says the id is unknown, the hold expired — `bundle_put` again.
 2. Every edit after that is `bundle_patch(draftId, ops)` — RFC-6902-style ops, JSON Pointer paths:
    `{op:"replace", path:"/pages/home/blocks/2/props/headline", value:"..."}`. A one-line copy fix
@@ -30,7 +30,7 @@ this doesn't apply; keep composing inline as usual until stage 5.
 
 `bundle_publish` does two things: it stores the JSON on the hosting side (as a **draft**, not a
 live site — see "What publishing here does and does not do" below), and it returns a browser link
-where pictures get uploaded. Historically the advice was to call this once, at stage 9, after
+where pictures get uploaded. Historically the advice was to call this once, at hand-off, after
 everything else was done. That is no longer the only good time to call it.
 
 **Once a draftId has been published at least once, `site_preview(draftId)` automatically points
@@ -41,6 +41,12 @@ real `/api/bundle/<code>/assets?name=...` URL in the rendered HTML before showin
 the human drops a file into the browser upload page, the *next* `site_preview` call in the
 conversation shows that real picture — not a blob, not a broken image, the actual file, at the
 actual crop.
+
+**The checklist is only as current as the last publish.** That page is generated from the stored
+bundle's `src` values, so images introduced after it — stage 6's proof pages, stage 7's remaining
+pages — do not appear on it until you call `bundle_publish` again. Re-publish at the end of each
+stage that adds one. It keeps the code, keeps the uploads, and is the difference between a human who
+can upload as the site is written and one who gets a wall of twenty requests at hand-off.
 
 Practically, this means: **as soon as you have a domain and a draftId with real pages, call
 `bundle_publish` and hand the human the link — tell them "upload now, it'll show up in the preview

@@ -33,7 +33,7 @@ Call `catalog_get` for the exact current shape rather than copying an example; t
 part that bites, not the whole contract.
 
 
-Referenced from `SKILL.md` stage 5. Read before writing the first page.
+Referenced from `SKILL.md` stages 5-7. Read before writing the first page.
 
 ## Composing sections: reach for `FreeSection` first
 

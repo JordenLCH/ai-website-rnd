@@ -97,7 +97,7 @@ top of the range matters too.
 | `--color-accent-ink` on `--color-bg` | **≥ 4.5:1** | Accent as link and emphasis text |
 | `--color-inverse-muted` on `--color-inverse-bg` | **≥ 4.5:1** | The pair most often skipped; inverse muted is where dark sections fail |
 
-Check all five before writing the file. `design-qa` catches the failures at stage 7, but by then the
+Check all five before writing the file. `design-qa` catches the failures at stage 8, but by then the
 palette is load-bearing across sixty sections and moving it is a rewrite.
 
 ## Step 5 — say what you chose

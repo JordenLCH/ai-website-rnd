@@ -65,19 +65,19 @@ their desktop should not be transcribing a phone number out of them by hand — 
 and you read them. Asking sixteen questions first makes them do the extraction you are better at,
 and most of the answers arrive wrong or not at all.
 
-So the first thing you emit is this, and nothing else:
+So the first thing you emit is this, and nothing else — **as markdown in the chat, not inside a code
+block**. A fenced block renders as monospace, which reads as a config file rather than a message to a
+person:
 
-```
-Send me whatever you already have about the company — drag the files straight into this chat:
-
-  • company profile, brief, deck, brochure, product catalogue — PDF, Word, slides, all fine
-  • the logo (PNG, JPG or WebP — not SVG, it won't upload)
-  • brand guidelines, if there are any
-  • a link to your current website, and to any competitor worth reacting to
-
-Send the messy versions. I'll read them and fill in everything I can, then come back with a short
-list of what's genuinely still missing — probably four or five things, in plain English.
-```
+> Send me whatever you already have about the company — drag the files straight into this chat:
+>
+> - company profile, brief, deck, brochure, product catalogue — PDF, Word, slides, all fine
+> - the logo (PNG, JPG or WebP — not SVG, it won't upload)
+> - brand guidelines, if there are any
+> - a link to your current website, and to any competitor worth reacting to
+>
+> Send the messy versions. I'll read them and fill in everything I can, then come back with a short
+> list of what's genuinely still missing — probably four or five things, in plain English.
 
 Then read every file before you say anything else. Rules for reading them:
 
@@ -108,56 +108,66 @@ parenthetical says why it matters in their language; `org.json` is your problem,
 Say plainly which items block the build, because they are not equally urgent and a flat list of
 sixteen questions reads as though they are.
 
-```
-FROM YOUR DOCUMENTS — have a quick look, tell me anything that's wrong or out of date
-  <what it is>: <value>   (where you found it)    ← list every one, so it can be checked
-  ...
+> **Here's what I pulled from your documents** — skim it, tell me anything wrong or out of date.
+>
+> | | | |
+> |---|---|---|
+> | Registered name | Acme Precision Sdn. Bhd. | profile.pdf p.1 |
+> | Address | … | brochure, back page |
+>
+> *(one row per fact, every one with its source — that's what lets it be checked in seconds)*
+>
+> **Two things in your documents disagree** — which is right?
+>
+> 1. **Brand colour** — the brief says green, the logo is turquoise. Which one?
+> 2. …
+>
+> *(drop this section entirely if nothing conflicts)*
+>
+> **Can't build the site without these:**
+>
+> 1. Your company name exactly as registered, and your registration number — Malaysian law requires
+>    both on the site, so it won't pass its checks without them
+> 2. The phone number and email for the site
+> 3. The logo file — PNG, JPG or WebP (an SVG needs converting first)
+> 4. What web address this will live at — if you haven't bought it yet, the one you intend to buy
+>
+> **A sentence each is plenty:**
+>
+> 5. Your brand colour — a code if you have one, otherwise just name it, or I'll read it off the
+>    logo. No brand colour? Say so and I'll propose three.
+> 6. Who buys from you?
+> 7. What should the site actually make happen — quote requests, explain the range, look credible,
+>    hire people, sell online?
+> 8. How big — homepage only, home plus 2–3 pages, or a full site?
+> 9. Beyond the top banner, what must the homepage cover? (products, industries, case studies,
+>    numbers, customer quotes, careers, contact…)
+> 10. How should it sound — technical, bold, or plain and practical?
+> 11. Any page you need that I wouldn't think to add? A site you like, or one you'd hate to resemble?
+>
+> **Optional — the site ships without these, but they make it stronger:**
+>
+> 12. Links to you anywhere else online — LinkedIn, Google Business, Facebook, a trade directory.
+>     This is how Google confirms you're a real company, and it's the most-skipped item here.
+> 13. Certifications, with the exact name ("ISO 9001", not "ISO standards")
+> 14. Roughly how many staff, any awards, which countries or states you cover
+> 15. Key people worth naming, and their qualifications
 
-STILL NEED THESE — I can't ship a site without them
-  1. Company name exactly as it's registered      (e.g. "Acme Precision Sdn. Bhd.")
-  2. Company registration number                  (Malaysian law requires the registered name and
-                                                   number to appear on the website, so the site
-                                                   won't pass its checks without it — the SSM
-                                                   number, exactly as issued)
-  3. The phone number and email you want on the site
-  4. The logo file                                (PNG, JPG or WebP — if you only have an SVG I'll
-                                                   need it converted before it can go up)
-  5. What web address will this live at?          (yoursite.com.my — if you haven't bought it yet,
-                                                   tell me the one you intend to buy. It becomes
-                                                   the site's address, so it's worth deciding
-                                                   rather than guessing)
+**Emit it as markdown, not inside a code block.** The layout above is the whole point of the
+wording: fenced text renders monospace and column-aligned, which reads as a printout rather than a
+message, and the person answering gives up before item 4. Same reason there are no hand-padded
+columns — let the renderer align the table.
 
-ABOUT THE SITE — a sentence each is plenty
-  6. Your brand colour                            (the exact code if you know it — "#1B4D3E" or a
-                                                   Pantone — otherwise just name it, or point me at
-                                                   the logo and I'll read it off that. If the
-                                                   company doesn't have one, say so: I'll propose
-                                                   three and you pick)
-  7. Who buys from you?
-  8. What should the site actually make happen?   (get quote requests, explain the range, look
-                                                   credible to a buyer, hire people, sell online)
-  9. How big?                                     (homepage only / home plus 2-3 pages / full site)
- 10. What must the homepage cover?                (beyond the top banner — products or services,
-                                                   industries you serve, case studies, numbers,
-                                                   technology, partners, customer quotes, news,
-                                                   careers, contact)
- 11. How should it sound?                         (technical and precise / bold and visionary /
-                                                   plain and practical)
- 12. Any page you need that I wouldn't think to add?
- 13. A site you like, or one you'd hate to look like?
+**Cut every line the documents already answered.** The list above is the maximum, not a form to
+reproduce. If the brief gave you the buyer, the goal and the tone, ask four questions, not fifteen,
+and renumber. A client re-answering something they already sent stops trusting that you read it.
 
-NICE TO HAVE — the site ships without these, but they make it stronger
- 14. Links to your company anywhere else online   (LinkedIn, Google Business, Facebook, Instagram,
-                                                   an industry directory — these are how Google
-                                                   confirms you're a real company, and they're the
-                                                   most-skipped thing on this list)
- 15. Certifications, with the exact name          ("ISO 9001", not "ISO standards")
- 16. Roughly how many staff, any awards, which countries or states you cover
- 17. Key people worth naming, and their qualifications
-```
+**Keep each parenthetical under about a dozen words.** They exist to stop a wrong answer, not to
+teach the pipeline — the registration line earns its clause because it is a legal requirement
+nobody expects; "explain the range" does not need three lines of examples.
 
-Items 1-4 map to `legalName`, `registration`, `phone`/`email` and the logo; 14 is `sameAs`, 16 is
-`numberOfEmployees` / `awards` / `areaServed`, 17 is `people[]`. Do that mapping yourself when you
+Items 1-3 map to `legalName`/`registration`, `phone`/`email` and the logo; 12 is `sameAs`, 14 is
+`numberOfEmployees` / `awards` / `areaServed`, 15 is `people[]`. Do that mapping yourself when you
 write `org.json` — never by showing the human the field names.
 
 **Motion is not on this list.** Someone who has not seen the page cannot tell you whether they want
@@ -165,7 +175,7 @@ write `org.json` — never by showing the human the field names.
 direction, and the human judges it on the real preview at stage 5, where there is something to look
 at.
 
-**Item 6 does not block the build, and is still not optional to ask.** Every theme candidate at
+**The brand colour does not block the build, and is still not optional to ask.** Every theme candidate at
 stage 3 is built *from* the brand colour, so a run that never asked is a run that invented one and
 designed three themes around the invention. A brand guide constrains stage 3 before you sample
 anything; having no brand colour is a real answer and stage 3 proposes instead. Picking one quietly
@@ -184,7 +194,7 @@ Three rules for running this list:
   Writing `ISO 9001` because it is the common one is inventing a credential.
 - **Never fill a blocker to keep moving.** A wrong registration number is a legal problem, not a
   formatting one. Stop and ask, or ship with the field absent and say so.
-- **Section photography is not an intake question; the logo is.** Bulk photos wait for stage 8,
+- **Section photography is not an intake question; the logo is.** Bulk photos wait for stage 9,
   after the layout exists and you know which images it actually needs — asking for those now gets
   you a folder of whatever the client had to hand. The logo is the exception: it's one fixed file
   whose header/footer role never depends on layout, so collect it now, the same turn as the legal
@@ -199,7 +209,7 @@ upload and need nothing from the creator — see "After you hand off" in `SKILL.
 It looks like a launch detail, so it gets left to the end — and on the chat path that breaks the
 pictures. `bundle_publish` takes a domain, publishing is what mints the upload link, and the upload
 link is the **only** route a photograph has into the site. No domain, no link, no pictures: you reach
-stage 8 holding a list of images with no way to deliver any of them.
+stage 9 holding a list of images with no way to deliver any of them.
 
 So ask at intake. While the site is still a draft the domain is only the key it is filed under, and
 `bundle_discard` lets you refile it — so a client who does not yet own the name is not blocked, and
@@ -212,8 +222,11 @@ goes live on: `john.com.my` publishes to **`john-com-my.pages.dev`**. Changing i
 rename anything; it builds a second site at a second address and leaves the first standing. So a provisional answer is fine at intake, and **confirm it before the publish that
 goes live** — "this is the address it will have, still right?"
 
-**Their own domain is pointed at that site afterwards, by a person, not by this pipeline.** The site
+**Their own domain is connected afterwards, by the Blackdash team, not by this pipeline.** The site
 is live and complete at the `.pages.dev` address; getting their own name to reach it is a separate
-handover — the client asks whoever manages their domain to point it at the published site. Say that when you hand the site over, so nobody sits waiting for their own address to
-start working on its own. It is not a missing step or a failure; it is where this pipeline ends and
-somebody with access to their DNS begins.
+step, and what a client needs to hear is "talk to us and we'll take you through it". Say that when
+you hand the site over, so nobody sits waiting for their own address to start working on its own —
+and say it that way round: a client told to "point your domain at the site" is being given a task
+they cannot do, and the site goes unused rather than unfinished. Do not promise it takes nothing
+from them either — a domain nobody has given us access to cannot be connected. It is not a missing
+step or a failure; it is where this pipeline ends and we pick it up by hand.

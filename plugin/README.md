@@ -7,7 +7,7 @@ One install gives a creator both halves of the pipeline:
 - **skill** `edit-webpage` — a scoped change to a site that already exists: one page, one
   section, one token.
 - **skill** `check-webpage` — the nine-check design-QA pass, with a script that computes contrast,
-  theme coverage, alt text and form labels. `create-webpage` calls it at stage 7.
+  theme coverage, alt text and form labels. `create-webpage` calls it at stage 8.
 - **skill** `sourcing-stock-photos` — photography when the brief has none; usable on its own.
 - **MCP** `blackdash-catalog` — the things a skill must not hard-code because they drift:
   block catalog, prop schemas, the token contract, and the existing fleet.
@@ -66,8 +66,8 @@ refuses a connector that sets it. The server accepts `x-api-key`, `x-auth-token`
 `Authorization`, with or without a `Bearer ` prefix; the plugin sends `x-api-key` so both paths
 are configured identically.
 
-The skill half is uploaded separately there (Skills → the `.skill` archive that
-`./package-plugin.sh` writes into `dist-plugin/`).
+The skills travel inside that same zip — there is no separate skill upload. They call each
+other and share a `references/` tree, so a single skill on its own is a broken half.
 
 ## Source of truth
 
@@ -78,5 +78,5 @@ removed on 2026-09-11: two identical trees is one that goes stale, and the sync 
 something a release could skip in silence. A local-directory plugin install serves the skill
 straight out of `plugin/skills/`, so this is the copy that actually runs.
 
-Archives are built, never committed: `./package-plugin.sh` writes the plugin zip and one
-`.skill` per skill into `dist-plugin/`, both from this directory. Nothing is hand-zipped.
+Archives are built, never committed: `./package-plugin.sh` writes one plugin zip into
+`dist-plugin/`, from this directory. Nothing is hand-zipped.

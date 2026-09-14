@@ -38,7 +38,7 @@ catalog cannot express is a catalog gap to close in-session, not a reason to ope
 
 ---
 
-## 2. The nine stages
+## 2. The ten stages
 
 Checkpoints, not one long generation. Work that survives a checkpoint is never regenerated.
 
@@ -66,15 +66,15 @@ Four stages carry most of the value:
 
 - **Stage 2, content inventory.** Total the words actually available per topic *before* designing.
   Under ~1,200 words of source material you cannot honestly fill more than a home page and two
-  subpages. Say so then, not at stage 6 when the whole site exists.
+  subpages. Say so then, not at stage 7 when the whole site exists.
 - **Stage 4, style tile.** Show type, colour and spacing on one sheet — deliberately *not* a mocked
   page with lorem in it. A human shown a fake page judges the fake copy and the invented layout
   instead of the two decisions you are actually asking about.
-- **Stage 5, the dense page.** The home page is a hero, a proof strip and a CTA — nearly any token
+- **Stage 6, the dense pages.** The home page is a hero, a proof strip and a CTA — nearly any token
   set survives it. The system is only tested by the page carrying a spec table, a nine-item
   catalogue or a form, which is why both are written in the same pass. Every worst layout defect in
   §6 lived on a dense section that nothing had exercised.
-- **Stage 7, design QA.** Validation proves the JSON is legal, not that the page works. See §6.
+- **Stage 8, design QA.** Validation proves the JSON is legal, not that the page works. See §6.
 
 ### Sampling, at two stages
 
@@ -108,7 +108,7 @@ Stage 4 records the chosen direction as three adjectives, what was rejected, and
                "why": "they sell on tolerance figures; restraint reads as confidence" }
 ```
 
-It costs three lines and buys two things. Stage 7 audits the tokens against it — "precise" carried by
+It costs three lines and buys two things. Stage 8 audits the tokens against it — "precise" carried by
 nothing, or contradicted by a 28px radius and a 600ms ease, is a finding. And the next session to
 open this theme reads the intent instead of inferring it from the values, which is how a considered
 theme drifts back to the default one token at a time. The validator flags a theme with no direction,
@@ -190,7 +190,7 @@ price, date or testimonial not in the brief needs `"unverified": true` on the bl
 lists it, the build farm strips it from JSON-LD and `llms.txt`, and **publishing is refused** until
 the list is empty. Google's 2026-07-24 fake-review policy makes this compliance, not hygiene.
 
-**D. Design QA (stage 7), `renderer/tools/block-audit.js`.** Four widths (360/768/1280/1600),
+**D. Design QA (stage 8), `renderer/tools/block-audit.js`.** Four widths (360/768/1280/1600),
 content extremes *taken from the stage-2 constraints table* rather than invented, contrast on every
 tone, and the page read with images off. The probe also reports:
 
@@ -207,7 +207,7 @@ focal point per screenful, or even grey mush?).
 ### What none of them can see
 
 Whether the photography is generic, whether a headline would still be true with a competitor's name
-in it, whether a claim is *correct*. Those are stage 8, and they are human by design.
+in it, whether a claim is *correct*. Those are stage 9, and they are human by design.
 
 ---
 

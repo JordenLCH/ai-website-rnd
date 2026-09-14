@@ -37,10 +37,12 @@ alongside them, two days stale, still carrying a `references/` file the skill no
 Adding a skill is adding a directory under `plugin/skills/` with a `SKILL.md` in it. Nothing
 enumerates them; `package-plugin.sh` globs.
 
-Archives are built, never committed. `./package-plugin.sh` writes into `dist-plugin/`
-(gitignored): the plugin zip, plus one `<name>-v<version>.skill` per skill for claude.ai's
-Skills page, which takes one skill at a time. Never hand-zip a skill — that is a third copy of
-the same text with no way to tell which version it holds.
+Archives are built, never committed. `./package-plugin.sh` writes one artifact into
+`dist-plugin/` (gitignored): the plugin zip, under both `.zip` and `.plugin` names. It used to
+also write a `<name>-v<version>.skill` per skill for claude.ai's Skills page; that stopped on
+2026-09-11, because the skills depend on each other and on a shared `references/` tree, so a
+single-skill upload is a half that fails in ways the user cannot see. Never hand-zip a skill
+either — that is a copy of the same text with no way to tell which version it holds.
 
 ## How a user knows an update exists
 

@@ -14,7 +14,7 @@ If you are here to **test the flow**, jump to "Test task" at the bottom.
 | `renderer/` | **git submodule** → [`website-renderer`](https://github.com/JordenLCH/website-renderer). `@blackdash/renderer`: block catalog, validator, preview server. Preview and checking only — no fleet, no SEO, no MCP |
 | `platform/` | **git submodule** → [`website-platform`](https://github.com/JordenLCH/website-platform). The server side — build farm and SEO/AEO/GEO derivation. Runs after upload, and `site-hosting` pins the same repo |
 | `plugin/` | the `website-create` plugin — the skills and the catalog MCP packaged as one install. Self-contained: it carries its own marketplace entry, so it needs no public storefront. Release steps are in [`docs/plugin-release-sop.md`](docs/plugin-release-sop.md) — the version bump is the only signal a user has that their copy is stale |
-| `plugin/skills/` | the skills themselves — `create-webpage` (the workflow), `edit-webpage` (scoped changes) and `sourcing-stock-photos` (photography when a brief has none, usable on its own). **Edit these directly; there is no second copy.** The old `skills/` source tree and its `install.sh` rsync were removed on 2026-09-11 — two identical trees is one that goes stale, and the sync was a release step that could be skipped silently. Adding a skill is adding a directory with a `SKILL.md`; `./package-plugin.sh` globs them into `dist-plugin/` as the plugin zip plus one `.skill` each |
+| `plugin/skills/` | the skills themselves — `create-webpage` (the workflow), `edit-webpage` (scoped changes) and `sourcing-stock-photos` (photography when a brief has none, usable on its own). **Edit these directly; there is no second copy.** The old `skills/` source tree and its `install.sh` rsync were removed on 2026-09-11 — two identical trees is one that goes stale, and the sync was a release step that could be skipped silently. Adding a skill is adding a directory with a `SKILL.md`; `./package-plugin.sh` globs them into the one plugin zip in `dist-plugin/`. Per-skill `.skill` archives were dropped on 2026-09-11 — the skills call each other and share `references/`, so a standalone one is a broken half |
 | `website_info/` | five real client briefs with copy, brand colours and local images |
 | `docs/` | research + spike findings, with the reasoning behind every design decision |
 
@@ -28,7 +28,7 @@ persistent-server move made that drift real instead of latent. Both now live at
 not from here.
 
 **Start with [`docs/how-a-site-gets-generated.md`](docs/how-a-site-gets-generated.md)** — the
-end-to-end account of the pipeline: the nine workflow stages and why they run content → structure →
+end-to-end account of the pipeline: the ten workflow stages and why they run content → structure →
 look, the four safeguard layers and what each can actually see, what the platform derives after
 upload, and the defects the first full block audit found. This file is the reference; the sections
 below are the working detail.
@@ -225,7 +225,12 @@ graph and the `.webp` assets. The custom-domain attach was the one step that did
 `.example` is not a real zone, so whether that token carries the zone scope `attachDomain` needs is
 still unproven. `attachDomain` is best-effort by design: it logs and returns `null` rather than
 failing the deploy, so a site can go live at `*.pages.dev` with its own domain silently unattached.
-Check the `domain` field in the deploy result, not just the exit code.
+Check the `domain` field in the deploy result, not just the exit code. **The address to hand a
+person is `url` — always `https://<project>.pages.dev`**, never their own domain: attaching that
+needs zone access this account often does not have, so linking it hands someone a URL that may
+resolve to nothing. Hosting records the same `url` on the build and the upload page shows it.
+Connecting a client's own domain is **our** job, done by hand afterwards — never phrased to a client
+as a DNS task they should carry out, because they cannot.
 
 The preview app has three dropdowns — `site`, `theme`, and page tabs — plus a status readout that
 turns red and lists issues when a bundle is invalid.

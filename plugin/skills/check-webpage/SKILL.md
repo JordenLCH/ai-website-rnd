@@ -18,10 +18,9 @@ python3 <this skill's folder>/scripts/check-theme.py theme.json site.json
 ```
 
 The script sits beside this file, in the skill's own directory — **not** in the user's project, which
-is where your working directory usually is. Inside the installed plugin that is
-`${CLAUDE_PLUGIN_ROOT}/skills/check-webpage/scripts/check-theme.py`; as a standalone `.skill` upload
-it is `check-webpage/scripts/check-theme.py`. A bare `scripts/check-theme.py` resolves against the
-project and will not be found.
+is where your working directory usually is: it is
+`${CLAUDE_PLUGIN_ROOT}/skills/check-webpage/scripts/check-theme.py`. A bare
+`scripts/check-theme.py` resolves against the project and will not be found.
 
 It answers checks 1 and 3 outright, adds theme coverage, and takes the browser-free half of checks 4
 and 8 — all deterministically:
@@ -106,10 +105,11 @@ unlocks once every picture is in. So the honest order is:
 
 1. Run the five bundle checks now and fix what they find. Say which four are still outstanding.
 2. Pictures go up; the human presses Publish; the site builds and goes live.
-3. **Then** put the five questions below to them, against the live address. Publishing returns the
-   `domain` but no URL, so give them the address yourself: their own domain if it is attached, and
-   otherwise the Pages one, which is the domain with dots turned to dashes —
-   `john.com.my` serves at `john-com-my.pages.dev`.
+3. **Then** put the five questions below to them, against the live address — the Pages one, always.
+   The upload page shows it once the build finishes, and it is the domain with dots turned to
+   dashes: `john.com.my` serves at `john-com-my.pages.dev`. Do not send them to their own domain
+   instead: it reaches the site only once the Blackdash team connects it, so that link may load
+   their old site, or nothing, and they will report a site that "didn't work".
 4. Anything they report is a patch and a re-publish — cheap, and the normal path, not a setback.
 
 Telling a client "everything passed" before step 3 is claiming four checks nobody could have run.
@@ -172,7 +172,7 @@ decided was acceptable.
 
 ## Who this is for
 
-`create-webpage` reaches here at stage 7, before handing off. `edit-webpage` should reach here after
+`create-webpage` reaches here at stage 8, before handing off. `edit-webpage` should reach here after
 any change that touches a theme token or adds a section — a patch that darkens one colour can push
 text on the inverse band under 4.5:1, and nothing else in that flow looks.
 
