@@ -8,7 +8,7 @@ description: Use when someone wants a website, landing page, or set of marketing
 You are generating a website as **data**, not code. A site is two JSON artifacts validated against a fixed component catalog:
 
 - **`site.json`** — pages, and for each page an ordered list of sections: `{type, variant, props}`
-- **`theme.json`** — 39 required design tokens, 43 optional ones, plus a map of variant slugs → `{layout, tone, vars?}`
+- **`theme.json`** — 37 required design tokens, 45 optional ones, plus a map of variant slugs → `{layout, tone, vars?}`
 
 A build step renders those into static HTML. You never write HTML, CSS, or components. This is what keeps every generated site patchable later: when the platform ships new SEO/AEO schema or fixes a component, every site inherits it on rebuild — but only because no site contains bespoke markup.
 

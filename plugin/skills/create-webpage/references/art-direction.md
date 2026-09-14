@@ -4,7 +4,7 @@
 
 ```jsonc
 { "name": "acme-industrial",
-  "tokens": { "--color-bg": "...", "--font-display": "...", ... },   // 39 required + 43 optional
+  "tokens": { "--color-bg": "...", "--font-display": "...", ... },   // 37 required + 45 optional
   "sectionStyles": {                                                 // slug -> resolution
     "hero/home": { "layout": "overlay-fullbleed", "tone": "inverse" },
     "hero/statement": { "layout": "centered-poster", "tone": "default",
@@ -34,9 +34,31 @@ themes share a layout map, they are the same theme.
 **Colour (11):** `--color-bg --color-surface --color-ink --color-muted --color-line --color-accent
 --color-on-accent --color-inverse-bg --color-inverse-ink --color-inverse-muted --color-inverse-line`
 
-**Type (4 + 9):** `--font-display --font-body --font-eyebrow --font-numeral` ·
-`--display-size --display-weight --display-tracking --display-leading --heading-size
---eyebrow-transform --eyebrow-tracking --eyebrow-size` · `--body-size --lede-size --body-leading`
+**Type (4 + 7, plus 2 optional):** `--font-display --font-body --font-eyebrow --font-numeral` ·
+`--display-size --display-weight --display-leading --heading-size --eyebrow-transform
+--eyebrow-size` · `--body-size --lede-size --body-leading` · optional:
+`--display-tracking --eyebrow-tracking`
+
+**`--display-tracking` and `--eyebrow-tracking` are optional. Omitting them means no
+letterspacing, and that is a perfectly good design** — Apple, Aesop and Pentagram all ship display
+type at or within a hair of zero. They were required until it became clear what a required field
+does to a generator: nobody writes `0` into a box labelled "tracking", they write a number that
+looks like a decision. Set one only when you can say what it is buying.
+
+Letterspacing is a real tool with two legitimate uses and no third one: slightly negative on large
+display type, mildly positive on small caps. Body copy never. If you do set them:
+
+| Token | Range that holds up | Why that range |
+|---|---|---|
+| `--display-tracking` | `-0.02em` – `0` (to `-0.045em` for a heavy grotesque at poster size) | Measured on live sites: Stripe -0.01em, Pentagram -0.01em, Apple 0, Aesop 0. Material 3 sets its 57px Display Large at **-0.004em** and every headline at **0**. Past -0.02em you are making a statement and should be able to say what it is |
+| `--eyebrow-tracking` | `0.05em` – `0.12em`, **start at `0.1em`** | Butterick: caps want "5–12% extra space". M3's label styles top out at `0.045em`; the NYT, whose whole language is kickers, sets them at 11px/`0.1em`. Anything at `0.16em`+ is wider than any of them |
+| `--eyebrow-transform` | `uppercase` **or** `none` | Not automatic. M3 dropped all-caps labels outright, and four of five sites measured carry no tracked-caps label anywhere. See the slop tell below |
+| `--eyebrow-size` | `0.68rem` – `0.86rem` | Tracking is a function of size: the 0.05–0.12em range describes 10–12px caps. At the top of this range, use the bottom of the tracking range |
+
+Bold wants less tracking than light, and sans wants more than serif — so these are starting points
+to adjust by eye, not settings. Sources: Butterick's *Practical Typography* (letterspacing),
+Material Design 3's published type-scale tokens, and computed styles read off stripe.com,
+pentagram.com, apple.com, aesop.com and nytimes.com.
 
 **Form (11):** `--radius --radius-img --border --pad-y --gap --maxw --shadow --btn-radius --btn-pad
 --btn-weight --img-filter`
@@ -135,6 +157,13 @@ These read as machine-made because they are the defaults everything converges on
   already applies it. If a technical register is genuinely the direction, buy it with weight,
   tracking and rule-work; at most keep mono for step numbers and nothing else.
 
+- **A wide-tracked uppercase eyebrow over every section.** Six of the seven themes this pipeline has
+  produced chose `uppercase` at `0.16em`–`0.2em`, independently. That is not six art directions, it
+  is one mode wearing six palettes — and it is wider than anyone recommends: above Butterick's
+  0.12em ceiling, 3.5–4.4× Material 3's widest label, and 1.6–2× what the New York Times uses on the
+  kickers it invented. If every direction you sampled has a tracked-caps eyebrow, you sampled one
+  direction. A section opener can also be marked with a rule, a colour shift, a number, a
+  sentence-case label, or nothing at all — the headline is usually enough.
 - **One radius on every surface.** A card, a button, an input and an image all at the same corner
   reads as a kit rather than a design — a person sizes the radius to the surface. Set `--radius-tight`
   below `--radius` and the tell disappears.
