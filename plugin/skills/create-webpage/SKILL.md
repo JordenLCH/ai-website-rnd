@@ -226,7 +226,8 @@ jargon: ask for "links to your company anywhere else online", and map it to `sam
 
 A provisional domain is fine, but it keys the photo pool, so `bundle_discard` deletes the client's
 uploads with it. **Read the domain back before calling `assets_open`** — "so the site is filed under
-merryfair.com, yes?" — and derive the client slug from it (`merryfair.com` → `merryfair`). The slug
+northwind-seating.example, yes?" — and derive the slug from it
+(`northwind-seating.example` → `northwind-seating`). The slug
 is frozen once the pool is open: it becomes the public `/img/<client>/` path, and a second
 `assets_open` with a different slug is refused, naming the one already recorded.
 
@@ -253,10 +254,10 @@ Chase the logo first if nothing arrives: stage 3's contrast reading depends on i
 
 | Blocker | Value | Where it came from |
 |---|---|---|
-| Legal name | Merryfair Chair System Sdn Bhd | company profile p.1 |
-| Registration number | 86276-A | **their website — unconfirmed** |
-| Phone / email | +60 3 3176 2288 / none found | brochure p.4; no email anywhere |
-| Domain | merryfair.com | they said so, read back |
+| Legal name | Northwind Seating Sdn Bhd | company profile p.1 |
+| Registration number | 000000-X | **their website — unconfirmed** |
+| Phone / email | +60 3 0000 0000 / none found | brochure p.4; no email anywhere |
+| Domain | northwind-seating.example | they said so, read back |
 | Logo file | **not supplied** | asked; chasing |
 
 "They don't have one" is a filled cell. "Not supplied" is a filled cell. An empty cell is not, and
@@ -461,7 +462,7 @@ Headlines must carry a concrete noun from the brief that a competitor could not 
 headline would still be true with a rival's name in place of the client's, it is decoration, not copy.
 
 **Write `src` from the pool, not from your imagination.** `assets_list` gives the stored name plus
-`srcPrefix`; the prop is the two joined: `"src": "/img/merryfair/showroom-front.webp"`. An invented
+`srcPrefix`; the prop is the two joined: `"src": "/img/northwind-seating/showroom-front.webp"`. An invented
 name points at nothing — the upload page never asks for it, `bundle_status` never reports it missing,
 and the image is permanently blank. Only pictures that do not exist yet get names you choose, and
 those are stage 9's table.

@@ -226,7 +226,8 @@ late and every picture arrives late with it.
 So ask at intake, and open the pool in the same turn — but read the domain back before you do.
 `bundle_discard` still refiles a wrong one, and it now deletes the photographs uploaded against it,
 so a typo caught after the client has spent an evening uploading costs them that evening. The client
-slug comes from the domain (`merryfair.com` → `merryfair`) and is frozen once the pool is open: it
+slug comes from the domain (`northwind-seating.example` → `northwind-seating`) and is frozen once
+the pool is open: it
 becomes the public `/img/<client>/` path, and a second `assets_open` with a different slug is
 refused, naming the one already recorded. While the site is still a draft the domain is only the key it is filed under, and
 `bundle_discard` lets you refile it — so a client who does not yet own the name is not blocked, and
