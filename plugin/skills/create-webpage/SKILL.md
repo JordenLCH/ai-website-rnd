@@ -146,6 +146,15 @@ A, moving on" — that is a generation with a commentary track, and it is the fa
 exists to prevent. The human is the client's proxy; they are the only one who knows which of two
 defensible choices is the one they will have to live with.
 
+**Establish at the first exchange whether that human *is* the client.** Both happen: the business
+owner themselves, or somebody at Blackdash building it for them. It changes what every blockquote in
+this skill is for. A line addressed to "you" — the photo page, the picture list, the live address —
+is written to be **forwarded to the client verbatim**, so when they are not in the chat, say who each
+message is for ("here's the wording to send them, with their photo link in it"). Everything else here
+— the gap lists, the direction trade-offs, the QA report — is for the person in front of you. Asking
+once costs a sentence; guessing wrong sends a client a message about themselves in the third person,
+or leaves them waiting for a link that was handed to somebody else.
+
 The rule that catches the common self-deception: **if your message contains the words "I picked" or
 "I'll go with", it should have been an `AskUserQuestion` instead.** Recommending is fine and
 expected — deciding is not.
@@ -406,14 +415,14 @@ Fix each candidate's specification for yourself, then **pitch it in the human's 
 lines: what it reads like, and what it costs. Pitch in prose and keep the JSON for the winner —
 three full themes costs ten times three descriptions, and two are going in the bin.
 
-> **A — Product catalogue.** Dense and precise, everything aligned to a grid, almost no decoration.
-> Reads like a specification sheet in the best way. Costs you warmth — it will never feel friendly.
+> **A. Product catalogue.** Dense and precise, everything aligned to a grid, almost no decoration.
+> Reads like a specification sheet in the best way. Costs you warmth: it will never feel friendly.
 >
-> **B — Magazine.** Large headlines, lots of white space, fewer things per screen. Good if people
-> arrive to browse. Costs you speed — a buyer comparing numbers has to scroll further.
+> **B. Magazine.** Large headlines, lots of white space, fewer things per screen. Good if people
+> arrive to browse. Costs you speed: a buyer comparing numbers has to scroll further.
 >
-> **C — Technical.** Crisp and light, colour only on the figures that matter. Costs you
-> distinctiveness — it is the most familiar of the three.
+> **C. Technical.** Crisp and light, colour only on the figures that matter. Costs you
+> distinctiveness: it is the most familiar of the three.
 >
 > I'd pick **A**: you sell on tolerances, and this says so before anyone reads a word.
 
@@ -445,7 +454,7 @@ written into `theme.direction` with what you rejected.
 A **section role** is the job a section does — proof, range, story, spec, process — not a block type
 and not a theme slug. A page is an ordered list of roles, and that shorthand is for your notes:
 
-> **Products** — hero (subpage) · catalogue grid · spec table · media+text · CTA
+> **Products:** hero (subpage) · catalogue grid · spec table · media+text · CTA
 >
 > *shown to the human as:* opening banner · every chair laid out in a grid · the full specifications
 > table · one model in detail with text beside it · "request a quote" at the bottom
@@ -701,20 +710,20 @@ surprised by, so it belongs in the words they read rather than in a note to your
 >
 > **Same photo page as before:** <upload link>
 >
-> Everything you've already sent is still there — nothing to re-send, nothing to rename. These are
+> Everything you've already sent is still there. Nothing to re-send, nothing to rename. These are
 > the pictures the site still doesn't have anywhere:
 >
 > [the list]
 >
 > - **Just drop them in.** Any filename is fine; I'll put each one where it belongs. **Don't convert
->   or resize anything** — straight off your phone in whatever format they are.
-> - **Something wrong?** Every picture on the page has *replace* and *remove* beside it — replace
+>   or resize anything.** Straight off your phone, in whatever format they are.
+> - **Something wrong?** Every picture on the page has *replace* and *remove* beside it. Replace
 >   swaps the file and keeps its place on the site.
-> - You can close the page and come back — it remembers what's already in.
+> - You can close the page and come back. It remembers what's already in.
 > - Nothing is public while you do this.
 >
 > When the last photo is in, a **"Publish the site"** button on that page comes alive. Pressing it
-> is what puts the site live — it does not happen on its own.
+> is what puts the site live. It does not happen on its own.
 >
 > Worth knowing now: **once you publish, that page stops accepting photos.** If you want to swap one
 > later, come back to me and I'll reopen it. The link isn't broken, it's finished.

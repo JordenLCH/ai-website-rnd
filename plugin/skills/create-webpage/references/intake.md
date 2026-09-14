@@ -69,15 +69,15 @@ So the first thing you emit is this, and nothing else — **as markdown in the c
 block**. A fenced block renders as monospace, which reads as a config file rather than a message to a
 person:
 
-> Send me whatever you already have about the company — drag the files straight into this chat:
+> Send me whatever you already have about the company. Drag the files straight into this chat:
 >
-> - company profile, brief, deck, brochure, product catalogue — PDF, Word, slides, all fine
-> - the logo (PNG, JPG or WebP — not SVG, it won't upload)
+> - company profile, brief, deck, brochure, product catalogue. PDF, Word, slides, all fine
+> - the logo (PNG, JPG or WebP, not SVG, which won't upload)
 > - brand guidelines, if there are any
 > - a link to your current website, and to any competitor worth reacting to
 >
 > Send the messy versions. I'll read them and fill in everything I can, then come back with a short
-> list of what's genuinely still missing — probably four or five things, in plain English.
+> list of what's genuinely still missing: probably four or five things, in plain English.
 
 Then read every file before you say anything else. Rules for reading them:
 
@@ -108,18 +108,18 @@ parenthetical says why it matters in their language; `org.json` is your problem,
 Say plainly which items block the build, because they are not equally urgent and a flat list of
 sixteen questions reads as though they are.
 
-> **Here's what I pulled from your documents** — skim it, tell me anything wrong or out of date.
+> **Here's what I pulled from your documents.** Skim it, and tell me anything wrong or out of date.
 >
 > | | | |
 > |---|---|---|
 > | Registered name | Acme Precision Sdn. Bhd. | profile.pdf p.1 |
 > | Address | … | brochure, back page |
 >
-> *(one row per fact, every one with its source — that's what lets it be checked in seconds)*
+> *(one row per fact, every one with its source, which is what lets it be checked in seconds)*
 >
-> **Two things in your documents disagree** — which is right?
+> **Two things in your documents disagree.** Which is right?
 >
-> 1. **Brand colour** — the brief says green, the logo is turquoise. Which one?
+> 1. **Brand colour.** The brief says green, the logo is turquoise. Which one?
 > 2. …
 >
 > *(drop this section entirely if nothing conflicts)*
@@ -129,35 +129,35 @@ sixteen questions reads as though they are.
 > 1. Your company name exactly as registered, and your registration number. Malaysian law requires
 >    both to appear on your website, so the site can't go live without them.
 > 2. The phone number and email for the site
-> 3. The logo file — PNG, JPG or WebP (an SVG needs converting first)
+> 3. The logo file, as PNG, JPG or WebP (an SVG needs converting first)
 > 4. What web address this will live at. If you haven't bought one yet, tell me the one you intend
 >    to buy, or just your business name and I'll file it under that for now.
 >
-> Once I have the web address I'll send you a photo page. Drop **every** photograph you have into
-> it: logo, products, the team, the premises, anything from an old site. Names don't matter, and
-> extras are useful. I'll fit them to the pages as I write them, and I'll show you the pages with
-> your photographs in them as soon as the first one is written.
->
 > **A sentence each is plenty:**
 >
-> 5. Your brand colour — a code if you have one, otherwise just name it, or I'll read it off the
+> 5. Your brand colour: a code if you have one, otherwise just name it, or I'll read it off the
 >    logo. No brand colour? Say so and I'll propose three.
 > 6. Who buys from you?
-> 7. What should the site actually make happen — quote requests, explain the range, look credible,
+> 7. What should the site actually make happen: quote requests, explain the range, look credible,
 >    hire people, sell online?
-> 8. How big — homepage only, home plus 2–3 pages, or a full site?
+> 8. How big: homepage only, home plus 2–3 pages, or a full site?
 > 9. Beyond the top banner, what must the homepage cover? (products, industries, case studies,
 >    numbers, customer quotes, careers, contact…)
-> 10. How should it sound — technical, bold, or plain and practical?
+> 10. How should it sound: technical, bold, or plain and practical?
 > 11. Any page you need that I wouldn't think to add? A site you like, or one you'd hate to resemble?
 >
-> **Optional — the site ships without these, but they make it stronger:**
+> **Optional. The site ships without these, but they make it stronger:**
 >
-> 12. Links to you anywhere else online — LinkedIn, Google Business, Facebook, a trade directory.
+> 12. Links to you anywhere else online: LinkedIn, Google Business, Facebook, a trade directory.
 >     This is how Google confirms you're a real company, and it's the most-skipped item here.
 > 13. Certifications, with the exact name ("ISO 9001", not "ISO standards")
 > 14. Roughly how many staff, any awards, which countries or states you cover
 > 15. Key people worth naming, and their qualifications
+>
+> Once I have the web address I'll send you a photo page, and that's the next thing to do. Drop
+> **every** photograph you have into it: logo, products, the team, the premises, anything from an
+> old site. Names don't matter, and extras are useful. I'll fit them to the pages as I write them,
+> and I'll show you the pages with your photographs in them as soon as the first one is written.
 
 **Emit it as markdown, not inside a code block.** The layout above is the whole point of the
 wording: fenced text renders monospace and column-aligned, which reads as a printout rather than a
