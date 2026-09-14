@@ -22,6 +22,13 @@ Two more that catch people out:
 | "the bundle", "the draft", "publish" | "your site as it stands" · "putting it live" |
 | "validator warning", "density floor" | "this section is too short to look finished" |
 | `catalogVersion`, migration, schema | nothing — this is bookkeeping, and saying it invites a question you then have to answer |
+| "SEO/AEO/GEO artifacts are generated server-side after upload, from the company record and the block types I choose" | "what helps people find you is being the same, checkable company everywhere someone looks — so send me your registration details and your links" |
+
+**Never explain the machinery, even when it is true and interesting.** Where something is generated,
+what reads it, which file it lands in, what you chose in order to make it work — none of it changes
+what the client does next, and all of it invites a question you then have to answer. Say what they
+get and what you need from them. The test for a question is whether they could answer it from knowing
+their own business; the test for a statement is whether they could act on it.
 
 The test: could they answer from knowing their own business? If answering needs them to know how the
 site is stored, the sentence is wrong.
@@ -35,6 +42,21 @@ wording belongs in what they read. Adapt the details, keep the substance.
 tool or artefact name. The stage numbering is how you and the operator track the run; to the person
 reading it, it says they are an item being processed. Every word in a script has to be one they could
 have heard from a person who does this for a living.
+
+### Stage 1 — asking for their profiles elsewhere
+
+The highest-value thing on the gap list, and the one that sounds least important, so it needs saying
+in terms of what it buys them:
+
+> One more, and it's the most valuable item left: links to you anywhere else online — LinkedIn, your
+> Google Business listing, an industry directory, a trade association, anywhere you're listed.
+>
+> Being findable has less to do with the words on your site than with being the same, checkable
+> company everywhere someone looks. Your registration details, your address and those profiles are
+> what do that work, so they're worth more than anything I could write.
+
+Say nothing about where the markup is produced or what reads it. They cannot act on it, and it turns
+an easy request into a conversation about infrastructure.
 
 ### Stage 1 — handing over the photo page
 
