@@ -126,16 +126,17 @@ sixteen questions reads as though they are.
 >
 > **Can't build the site without these:**
 >
-> 1. Your company name exactly as registered, and your registration number — Malaysian law requires
->    both on the site, so it won't pass its checks without them
+> 1. Your company name exactly as registered, and your registration number. Malaysian law requires
+>    both to appear on your website, so the site can't go live without them.
 > 2. The phone number and email for the site
 > 3. The logo file — PNG, JPG or WebP (an SVG needs converting first)
-> 4. What web address this will live at — if you haven't bought it yet, the one you intend to buy
+> 4. What web address this will live at. If you haven't bought one yet, tell me the one you intend
+>    to buy, or just your business name and I'll file it under that for now.
 >
 > Once I have the web address I'll send you a photo page. Drop **every** photograph you have into
-> it — logo, products, the team, the premises, anything from an old site. Names don't matter and
-> extras are useful; I'll fit them to the pages as I write them, and you'll see them in the site
-> straight away.
+> it: logo, products, the team, the premises, anything from an old site. Names don't matter, and
+> extras are useful. I'll fit them to the pages as I write them, and I'll show you the pages with
+> your photographs in them as soon as the first one is written.
 >
 > **A sentence each is plenty:**
 >

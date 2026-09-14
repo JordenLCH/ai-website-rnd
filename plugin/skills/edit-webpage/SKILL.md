@@ -144,6 +144,8 @@ theme-touching patch has been through `check-webpage`, and you have said which p
 ## When you don't have a draft to patch
 
 If nothing is held server-side (fresh conversation, no prior `bundle_put`) and you're on the chat
-path with no filesystem, the bundle has to come from somewhere: the person pastes it, or points you
-at a domain you can `bundle_publish`-replace later but cannot currently fetch back down — there is
-no "pull the live bundle" tool. Say that plainly rather than fabricating a bundle to edit.
+path with no filesystem, the bundle has to come from somewhere, and usually it is
+**`bundle_resume(domain)`**: that fetches back what hosting stored at the last `bundle_publish` and
+gives you a `draftId` with the site's photographs already attached. The limit worth knowing is that
+it returns the *published* JSON, so an edit someone made in an earlier chat and never published is
+not in it. If the domain is unknown, ask for it rather than fabricating a bundle to edit.

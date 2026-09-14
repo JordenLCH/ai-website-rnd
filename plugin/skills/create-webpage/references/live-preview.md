@@ -60,6 +60,17 @@ Two ceilings worth knowing before promising anything: **150 pictures or 500 MB p
 single file over 40 MB is refused. No real brief comes close, but "drop in everything you have" is
 the instruction that eventually meets one.
 
+## Resuming: `bundle_resume(domain)`
+
+A draft is held for two hours of inactivity, and the flow now explicitly invites a client to take
+their time over the photographs — so the conversation outliving the draft is the normal case, not an
+edge one. `bundle_resume(domain)` reads back what hosting stored at the last `bundle_publish` and
+returns a fresh `draftId` already pointed at the same upload code, so `site_preview` shows the real
+photographs immediately. Patch it as usual.
+
+What it cannot return is an edit that was never published. That is the practical reason to
+`bundle_publish` at stage 5 and after each stage that changes something: publishing is also the save.
+
 ## The first publish — what it adds to a pool that already exists
 
 `bundle_publish` does two things: it stores the JSON on the hosting side (as a **draft**, not a live

@@ -176,7 +176,10 @@ knows what a picture is of, and so where `alt`, `imageKind` and the art directio
 carries the checklist. Two consequences that bite: a pooled picture's stored name is derived
 server-side (`Showroom Front.JPG` → `showroom-front.webp`), so `src` must be copied from
 `assets_list` rather than invented; and the preview only points `<img>` at uploaded files after the
-first `bundle_publish`, so stage 5 publishes as soon as the home page is real. Design:
+first `bundle_publish`, so stage 5 publishes as soon as the home page is real. That publish is also
+the save: `bundle_resume(domain)` reads the stored JSON back and returns a fresh `draftId` with the
+photographs still attached, which is how a conversation that ended — a client who took three days
+over their pictures — continues instead of being rewritten. Design:
 [`docs/superpowers/specs/2026-09-14-assets-first-upload-design.md`](docs/superpowers/specs/2026-09-14-assets-first-upload-design.md).
 
 The pictures never travel through the conversation — base64 in a transcript is several times the

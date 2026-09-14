@@ -275,9 +275,23 @@ down to one hands them the mode.
 and the client slug, call `assets_open(domain, client)` and hand over the link it returns:
 
 > **Your photo page:** <link>
-> Drop in every photograph you have — logo, products, the team, the premises, anything from an old
-> site. Names don't matter and spares are useful; I'll fit them to the pages as I write them. The
-> link keeps working, so come back whenever you find more.
+> Drop in every photograph you have: logo, products, the team, the premises, anything from an old
+> site. Names don't matter, and spares are useful. I'll fit them to the pages as I write them.
+> Come back to the same link whenever you find more, right up until the site goes live.
+
+**Three answers to have ready**, because each one comes up and none is in the mechanism:
+
+- **Nothing has arrived by stage 2.** Ask once, plainly, and say what it costs: *"No photos yet.
+  Nothing's blocked, but two things need them: the logo decides the colours I propose next, and any
+  page without a picture has to be written to work without one. Even phone snaps of the premises
+  help."* Then carry on, as stage 2's "An empty pool is an answer, not a wait" says.
+- **"Can you take the photos off my old website?"** Not automatically, and not without asking whose
+  they are. If the client owns them they download and drop them in like any other file. If a
+  photographer or a previous agency shot them, the licence may not have come with the site, and that
+  is a question for the client rather than something to assume.
+- **"What happens to my photos if we don't go ahead?"** They are deleted along with the draft, and
+  nothing else keeps a copy. Say so plainly rather than letting them assume either an archive or an
+  exposure.
 
 This used to be a stage 9 question, and putting it last was the mistake: the pages got written
 around filenames that existed nowhere, the client's first sight of their own site was a page of
@@ -648,10 +662,13 @@ what the picture has to show is the only part the client can act on, and the dif
 | the backrest alone on a plain ground | products, third card | square | `cfm-backrest.webp` |
 | the founder, waist-up | about page | portrait | `founder-portrait.webp` |
 
-The last column is **yours, not theirs** — it is the `src` you already wrote, and what a slot is
-called is now invisible to the client. Whatever name their file arrives under, the picture lands in
-the pool and you point the slot at it. Keep the column in your own notes so you know which arrival
-answers which row; do not put it in front of them.
+The last column is **yours**: it is the `src` you already wrote, and it is how you know which
+arrival answers which row. Do not ask the client to use those names — whatever name their file
+arrives under, the picture lands in the pool and you point the slot at it.
+
+But do not tell them the names are invisible either, because the upload page lists them: after the
+first publish its checklist shows each slot's filename in monospace. If they ask what
+`hero-workshop.webp` is, answer from this table — that row's description is exactly what it means.
 
 **For the pictures in this stage's table `alt` is written twice, and the validator polices neither.**
 These are the ones nobody has taken yet, so — unlike everything in the pool, which you can look at —
@@ -710,6 +727,11 @@ new names from `assets_list`, look at them with `assets_view`, and patch the `sr
 one belongs to. And after publishing, uploads answer "this site is published; re-publish from the
 conversation to change it" — a client who was not told that concludes the link died.
 
+**Say the ceiling before they meet it, not after.** A client told "send everything" who is working
+through a decade of photographs hits a plain refusal at file 151. If they mention having hundreds,
+get in first: *"Send the best of them rather than all of them — the page holds 150 pictures, and a
+site this size uses maybe twenty."*
+
 Three limits, if they come up: **40 MB** a file, **2400px** on the longest edge (everything is
 resized down on arrival, so a print-resolution original is not what gets served), and **no SVG** —
 a logo needs PNG or WebP. Photo metadata is dropped in re-encoding, which matters to anyone who
@@ -765,6 +787,13 @@ Two things the sub-skill cannot know, because they are this pipeline's:
   the validator performs with it.
 
 ### 10. Hand off
+
+**A conversation that ends is not a site that is lost.** `bundle_resume(domain)` fetches the stored
+`site.json`, `theme.json` and `org.json` back from hosting and hands you a fresh `draftId`, with the
+uploaded photographs still attached — so a client who takes three days over their pictures, or a chat
+that was closed, costs one call rather than rewriting the site from the brief. It reads what hosting
+stored at the **last `bundle_publish`**, which is the other reason to publish at stage 5 and after
+every stage that changes anything: an edit made and never published is not in there to resume.
 Validate, preview one last time, then `bundle_publish` — the domain, the bundle, and `org.json`,
 which is required because the entity graph is built from it alone and a site without one is refused
 here rather than at upload. The client has had the upload link since stage 1, so this call
@@ -790,6 +819,15 @@ address is connected afterwards, **by the Blackdash team, not by them**:
 
 > Your site is live: **john-com-my.pages.dev**. That address works right now, you can send it to
 > anyone. It's on the upload page too, once the build finishes.
+
+**Read `deploying` and `url` in the publish response before you say any of that.** Hosting only
+deploys when it has Cloudflare credentials; without them the build still succeeds, the site is still
+marked published, and **no address exists anywhere** — the green panel on the upload page does not
+render either. Announcing a `.pages.dev` hostname in that state hands somebody a link to nothing.
+When `deploying` is false, say so instead:
+
+> The site is built and everything is in place. It isn't on a public address yet: that's a step on
+> our side, and the team will sort it and send you the link.
 >
 > Want it on **john.com.my** instead? Talk to the Blackdash team and we'll take you through the next
 > step. Same site, same pages, with your own name in front.
